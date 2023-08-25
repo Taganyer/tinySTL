@@ -53,14 +53,42 @@ namespace STD {
 
         void push_back(Arg &val);
 
+        void pop_back();
+
         template<typename ...args>
         Iterator emplace(Size pos, args &&...vals);
 
         Iterator insert(Size pos, const Arg &val);
 
+        Iterator erase(Size pos);
+
         Arg &operator[](Size pos);
 
+        Vector<Arg> &operator=(const Vector<Arg> &other);
+
+        template<typename Type>
+        friend bool operator==(const Vector<Type> &left, const Vector<Type> &right);
+
+        template<typename Type>
+        friend bool operator!=(const Vector<Type> &left, const Vector<Type> &right);
+
+        template<typename Type>
+        friend bool operator<(const Vector<Type> &left, const Vector<Type> &right);
+
+        template<typename Type>
+        friend bool operator<=(const Vector<Type> &left, const Vector<Type> &right);
+
+        template<typename Type>
+        friend bool operator>(const Vector<Type> &left, const Vector<Type> &right);
+
+        template<typename Type>
+        friend bool operator>=(const Vector<Type> &left, const Vector<Type> &right);
+
         Arg &at(Size pos);
+
+        Arg &front();
+
+        Arg &back();
 
         Iterator begin();
 
@@ -68,10 +96,15 @@ namespace STD {
 
     };
 
+//----------------------------------------------------------------------------------------------------------------------
+
     template<typename Arg>
     class Vector<Arg>::Iterator : public Iter<Arg> {
     protected:
         using Iter<Arg>::target;
+
+        Shared_ptr<Iter<Arg>> deep_copy() override;
+
     public:
         explicit Iterator(Arg *ptr) : Iter<Arg>(ptr) {};
 
@@ -99,44 +132,60 @@ namespace STD {
 
         const Iterator operator--(int) &;
 
-        friend bool operator>(const Vector<Arg>::Iterator &left, const Vector<Arg>::Iterator &right);
+        template<typename Type>
+        friend bool
+        operator>(const typename Vector<Type>::Iterator &left, const typename Vector<Type>::Iterator &right);
 
-        friend bool operator<(const Vector<Arg>::Iterator &left, const Vector<Arg>::Iterator &right);
+        template<typename Type>
+        friend bool
+        operator<(const typename Vector<Type>::Iterator &left, const typename Vector<Type>::Iterator &right);;
 
-        friend bool operator>=(const Vector<Arg>::Iterator &left, const Vector<Arg>::Iterator &right);
+        template<typename Type>
+        friend bool
+        operator>=(const typename Vector<Type>::Iterator &left, const typename Vector<Type>::Iterator &right);;
 
-        friend bool operator<=(const Vector<Arg>::Iterator &left, const Vector<Arg>::Iterator &right);
+        template<typename Type>
+        friend bool
+        operator<=(const typename Vector<Type>::Iterator &left, const typename Vector<Type>::Iterator &right);;
 
-        friend long long operator-(const Vector<Arg>::Iterator &left, const Vector<Arg>::Iterator &right);
+        template<typename Type>
+        friend long long
+        operator-(const typename Vector<Type>::Iterator &left, const typename Vector<Type>::Iterator &right);;
 
         ~Iterator() = default;
     };
 
 //----------------------------------------------------------------------------------------------------------------------
 
+
     template<typename Arg>
+    Shared_ptr<Iter<Arg>> Vector<Arg>::Iterator::deep_copy() {
+        return Shared_ptr<Vector<Arg>::Iterator>(*this);
+    }
+
+    template<typename Type>
     inline long long
-    operator-(const typename Vector<Arg>::Iterator &left, const typename Vector<Arg>::Iterator &right) {
+    operator-(const typename Vector<Type>::Iterator &left, const typename Vector<Type>::Iterator &right) {
         return left.target - right.target;
     }
 
-    template<typename Arg>
-    inline bool operator<=(const typename Vector<Arg>::Iterator &left, const typename Vector<Arg>::Iterator &right) {
+    template<typename Type>
+    inline bool operator<=(const typename Vector<Type>::Iterator &left, const typename Vector<Type>::Iterator &right) {
         return left.target <= right.target;
     }
 
-    template<typename Arg>
-    inline bool operator>=(const typename Vector<Arg>::Iterator &left, const typename Vector<Arg>::Iterator &right) {
+    template<typename Type>
+    inline bool operator>=(const typename Vector<Type>::Iterator &left, const typename Vector<Type>::Iterator &right) {
         return left.target >= right.target;
     }
 
-    template<typename Arg>
-    inline bool operator<(const typename Vector<Arg>::Iterator &left, const typename Vector<Arg>::Iterator &right) {
+    template<typename Type>
+    inline bool operator<(const typename Vector<Type>::Iterator &left, const typename Vector<Type>::Iterator &right) {
         return left.target < right.target;
     }
 
-    template<typename Arg>
-    inline bool operator>(const typename Vector<Arg>::Iterator &left, const typename Vector<Arg>::Iterator &right) {
+    template<typename Type>
+    inline bool operator>(const typename Vector<Type>::Iterator &left, const typename Vector<Type>::Iterator &right) {
         return left.target > right.target;
     }
 
@@ -230,7 +279,11 @@ namespace STD {
     Vector<Arg>::Vector(const Vector<Arg> &other) : size_(other.size_), val_begin(Allocate_n<Arg>(other.capacity())) {
         val_end = val_begin + size_;
         store_end = val_begin + other.capacity();
-        for (int i = 0; i < size_; ++i) *(val_begin + i) = *(other.val_begin + i);
+        auto l = val_begin, r = other.val_begin;
+        for (int i = 0; i < size_; ++i) {
+            *l = *r;
+            ++l, ++r;
+        }
     }
 
     template<typename Arg>
@@ -240,14 +293,6 @@ namespace STD {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-    template<typename Arg>
-    void Vector<Arg>::init(Size size, Arg arg) {
-        Arg *temp = val_begin;
-        for (Size i = 0; i < size; ++i) {
-            *temp = arg;
-            ++temp;
-        }
-    }
 
     template<typename Arg>
     void Vector<Arg>::reallocate(Size size) {
@@ -315,6 +360,19 @@ namespace STD {
     }
 
     template<typename Arg>
+    typename Vector<Arg>::Iterator Vector<Arg>::erase(Size pos) {
+        if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'erase' function");
+        auto now = val_begin + pos, next = now + 1;
+        now->~Arg();
+        while (next != val_end) {
+            *now = move(*next);
+            ++now, ++next;
+        }
+        --val_end;
+        --size_;
+    }
+
+    template<typename Arg>
     template<typename... args>
     void Vector<Arg>::emplace_back(args &&... vals) {
         if (capacity() <= size_)
@@ -331,6 +389,14 @@ namespace STD {
         *(val_begin + size_) = val;
         ++size_;
         ++val_end;
+    }
+
+    template<typename Arg>
+    void Vector<Arg>::pop_back() {
+        if (size_) {
+            (--val_end)->~Arg();
+            --size_;
+        }
     }
 
     template<typename Arg>
@@ -355,6 +421,72 @@ namespace STD {
     template<typename Arg>
     Arg &Vector<Arg>::operator[](Size pos) {
         return *(val_begin + pos);
+    }
+
+    template<typename Arg>
+    Vector<Arg> &Vector<Arg>::operator=(const Vector<Arg> &other) {
+        Deallocate_n(val_begin);
+        size_ = other.size_;
+        val_begin = Allocate_n<Arg>(other.capacity());
+        val_end = val_begin + size_;
+        store_end = val_begin + other.capacity();
+        auto l = val_begin, r = other.val_begin;
+        for (int i = 0; i < size_; ++i) {
+            *l = *r;
+            ++l, ++r;
+        }
+    }
+
+    template<typename Type>
+    bool operator==(const Vector<Type> &left, const Vector<Type> &right) {
+        auto l = left.val_begin, r = right.val_begin;
+        while (l != left.val_end && r != right.val_end) {
+            if (*l != *r) return false;
+            ++l, ++r;
+        }
+        return l == left.val_end && r == right.val_end;
+    }
+
+    template<typename Type>
+    bool operator!=(const Vector<Type> &left, const Vector<Type> &right) {
+        return !(left == right);
+    }
+
+    template<typename Type>
+    bool operator<(const Vector<Type> &left, const Vector<Type> &right) {
+        auto l = left.val_begin, r = right.val_begin;
+        while (l != left.val_end && r != right.val_end) {
+            if (*l != *r) return *l < *r;
+            ++l, ++r;
+        }
+        return l == left.val_end && r != right.val_end;
+    }
+
+    template<typename Type>
+    bool operator<=(const Vector<Type> &left, const Vector<Type> &right) {
+        return left == right || left < right;
+    }
+
+    template<typename Type>
+    bool operator>(const Vector<Type> &left, const Vector<Type> &right) {
+        return left != right && !(left < right);
+    }
+
+    template<typename Type>
+    bool operator>=(const Vector<Type> &left, const Vector<Type> &right) {
+        return !(left < right);
+    }
+
+    template<typename Arg>
+    Arg &Vector<Arg>::front() {
+        if (!size_) throw outOfRange("You're accessing a non-existent element in the 'front()' function");
+        return *val_begin;
+    }
+
+    template<typename Arg>
+    Arg &Vector<Arg>::back() {
+        if (!size_) throw outOfRange("You're accessing a non-existent element in the 'back()' function");
+        return *(val_end - 1);
     }
 
     template<typename Arg>

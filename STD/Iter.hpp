@@ -5,11 +5,16 @@
 #ifndef TINYSTL_ITER_HPP
 #define TINYSTL_ITER_HPP
 
+#include "smart_ptr.hpp"
+
 namespace STD {
     template<typename Type>
     class Iter {
     protected:
         Type *target = nullptr;
+
+        virtual Shared_ptr<Iter<Type>> deep_copy();
+
     public:
         explicit Iter(Type *ptr) : target(ptr) {};
 
@@ -38,6 +43,11 @@ namespace STD {
             return left.target != right.target;
         }
     };
+
+    template<typename Type>
+    Shared_ptr<Iter<Type>> Iter<Type>::deep_copy() {
+       return Shared_ptr<Iter<Type>>(*this);
+    }
 
 
     template<typename Type>
