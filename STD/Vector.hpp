@@ -48,6 +48,10 @@ namespace STD {
 
         void clear(bool whether_to_release = false);
 
+        void shirk_to_fit();
+
+        void assign(Iter<Arg> &begin, Iter<Arg> &end);
+
         template<typename ...args>
         void emplace_back(args &&...vals);
 
@@ -428,7 +432,8 @@ namespace STD {
 
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::erase(const Vector::Iterator &begin) {
-        if (begin.target < val_begin) throw outOfRange("You passed in an out-of-range iterator in the 'erase' function");
+        if (begin.target < val_begin)
+            throw outOfRange("You passed in an out-of-range iterator in the 'erase' function");
         auto temp(begin.target);
         while (temp < val_end) {
             temp->~Arg();
@@ -528,6 +533,41 @@ namespace STD {
             val_end = val_begin;
         }
         size_ = 0;
+    }
+
+    template<typename Arg>
+    void Vector<Arg>::shirk_to_fit() {
+        if (capacity() == size_) return;
+        else if (!size_) {
+            Deallocate_n(val_begin);
+            val_begin = store_end = val_end = nullptr;
+            return;
+        }
+        auto temp = Allocate_n<Arg>(size_);
+        for (int i = 0; i < size_; ++i) {
+            *temp = *val_begin;
+            ++temp, ++val_begin;
+        }
+        Deallocate_n(val_begin - size_);
+        store_end = val_end = temp;
+        val_begin = temp - size_;
+    }
+
+    template<typename Arg>
+    void Vector<Arg>::assign(Iter<Arg> &begin, Iter<Arg> &end) {
+        Deallocate_n(val_begin);
+        auto temp = begin.deep_copy();
+        Size count = 0;
+        while (*temp != end) ++(*temp), ++count;
+        temp = begin.deep_copy();
+        auto t = Allocate_n<Arg>(count);
+        while (*temp != end) {
+            *t = **temp;
+            ++t, ++(*temp);
+        }
+        store_end = val_end = t;
+        val_begin = t - count;
+        size_ = count;
     }
 
     template<typename Arg>
