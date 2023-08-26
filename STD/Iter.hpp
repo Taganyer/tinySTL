@@ -13,9 +13,9 @@ namespace STD {
     protected:
         Type *target = nullptr;
 
-        virtual Shared_ptr<Iter<Type>> deep_copy();
-
     public:
+        virtual Shared_ptr<Iter<Type>> deep_copy() const;
+
         explicit Iter(Type *ptr) : target(ptr) {};
 
         virtual Type &operator*() const { return *target; };
@@ -45,7 +45,7 @@ namespace STD {
     };
 
     template<typename Type>
-    Shared_ptr<Iter<Type>> Iter<Type>::deep_copy() {
+    Shared_ptr<Iter<Type>> Iter<Type>::deep_copy() const {
        return Shared_ptr<Iter<Type>>(*this);
     }
 

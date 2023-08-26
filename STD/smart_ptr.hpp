@@ -16,12 +16,14 @@ namespace STD {
 
         Arg *target;
 
-        inline explicit Shared_ptr(Arg *target, Size *count);
+        void (*deleter) (Arg*);
+
+        inline explicit Shared_ptr(Arg *target, Size *count, void (*del) (Arg*) = Deallocate<Arg>);
 
     public:
-        explicit Shared_ptr(const Arg &val);
+        explicit Shared_ptr(const Arg &val, void (*del) (Arg*) = Deallocate<Arg>);
 
-        explicit Shared_ptr(Arg &&val);
+        explicit Shared_ptr(Arg &&val, void (*del) (Arg*) = Deallocate<Arg>);
 
         Shared_ptr(const Shared_ptr<Arg> &other);
 
@@ -64,29 +66,29 @@ namespace STD {
     template<typename Target, typename Object>
     Shared_ptr<Target> static_pointer_cast(Shared_ptr<Object> object) noexcept {
         auto *ptr = static_cast<Target*>(object.get());
-        *(++object.count);
-        return Shared_ptr<Target>(ptr, object.count);
+        ++(*object.count);
+        return Shared_ptr<Target>(ptr, object.count, Deallocate);
     }
 
     template<typename Target, typename Object>
     Shared_ptr<Target> dynamic_pointer_cast(Shared_ptr<Object> object) noexcept {
         auto *ptr = static_cast<Target*>(object.get());
-        *(++object.count);
-        return Shared_ptr<Target>(ptr, object.count);
+        ++(*object.count);
+        return Shared_ptr<Target>(ptr, object.count, Deallocate);
     }
 
     template<typename Target, typename Object>
     Shared_ptr<Target> const_pointer_cast(Shared_ptr<Object> object) noexcept {
         auto *ptr = const_cast<Target*>(object.get());
-        *(++object.count);
-        return Shared_ptr<Target>(ptr, object.count);
+        ++(*object.count);
+        return Shared_ptr<Target>(ptr, object.count, Deallocate);
     }
 
     template<typename Target, typename Object>
     Shared_ptr<Target> reinterpret_pointer_cast(Shared_ptr<Object> object) noexcept {
         auto *ptr = reinterpret_cast<Target*>(object.get());
         *(++object.count);
-        return Shared_ptr<Target>(ptr, object.count);
+        return Shared_ptr<Target>(ptr, object.count, Deallocate);
     }
 
     template<typename Arg>
@@ -96,16 +98,16 @@ namespace STD {
     }
 
     template<typename Arg>
-    Shared_ptr<Arg>::Shared_ptr(Arg *target, Size *count) : target(target), count(count) {}
+    Shared_ptr<Arg>::Shared_ptr(Arg *target, Size *count, void (*del) (Arg*)) : target(target), count(count), deleter(del) {}
 
     template<typename Arg>
-    Shared_ptr<Arg>::Shared_ptr(const Arg &val) : target(Allocate(val)), count(Allocate(Size(1))) {}
+    Shared_ptr<Arg>::Shared_ptr(const Arg &val, void (*del) (Arg*)) : target(Allocate(val)), count(Allocate(Size(1))), deleter(del) {}
 
     template<typename Arg>
-    Shared_ptr<Arg>::Shared_ptr(Arg &&val) : target(Allocate(move(val))), count(Allocate(Size(1))) {}
+    Shared_ptr<Arg>::Shared_ptr(Arg &&val, void (*del) (Arg*)) : target(Allocate(move(val))), count(Allocate(Size(1))), deleter(del) {}
 
     template<typename Arg>
-    Shared_ptr<Arg>::Shared_ptr(const Shared_ptr<Arg> &other) : count(other.count), target(other.target) {
+    Shared_ptr<Arg>::Shared_ptr(const Shared_ptr<Arg> &other) : count(other.count), target(other.target), deleter(other.deleter) {
         ++(*count);
     }
 
@@ -113,7 +115,7 @@ namespace STD {
     Shared_ptr<Arg>::~Shared_ptr() {
         --(*count);
         if (!*count) {
-            Deallocate(target);
+            deleter(target);
             Deallocate(count);
         }
     }
@@ -124,6 +126,7 @@ namespace STD {
         --(*count);
         count = other.count;
         target = other.target;
+        deleter = other.deleter;
         ++(*count);
         return temp;
     }
@@ -133,11 +136,12 @@ namespace STD {
         if (count == other.count) return *this;
         --(*count);
         if (!*count) {
-            Deallocate(target);
+            deleter(target);
             Deallocate(count);
         }
         count = other.count;
         target = other.target;
+        deleter = other.deleter;
         ++(*count);
         return *this;
     }
@@ -147,6 +151,7 @@ namespace STD {
         if (count == other.count) return;
         STD::swap(target, other.target);
         STD::swap(count, other.count);
+        STD::swap(deleter, other.deleter);
     }
 
     template<typename Arg, typename ...args>
