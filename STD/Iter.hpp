@@ -8,6 +8,7 @@
 #include "smart_ptr.hpp"
 
 namespace STD {
+
     template<typename Type>
     class Iter {
     protected:
@@ -17,6 +18,8 @@ namespace STD {
         virtual Shared_ptr<Iter<Type>> deep_copy() const;
 
         explicit Iter(Type *ptr) : target(ptr) {};
+
+        virtual ~Iter() = default;
 
         virtual Type &operator*() const { return *target; };
 
@@ -30,7 +33,7 @@ namespace STD {
             return *this;
         };
 
-        virtual Iter<Type> &operator++() & {
+        virtual Iter<Type> &operator++() &{
             ++target;
             return *this;
         };
@@ -46,155 +49,60 @@ namespace STD {
 
     template<typename Type>
     Shared_ptr<Iter<Type>> Iter<Type>::deep_copy() const {
-       return Shared_ptr<Iter<Type>>(*this);
+        return Shared_ptr<Iter<Type>>(*this);
     }
 
+//----------------------------------------------------------------------------------------------------------------------
 
     template<typename Type>
     class cIter {
     protected:
         Type *target = nullptr;
+
+        virtual cIter<Type> &operator=(Type *ptr) {
+            target = ptr;
+            return *this;
+        }
+
     public:
+        virtual Shared_ptr<cIter<Type>> deep_copy() const;
+
         explicit cIter(Type *ptr) : target(ptr) {};
 
-        inline const decltype(*target) operator*() {
+        virtual ~cIter() = default;
+
+        virtual const Type &operator*() const {
             return *target;
         };
 
-        inline cIter<Type> &operator=(const cIter<Type> &other) {
+        cIter<Type> &operator=(const cIter<Type> &other) {
             this->target = other.target;
             return *this;
         };
 
-        inline cIter<Type> &operator=(const Type *&ptr) {
-            target = ptr;
-            return *this;
-        }
-
-        virtual inline cIter<Type> &operator++() &{
+        virtual cIter<Type> &operator++() &{
             ++target;
             return *this;
         };
 
-        virtual inline const cIter<Type> operator++(int) &{
-            auto temp = *this;
-            ++target;
-            return temp;
+        virtual const cIter<Type> operator++(int) {
+            return cIter<Type>(target++);
         };
 
-        inline friend bool operator==(const cIter<Type> &left, const cIter<Type> &right) {
+        friend bool operator==(const cIter<Type> &left, const cIter<Type> &right) {
             return left.target == right.target;
         }
 
-        inline friend bool operator!=(const cIter<Type> &left, const cIter<Type> &right) {
-            return left.target != right.target;
-        }
-    };
-
-
-    template<typename Type>
-    class rIter {
-    protected:
-        Type *target = nullptr;
-    public:
-        explicit rIter(Type *ptr) : target(ptr) {};
-
-        inline decltype(*target) operator*() {
-            return *target;
-        };
-
-        inline rIter<Type> &operator=(const rIter<Type> &other) {
-            if (this->target != other.target) this->target = other.target;
-            return *this;
-        };
-
-        inline rIter<Type> &operator=(const Type *&ptr) {
-            target = ptr;
-            return *this;
-        }
-
-        virtual inline rIter<Type> &operator++() &{
-            --target;
-            return *this;
-        };
-
-        virtual inline const rIter<Type> operator++(int) &{
-            auto temp = *this;
-            --target;
-            return temp;
-        };
-
-        virtual inline rIter<Type> &operator--() &{
-            ++target;
-            return *this;
-        };
-
-        virtual inline const rIter<Type> operator--(int) &{
-            auto temp = *this;
-            ++target;
-            return temp;
-        };
-
-        inline friend bool operator==(const rIter<Type> &left, const rIter<Type> &right) {
-            return left.target == right.target;
-        }
-
-        inline friend bool operator!=(const rIter<Type> &left, const rIter<Type> &right) {
+        friend bool operator!=(const cIter<Type> &left, const cIter<Type> &right) {
             return left.target != right.target;
         }
     };
 
     template<typename Type>
-    class crIter {
-    protected:
-        Type *target = nullptr;
-    public:
-        explicit crIter(Type *ptr) : target(ptr) {};
+    Shared_ptr<cIter<Type>> cIter<Type>::deep_copy() const {
+        return Shared_ptr<cIter<Type>>(*this);
+    }
 
-        inline const decltype(*target) operator*() {
-            return *target;
-        };
-
-        inline crIter<Type> &operator=(const crIter<Type> &other) {
-            if (this->target != other.target) this->target = other.target;
-            return *this;
-        };
-
-        inline crIter<Type> &operator=(const Type *&ptr) {
-            target = ptr;
-            return *this;
-        }
-
-        virtual inline crIter<Type> &operator++() &{
-            --target;
-            return *this;
-        };
-
-        virtual inline const crIter<Type> operator++(int) &{
-            auto temp = *this;
-            --target;
-            return temp;
-        };
-
-        virtual inline crIter<Type> &operator--() &{
-            ++target;
-            return *this;
-        };
-
-        virtual inline const crIter<Type> operator--(int) &{
-            auto temp = *this;
-            ++target;
-            return temp;
-        }
-
-        inline friend bool operator==(const crIter<Type> &left, const crIter<Type> &right) {
-            return left.target == right.target;
-        }
-
-        inline friend bool operator!=(const crIter<Type> &left, const crIter<Type> &right) {
-            return left.target != right.target;
-        }
-    };
 }
 
 #endif //TINYSTL_ITER_HPP

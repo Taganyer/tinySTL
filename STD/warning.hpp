@@ -8,7 +8,7 @@
 #include <iostream>
 
 namespace STD {
-class Exception : public std::exception{
+    class Exception : public std::exception {
     private:
         const char *message = nullptr;
     public:
@@ -16,7 +16,7 @@ class Exception : public std::exception{
 
         explicit Exception(const char *note) : message(note) {};
 
-        virtual void Message() const { std::cout << message; };
+        const char* what() const noexcept override { return message;};
 
         ~Exception() override = default;
     };

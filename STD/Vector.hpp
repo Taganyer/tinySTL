@@ -27,7 +27,13 @@ namespace STD {
 
         class Iterator;
 
-        Vector();
+        class cIterator;
+
+//        class rIterator;
+//
+//        class crIterator;
+
+        Vector() = default;
 
         Vector(Size size, Arg target = Arg());
 
@@ -50,7 +56,7 @@ namespace STD {
 
         void shirk_to_fit();
 
-        void assign(Iter<Arg> &begin, Iter<Arg> &end);
+        void assign(const Iter<Arg> &begin, const Iter<Arg> &end);
 
         template<typename ...args>
         void emplace_back(args &&...vals);
@@ -108,148 +114,10 @@ namespace STD {
 
     };
 
-
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg>
-    class Vector<Arg>::Iterator : public Iter<Arg> {
-    protected:
-        using Iter<Arg>::target;
-
-    public:
-        friend class Vector<Arg>;
-
-        Shared_ptr<Iter<Arg>> deep_copy() const override;
-
-        explicit Iterator(Arg *ptr) : Iter<Arg>(ptr) {};
-
-        Iterator(const Iterator &other) : Iter<Arg>(other.target) {};
-
-        Iterator &operator=(Arg *ptr) override;
-
-        Iterator &operator=(const Iterator &other);
-
-        Arg &operator*() const override;
-
-        Iterator &operator++() & override;
-
-        const Iterator operator++(int) &;
-
-        Iterator operator+(Size size);
-
-        Iterator operator-(Size size);
-
-        Iterator &operator+=(Size size);
-
-        Iterator &operator-=(Size size);
-
-        Iterator &operator--() &;
-
-        const Iterator operator--(int) &{ return Vector<Arg>::Iterator(target--); };
-
-        template<typename Type>
-        friend bool
-        operator==(const Iterator &left, const Iterator &right) { return left.target == right.target; };
-
-        template<typename Type>
-        friend bool
-        operator!=(const Iterator &left, const Iterator &right) { return left.target != right.target; };
-
-        friend bool
-        operator>(const Iterator &left, const Iterator &right) { return left.target > right.target; };
-
-        friend bool
-        operator<(const Iterator &left, const Iterator &right) { return left.target < right.target; };
-
-        friend bool
-        operator>=(const Iterator &left, const Iterator &right) { return left.target >= right.target; };
-
-        friend bool
-        operator<=(const Iterator &left, const Iterator &right) { return left.target <= right.target; };
-
-        friend long long
-        operator-(const Iterator &left, const Iterator &right) { return left.target - right.target; };
-
-        ~Iterator() = default;
-    };
-
-
-//----------------------------------------------------------------------------------------------------------------------
-
-
-    template<typename Arg>
-    Shared_ptr<Iter<Arg>> Vector<Arg>::Iterator::deep_copy() const {
-        return Shared_ptr<Vector<Arg>::Iterator>(*this);
-    }
-
-    template<typename Arg>
-    inline typename Vector<Arg>::Iterator &Vector<Arg>::Iterator::operator--() &{
-        --target;
-        return *this;
-    }
-
-    template<typename Arg>
-    typename Vector<Arg>::Iterator &Vector<Arg>::Iterator::operator-=(Size size) {
-        if (target - size < val_begin) throw outOfRange("You subtracted an out-of-range value to the function\n");
-        target -= size;
-        return *this;
-    }
-
-    template<typename Arg>
-    typename Vector<Arg>::Iterator &Vector<Arg>::Iterator::operator+=(Size size) {
-        if (target + size >= val_end) throw outOfRange("You added an out-of-range value to the function\n");
-        target += size;
-        return *this;
-    }
-
-    template<typename Arg>
-    typename Vector<Arg>::Iterator Vector<Arg>::Iterator::operator-(Size size) {
-        if (target - size < val_begin) throw outOfRange("You subtracted an out-of-range value to the function\n");
-        return Vector<Arg>::Iterator(target - size);
-    }
-
-    template<typename Arg>
-    typename Vector<Arg>::Iterator Vector<Arg>::Iterator::operator+(Size size) {
-        if (target + size >= val_end) throw outOfRange("You added an out-of-range value to the function\n");
-        return Vector<Arg>::Iterator(target + size);
-    }
-
-    template<typename Arg>
-    inline const typename Vector<Arg>::Iterator Vector<Arg>::Iterator::operator++(int) &{
-        Arg *temp = target++;
-        return Vector<Arg>::Iterator(temp);
-    }
-
-    template<typename Arg>
-    inline typename Vector<Arg>::Iterator &Vector<Arg>::Iterator::operator++() &{
-        ++target;
-        return *this;
-    }
-
-    template<typename Arg>
-    inline Arg &Vector<Arg>::Iterator::operator*() const {
-        return *target;
-    }
-
-    template<typename Arg>
-    inline typename Vector<Arg>::Iterator &Vector<Arg>::Iterator::operator=(const Vector<Arg>::Iterator &other) {
-        this->target = other.target;
-        return *this;
-    }
-
-    template<typename Arg>
-    inline typename Vector<Arg>::Iterator &Vector<Arg>::Iterator::operator=(Arg *ptr) {
-        target = ptr;
-        return *this;
-    }
-
-//----------------------------------------------------------------------------------------------------------------------
-
-    template<typename Arg>
-    Vector<Arg>::Vector() = default;
-
-    template<typename Arg>
-    Vector<Arg>::Vector(Size size, Arg target) : val_begin(Allocate_n<Arg>(size + size / 5)) {
+    Vector<Arg>::Vector(Size size, Arg target) : val_begin(Allocate_n<Arg>(size + size / 5)), size_(size) {
         val_end = val_begin + size;
         store_end = val_begin + size + size / 5;
         fill_with(size, target);
@@ -554,7 +422,7 @@ namespace STD {
     }
 
     template<typename Arg>
-    void Vector<Arg>::assign(Iter<Arg> &begin, Iter<Arg> &end) {
+    void Vector<Arg>::assign(const Iter<Arg> &begin, const Iter<Arg> &end) {
         Deallocate_n(val_begin);
         auto temp = begin.deep_copy();
         Size count = 0;
@@ -593,6 +461,7 @@ namespace STD {
             *l = *r;
             ++l, ++r;
         }
+        return *this;
     }
 
     template<typename Type>
@@ -655,6 +524,229 @@ namespace STD {
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::end() {
         return Vector<Arg>::Iterator(val_end);
+    }
+
+
+//----------------------------------------------------------------------------------------------------------------------
+
+    template<typename Arg>
+    class Vector<Arg>::Iterator : public Iter<Arg> {
+    protected:
+        using Iter<Arg>::target;
+
+        Iterator &operator=(Arg *ptr) override {
+            target = ptr;
+            return *this;
+        };
+
+    public:
+        friend class Vector<Arg>;
+
+        Shared_ptr<Iter<Arg>> deep_copy() const override;
+
+        explicit Iterator(Arg *ptr) : Iter<Arg>(ptr) {};
+
+        Iterator(const Iterator &other) : Iter<Arg>(other.target) {};
+
+        ~Iterator() = default;
+
+        Iterator &operator=(const Iterator &other) {
+            target = other.target;
+            return *this;
+        };
+
+        Arg &operator*() const override { return *target; };
+
+        Iterator &operator++() & override {
+            ++target;
+            return *this;
+        };
+
+        const Iterator operator++(int) &{ return Vector<Arg>::Iterator(target++); };
+
+        Iterator &operator--() &{
+            --target;
+            return *this;
+        };
+
+        const Iterator operator--(int) &{ return Vector<Arg>::Iterator(target--); };
+
+        Iterator operator+(Size size);
+
+        Iterator operator-(Size size);
+
+        Iterator &operator+=(Size size);
+
+        Iterator &operator-=(Size size);
+
+        template<typename Type>
+        friend bool
+        operator==(const Iterator &left, const Iterator &right) { return left.target == right.target; };
+
+        template<typename Type>
+        friend bool
+        operator!=(const Iterator &left, const Iterator &right) { return left.target != right.target; };
+
+        friend bool
+        operator>(const Iterator &left, const Iterator &right) { return left.target > right.target; };
+
+        friend bool
+        operator<(const Iterator &left, const Iterator &right) { return left.target < right.target; };
+
+        friend bool
+        operator>=(const Iterator &left, const Iterator &right) { return left.target >= right.target; };
+
+        friend bool
+        operator<=(const Iterator &left, const Iterator &right) { return left.target <= right.target; };
+
+        friend long long
+        operator-(const Iterator &left, const Iterator &right) { return left.target - right.target; };
+    };
+
+//----------------------------------------------------------------------------------------------------------------------
+
+    template<typename Arg>
+    class Vector<Arg>::cIterator : public cIter<Arg> {
+    protected:
+        using cIter<Arg>::target;
+
+        cIterator &operator=(Arg *ptr) override {
+            target = ptr;
+            return *this;
+        };
+
+    public:
+        friend class Vector<Arg>;
+
+        Shared_ptr<cIter<Arg>> deep_copy() const override;
+
+        explicit cIterator(Arg *ptr) : cIter<Arg>(ptr) {};
+
+        cIterator(const cIterator &other) : cIter<Arg>(other.target) {};
+
+        ~cIterator() override = default;
+
+        cIterator &operator=(const cIterator &other) {
+            target = other.target;
+            return *this;
+        };
+
+        const Arg &operator*() const override { return *target; };
+
+        cIterator &operator++() &{
+            ++target;
+            return *this;
+        };
+
+        const cIterator operator++(int) { return Vector<Arg>::cIterator(target++); };
+
+        cIterator operator+(Size size);
+
+        cIterator operator-(Size size);
+
+        cIterator &operator+=(Size size);
+
+        cIterator &operator-=(Size size);
+
+        cIterator &operator--() &{
+            --target;
+            return *this;
+        };
+
+        const cIterator operator--(int) &{ return Vector<Arg>::cIterator(target--); };
+
+        template<typename Type>
+        friend bool
+        operator==(const cIterator &left, const cIterator &right) { return left.target == right.target; };
+
+        template<typename Type>
+        friend bool
+        operator!=(const cIterator &left, const cIterator &right) { return left.target != right.target; };
+
+        friend bool
+        operator>(const cIterator &left, const cIterator &right) { return left.target > right.target; };
+
+        friend bool
+        operator<(const cIterator &left, const cIterator &right) { return left.target < right.target; };
+
+        friend bool
+        operator>=(const cIterator &left, const cIterator &right) { return left.target >= right.target; };
+
+        friend bool
+        operator<=(const cIterator &left, const cIterator &right) { return left.target <= right.target; };
+
+        friend long long
+        operator-(const cIterator &left, const cIterator &right) { return left.target - right.target; };
+    };
+
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
+    template<typename Arg>
+    Shared_ptr<Iter<Arg>> Vector<Arg>::Iterator::deep_copy() const {
+        return Shared_ptr<Vector<Arg>::Iterator>(*this);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::Iterator &Vector<Arg>::Iterator::operator-=(Size size) {
+        if (target - size < val_begin) throw outOfRange("You subtracted an out-of-range value to the function\n");
+        target -= size;
+        return *this;
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::Iterator &Vector<Arg>::Iterator::operator+=(Size size) {
+        if (target + size >= val_end) throw outOfRange("You added an out-of-range value to the function\n");
+        target += size;
+        return *this;
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::Iterator Vector<Arg>::Iterator::operator-(Size size) {
+        if (target - size < val_begin) throw outOfRange("You subtracted an out-of-range value to the function\n");
+        return Vector<Arg>::Iterator(target - size);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::Iterator Vector<Arg>::Iterator::operator+(Size size) {
+        if (target + size >= val_end) throw outOfRange("You added an out-of-range value to the function\n");
+        return Vector<Arg>::Iterator(target + size);
+    }
+
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
+    template<typename Arg>
+    Shared_ptr<cIter<Arg>> Vector<Arg>::cIterator::deep_copy() const {
+        return Shared_ptr<Vector<Arg>::cIterator>(*this);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::cIterator Vector<Arg>::cIterator::operator-(Size size) {
+        if (target - size < val_begin) throw outOfRange("You subtracted an out-of-range value to the function\n");
+        return Vector<Arg>::cIterator(target - size);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::cIterator Vector<Arg>::cIterator::operator+(Size size) {
+        if (target + size >= val_end) throw outOfRange("You added an out-of-range value to the function\n");
+        return Vector<Arg>::cIterator(target + size);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::cIterator &Vector<Arg>::cIterator::operator+=(Size size) {
+        if (target + size >= val_end) throw outOfRange("You added an out-of-range value to the function\n");
+        target += size;
+        return *this;
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::cIterator &Vector<Arg>::cIterator::operator-=(Size size) {
+        if (target - size < val_begin) throw outOfRange("You subtracted an out-of-range value to the function\n");
+        target -= size;
+        return *this;
     }
 
 }
