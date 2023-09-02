@@ -638,7 +638,7 @@ namespace STD {
             return *this;
         };
 
-        const cIterator operator++(int) & { return Vector<Arg>::cIterator(target++); };
+        const cIterator operator++(int) &{ return Vector<Arg>::cIterator(target++); };
 
         virtual cIterator operator+(Size size);
 
@@ -686,10 +686,10 @@ namespace STD {
     protected:
         using Iter<Arg>::target;
 
-        rIterator &operator=(Arg *ptr) override {
+        rIterator &operator=(Arg *ptr) {
             target = ptr;
             return *this;
-        };
+        }
 
     public:
         friend class Vector<Arg>;
@@ -762,7 +762,7 @@ namespace STD {
     protected:
         using cIter<Arg>::target;
 
-        crIterator &operator=(Arg *ptr) override {
+        crIterator &operator=(Arg *ptr) {
             target = ptr;
             return *this;
         };
