@@ -23,16 +23,6 @@ namespace STD {
 
         virtual Type &operator*() const { return *target; };
 
-        Iter<Type> &operator=(const Iter<Type> &other) {
-            this->target = other.target;
-            return *this;
-        };
-
-        virtual Iter<Type> &operator=(Type *ptr) {
-            target = ptr;
-            return *this;
-        };
-
         virtual Iter<Type> &operator++() &{
             ++target;
             return *this;
@@ -59,11 +49,6 @@ namespace STD {
     protected:
         Type *target = nullptr;
 
-        virtual cIter<Type> &operator=(Type *ptr) {
-            target = ptr;
-            return *this;
-        }
-
     public:
         virtual Shared_ptr<cIter<Type>> deep_copy() const;
 
@@ -75,18 +60,9 @@ namespace STD {
             return *target;
         };
 
-        cIter<Type> &operator=(const cIter<Type> &other) {
-            this->target = other.target;
-            return *this;
-        };
-
         virtual cIter<Type> &operator++() &{
             ++target;
             return *this;
-        };
-
-        virtual const cIter<Type> operator++(int) {
-            return cIter<Type>(target++);
         };
 
         friend bool operator==(const cIter<Type> &left, const cIter<Type> &right) {
