@@ -15,6 +15,7 @@ namespace STD {
         Type *target = nullptr;
 
     public:
+        //这个函数是为了使迭代器能够在用户代码中保持多态性而设立。
         virtual Shared_ptr<Iter<Type>> deep_copy() const;
 
         explicit Iter(Type *ptr) : target(ptr) {};

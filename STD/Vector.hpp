@@ -41,7 +41,7 @@ namespace STD {
 
         Vector(const Vector<Arg> &other);
 
-        ~Vector<Arg>();
+        ~Vector<Arg>() { Deallocate_n(val_begin); };
 
         Size size() const {
             return size_;
@@ -80,9 +80,12 @@ namespace STD {
 
         Iterator erase(const Iterator &begin, const Iterator &end);
 
-        Arg &operator[](Size pos) const;
+        Arg &operator[](Size pos) const { return *(val_begin + pos); };
 
-        Arg &at(Size pos) const;
+        Arg &at(Size pos) const {
+            if (pos >= size_) throw outOfRange("You provided an out-of-range subscript");
+            return *(val_begin + pos);
+        };
 
         Vector<Arg> &operator=(const Vector<Arg> &other);
 
@@ -104,13 +107,31 @@ namespace STD {
         template<typename Type>
         friend bool operator>=(const Vector<Type> &left, const Vector<Type> &right);
 
-        Arg &front();
+        Arg &front() {
+            if (!size_) throw outOfRange("You're accessing a non-existent element in the 'front()' function");
+            return *val_begin;
+        };
 
-        Arg &back();
+        Arg &back() {
+            if (!size_) throw outOfRange("You're accessing a non-existent element in the 'back()' function");
+            return *(val_end - 1);
+        };
 
-        Iterator begin();
+        Iterator begin() { return Vector<Arg>::Iterator(val_begin); };
 
-        Iterator end();
+        Iterator end() { return Vector<Arg>::Iterator(val_end); };
+
+        cIterator cbegin() { return Vector<Arg>::cIterator(val_begin); };
+
+        cIterator cend() { return Vector<Arg>::cIterator(val_end); };
+
+        rIterator rbegin() { return Vector<Arg>::rIterator(val_end - 1); };
+
+        rIterator rend() { return Vector<Arg>::rIterator(val_begin - 1); };
+
+        crIterator crbegin() { return Vector<Arg>::crIterator(val_end - 1); };
+
+        crIterator crend() { return Vector<Arg>::crIterator(val_begin - 1); }
 
     };
 
@@ -151,11 +172,6 @@ namespace STD {
     }
 
     template<typename Arg>
-    Vector<Arg>::~Vector<Arg>() {
-        Deallocate_n(val_begin);
-    }
-
-    template<typename Arg>
     void Vector<Arg>::reallocate(Size size) {
         auto the_new = Allocate_n<Arg>(size), the_old = val_begin;
         store_end = the_new + size;
@@ -173,9 +189,6 @@ namespace STD {
             ++temp;
         }
     }
-
-//----------------------------------------------------------------------------------------------------------------------
-
 
     template<typename Arg>
     template<typename... args>
@@ -439,17 +452,6 @@ namespace STD {
     }
 
     template<typename Arg>
-    Arg &Vector<Arg>::at(Size pos) const {
-        if (pos >= size_) throw outOfRange("You provided an out-of-range subscript");
-        return *(val_begin + pos);
-    }
-
-    template<typename Arg>
-    Arg &Vector<Arg>::operator[](Size pos) const {
-        return *(val_begin + pos);
-    }
-
-    template<typename Arg>
     Vector<Arg> &Vector<Arg>::operator=(const Vector<Arg> &other) {
         Deallocate_n(val_begin);
         size_ = other.size_;
@@ -504,28 +506,6 @@ namespace STD {
         return !(left < right);
     }
 
-    template<typename Arg>
-    Arg &Vector<Arg>::front() {
-        if (!size_) throw outOfRange("You're accessing a non-existent element in the 'front()' function");
-        return *val_begin;
-    }
-
-    template<typename Arg>
-    Arg &Vector<Arg>::back() {
-        if (!size_) throw outOfRange("You're accessing a non-existent element in the 'back()' function");
-        return *(val_end - 1);
-    }
-
-    template<typename Arg>
-    typename Vector<Arg>::Iterator Vector<Arg>::begin() {
-        return Vector<Arg>::Iterator(val_begin);
-    }
-
-    template<typename Arg>
-    typename Vector<Arg>::Iterator Vector<Arg>::end() {
-        return Vector<Arg>::Iterator(val_end);
-    }
-
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -537,19 +517,20 @@ namespace STD {
         Iterator &operator=(Arg *ptr) {
             target = ptr;
             return *this;
-        };
+        }
+
+        explicit Iterator(Arg *ptr) : Iter<Arg>(ptr) {};
 
     public:
         friend class Vector<Arg>;
 
         Shared_ptr<Iter<Arg>> deep_copy() const override;
 
-        explicit Iterator(Arg *ptr) : Iter<Arg>(ptr) {};
-
         Iterator(const Iterator &other) : Iter<Arg>(other.target) {};
 
         ~Iterator() = default;
 
+        //这个函数如果传入rIterator可能会有意想不到的结果
         Iterator &operator=(const Iterator &other) {
             target = other.target;
             return *this;
@@ -579,11 +560,9 @@ namespace STD {
 
         virtual Iterator &operator-=(Size size);
 
-        template<typename Type>
         friend bool
         operator==(const Iterator &left, const Iterator &right) { return left.target == right.target; };
 
-        template<typename Type>
         friend bool
         operator!=(const Iterator &left, const Iterator &right) { return left.target != right.target; };
 
@@ -615,17 +594,18 @@ namespace STD {
             return *this;
         };
 
+        explicit cIterator(Arg *ptr) : cIter<Arg>(ptr) {};
+
     public:
         friend class Vector<Arg>;
 
         Shared_ptr<cIter<Arg>> deep_copy() const override;
 
-        explicit cIterator(Arg *ptr) : cIter<Arg>(ptr) {};
-
         cIterator(const cIterator &other) : cIter<Arg>(other.target) {};
 
         ~cIterator() override = default;
 
+        //这个函数如果传入crIterator可能会有意想不到的结果
         cIterator &operator=(const cIterator &other) {
             target = other.target;
             return *this;
@@ -655,11 +635,9 @@ namespace STD {
 
         virtual const cIterator operator--(int) &{ return Vector<Arg>::cIterator(target--); };
 
-        template<typename Type>
         friend bool
         operator==(const cIterator &left, const cIterator &right) { return left.target == right.target; };
 
-        template<typename Type>
         friend bool
         operator!=(const cIterator &left, const cIterator &right) { return left.target != right.target; };
 
@@ -691,12 +669,12 @@ namespace STD {
             return *this;
         }
 
+        explicit rIterator(Arg *ptr) : Vector<Arg>::Iterator(ptr) {};
+
     public:
         friend class Vector<Arg>;
 
         Shared_ptr<Iter<Arg>> deep_copy() const override;
-
-        explicit rIterator(Arg *ptr) : Vector<Arg>::Iterator(ptr) {};
 
         rIterator(const rIterator &other) : Vector<Arg>::Iterator(other.target) {};
 
@@ -731,11 +709,9 @@ namespace STD {
 
         rIterator &operator-=(Size size) override;
 
-        template<typename Type>
         friend bool
         operator==(const rIterator &left, const rIterator &right) { return left.target == right.target; };
 
-        template<typename Type>
         friend bool
         operator!=(const rIterator &left, const rIterator &right) { return left.target != right.target; };
 
@@ -767,12 +743,12 @@ namespace STD {
             return *this;
         };
 
+        explicit crIterator(Arg *ptr) : Vector<Arg>::cIterator(ptr) {};
+
     public:
         friend class Vector<Arg>;
 
         Shared_ptr<cIter<Arg>> deep_copy() const override;
-
-        explicit crIterator(Arg *ptr) : Vector<Arg>::cIterator(ptr) {};
 
         crIterator(const crIterator &other) : Vector<Arg>::cIterator(other.target) {};
 
@@ -807,11 +783,9 @@ namespace STD {
 
         crIterator &operator-=(Size size) override;
 
-        template<typename Type>
         friend bool
         operator==(const crIterator &left, const crIterator &right) { return left.target == right.target; };
 
-        template<typename Type>
         friend bool
         operator!=(const crIterator &left, const crIterator &right) { return left.target != right.target; };
 
