@@ -530,7 +530,7 @@ namespace STD {
 
         ~Iterator() = default;
 
-        //这个函数如果传入rIterator可能会有意想不到的结果
+        //该函数如果传入rIterator作为参数可能会有意外的结果
         Iterator &operator=(const Iterator &other) {
             target = other.target;
             return *this;
@@ -605,7 +605,7 @@ namespace STD {
 
         ~cIterator() override = default;
 
-        //这个函数如果传入crIterator可能会有意想不到的结果
+        //该函数如果传入crIterator作为参数可能会有意外的结果
         cIterator &operator=(const cIterator &other) {
             target = other.target;
             return *this;

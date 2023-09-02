@@ -56,7 +56,7 @@ namespace STD {
         template<typename Target, typename Object>
         friend Shared_ptr<Target> reinterpret_pointer_cast(Shared_ptr<Object> object) noexcept;
 
-        //编译器会自动调用该类型转换（默认用static_pointer_cast实现），不保证安全。
+        //编译器会自动调用该类型转换（默认使用static_pointer_cast实现），可能会有意外的结果。
         template<typename Other>
         operator Shared_ptr<Other>();
     };
