@@ -105,9 +105,15 @@ namespace STD {
 
         Shared_ptr<Arg> &operator=(const Shared_ptr<Arg> &other);
 
-        Arg &operator*() const { return *target; };
+        Arg &operator*() const {
+            if (!target) throw runtimeError("You have access to the null pointer\n");
+            return *target;
+        };
 
-        Arg *operator->() const { return target; };
+        Arg *operator->() const {
+            if (!target) throw runtimeError("You have access to the null pointer\n");
+            return target;
+        }
 
         Arg *get() const { return target; };
 
