@@ -5,7 +5,7 @@
 #ifndef TINYSTL_ITER_HPP
 #define TINYSTL_ITER_HPP
 
-#include "smart_ptr.hpp"
+#include "Memory.hpp"
 
 namespace STD {
 
@@ -40,7 +40,7 @@ namespace STD {
 
     template<typename Type>
     Shared_ptr<Iter<Type>> Iter<Type>::deep_copy() const {
-        return Shared_ptr<Iter<Type>>(*this);
+        return make_shared<Iter<Type>>(*this);
     }
 
 //----------------------------------------------------------------------------------------------------------------------

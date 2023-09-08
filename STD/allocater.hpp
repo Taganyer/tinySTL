@@ -31,6 +31,11 @@ namespace STD {
     }
 
     template<typename Arg>
+    void constDeallocate(const Arg* ptr) {
+        delete ptr;
+    }
+
+    template<typename Arg>
     Arg* Allocate_n(Size size) {
         if (!size) return nullptr;
         else {

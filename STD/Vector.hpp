@@ -543,7 +543,7 @@ namespace STD {
             return *this;
         };
 
-        const Iterator operator++(int) &{ return Vector<Arg>::Iterator(target++); };
+        Iterator operator++(int) &{ return Vector<Arg>::Iterator(target++); };
 
         virtual Iterator &operator--() &{
             --target;
@@ -618,7 +618,7 @@ namespace STD {
             return *this;
         };
 
-        const cIterator operator++(int) &{ return Vector<Arg>::cIterator(target++); };
+        cIterator operator++(int) &{ return Vector<Arg>::cIterator(target++); };
 
         virtual cIterator operator+(Size size);
 
@@ -692,7 +692,7 @@ namespace STD {
             return *this;
         };
 
-        const rIterator operator++(int) &{ return Vector<Arg>::rIterator(target--); };
+        rIterator operator++(int) &{ return Vector<Arg>::rIterator(target--); };
 
         rIterator &operator--() & override {
             ++target;
@@ -766,7 +766,7 @@ namespace STD {
             return *this;
         };
 
-        const crIterator operator++(int) &{ return Vector<Arg>::crIterator(target--); };
+        crIterator operator++(int) &{ return Vector<Arg>::crIterator(target--); };
 
         crIterator &operator--() & override {
             ++target;
@@ -810,7 +810,7 @@ namespace STD {
 
     template<typename Arg>
     Shared_ptr<Iter<Arg>> Vector<Arg>::Iterator::deep_copy() const {
-        return Shared_ptr<Vector<Arg>::Iterator>(*this);
+        return make_shared<Vector<Arg>::Iterator>(*this);
     }
 
     template<typename Arg>
@@ -845,7 +845,7 @@ namespace STD {
 
     template<typename Arg>
     Shared_ptr<cIter<Arg>> Vector<Arg>::cIterator::deep_copy() const {
-        return Shared_ptr<Vector<Arg>::cIterator>(*this);
+        return make_shared<Vector<Arg>::cIterator>(*this);
     }
 
     template<typename Arg>
@@ -879,7 +879,7 @@ namespace STD {
 
     template<typename Arg>
     Shared_ptr<Iter<Arg>> Vector<Arg>::rIterator::deep_copy() const {
-        return Shared_ptr<Vector<Arg>::rIterator>(*this);
+        return make_shared<Vector<Arg>::rIterator>(*this);
     }
 
     template<typename Arg>
@@ -912,7 +912,7 @@ namespace STD {
 
     template<typename Arg>
     Shared_ptr<cIter<Arg>> Vector<Arg>::crIterator::deep_copy() const {
-        return Shared_ptr<Vector<Arg>::crIterator>(*this);
+        return make_shared<Vector<Arg>::crIterator>(*this);
     }
 
     template<typename Arg>
