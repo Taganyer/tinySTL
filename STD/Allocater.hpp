@@ -5,7 +5,7 @@
 #ifndef TINYSTL_ALLOCATER_HPP
 #define TINYSTL_ALLOCATER_HPP
 
-#include "warning.hpp"
+#include "Warning.hpp"
 #include "Move.hpp"
 
 namespace STD {
@@ -21,6 +21,13 @@ namespace STD {
     template<typename Arg>
     Arg* Allocate(Arg&& arg) {
         auto* ptr = new Arg(move(arg));
+        if (!ptr) throw badAlloc("badAlloc: Memory allocation failed\n");
+        return ptr;
+    }
+
+    template<typename Arg, typename ...Args>
+    Arg* Allocate(Args&& ...args) {
+        auto* ptr = new Arg(move(args)...);
         if (!ptr) throw badAlloc("badAlloc: Memory allocation failed\n");
         return ptr;
     }

@@ -5,9 +5,9 @@
 #ifndef TINYSTL_VECTOR_HPP
 #define TINYSTL_VECTOR_HPP
 
-#include "allocater.hpp"
+#include "Allocater.hpp"
 #include "Iter.hpp"
-#include "warning.hpp"
+#include "Warning.hpp"
 #include "Move.hpp"
 
 namespace STD {
