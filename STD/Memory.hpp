@@ -392,7 +392,7 @@ namespace STD {
     template<typename Arg>
     template<typename Other>
     Weak_ptr<Arg>::operator Weak_ptr<Other>() {
-        return STD::static_pointer_cast<Arg>(*this);
+        return STD::static_pointer_cast<Other, Arg>(*this);
     }
 }
 
