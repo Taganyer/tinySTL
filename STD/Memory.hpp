@@ -22,14 +22,19 @@ namespace STD {
     struct Value : public basic_Value {
         Type *target;
 
-        void (*deleter)(const Type *);
+        void (*const_deleter)(const Type *) = nullptr;
 
-        Value(Type *target, void (*deleter)(const Type *)) :
-                target(target), deleter(deleter ? deleter : constDeallocate<Type>) {};
+        void (*deleter)(Type *) = nullptr;
+
+        Value(Type *target, void (*const_deleter)(const Type *)) :
+                target(target), const_deleter(const_deleter ? const_deleter : constDeallocate<Type>) {};
+
+        Value(Type *target, void (*deleter)(Type *)) :
+                target(target), deleter(deleter ? deleter : Deallocate<Type>) {};
 
         void *get_ptr() override { return target; };
 
-        void release() override { deleter(target); };
+        void release() override { deleter ? deleter(target) : const_deleter(target); };
 
         ~Value() override = default;
     };
@@ -56,7 +61,10 @@ namespace STD {
 
     public:
 
-        Shared_ptr(Arg *target, void (*del)(const Arg *) = nullptr) :
+        explicit Shared_ptr(Arg *target, void (*del)(const Arg *) = nullptr) :
+                count(Allocate<Size>(1)), value(new Value<Arg>(target, del)), target(target) {};
+
+        explicit Shared_ptr(Arg *target, void (*del)(Arg *)) :
                 count(Allocate<Size>(1)), value(new Value<Arg>(target, del)), target(target) {};
 
         Shared_ptr(const Shared_ptr<Arg> &other);
@@ -69,7 +77,7 @@ namespace STD {
 
         Arg &operator*() const { return *target; };
 
-        Arg &operator->() const { return *target; };
+        Arg *operator->() const { return target; };
 
         Arg *get() const { return target; };
 
@@ -77,6 +85,7 @@ namespace STD {
 
         void swap(Shared_ptr<Arg> &other);
 
+        //此模板不会进行安全检查，由于编译器不会自动调用以下四个函数，如需将智能指针转换，请显式调用。
         template<typename Target, typename Object>
         friend Shared_ptr<Target> static_pointer_cast(Shared_ptr<Object> object) noexcept;
 
@@ -89,6 +98,7 @@ namespace STD {
         template<typename Target, typename Object>
         friend Shared_ptr<Target> reinterpret_pointer_cast(Shared_ptr<Object> object) noexcept;
 
+        //编译器会自动调用该类型转换（默认使用static_pointer_cast实现），可能会有意外的结果。
         template<typename Other>
         operator Shared_ptr<Other>();
 
@@ -131,28 +141,28 @@ namespace STD {
 
     template<typename Target, typename Object>
     Shared_ptr<Target> static_pointer_cast(Shared_ptr<Object> object) noexcept {
-        auto *ptr = static_cast<Target*>(object.get());
+        auto *ptr = static_cast<Target *>(object.get());
         ++(*object.count);
         return Shared_ptr<Target>(object.count, object.value, ptr);
     }
 
     template<typename Target, typename Object>
     Shared_ptr<Target> dynamic_pointer_cast(Shared_ptr<Object> object) noexcept {
-        auto *ptr = dynamic_cast<Target*>(object.get());
+        auto *ptr = dynamic_cast<Target *>(object.get());
         ++(*object.count);
         return Shared_ptr<Target>(object.count, object.value, ptr);
     }
 
     template<typename Target, typename Object>
     Shared_ptr<Target> const_pointer_cast(Shared_ptr<Object> object) noexcept {
-        auto *ptr = const_cast<Target*>(object.get());
+        auto *ptr = const_cast<Target *>(object.get());
         ++(*object.count);
         return Shared_ptr<Target>(object.count, object.value, ptr);
     }
 
     template<typename Target, typename Object>
     Shared_ptr<Target> reinterpret_pointer_cast(Shared_ptr<Object> object) noexcept {
-        auto *ptr = reinterpret_cast<Target*>(object.get());
+        auto *ptr = reinterpret_cast<Target *>(object.get());
         ++(*object.count);
         return Shared_ptr<Target>(object.count, object.value, ptr);
     }
@@ -165,7 +175,7 @@ namespace STD {
 
 
     template<typename Arg>
-    Shared_ptr<Arg> make_shared(const Arg& target) {
+    Shared_ptr<Arg> make_shared(const Arg &target) {
         auto ptr = new Arg(target);
         return Shared_ptr<Arg>(ptr);
     }
