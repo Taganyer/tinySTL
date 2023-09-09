@@ -45,6 +45,14 @@ namespace STD {
         return make_shared<Iter<Type>>(*this);
     }
 
+    template<typename Arg>
+    Size calculateLength(const Iter<Arg> &begin, const Iter<Arg> &end) {
+        auto temp = begin.deep_copy();
+        Size count = 0;
+        while (*temp != end) ++(*temp), ++count;
+        return count;
+    }
+
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Type>
@@ -80,6 +88,14 @@ namespace STD {
     template<typename Type>
     Shared_ptr<cIter<Type>> cIter<Type>::deep_copy() const {
         return make_shared<cIter<Type>>(*this);
+    }
+
+    template<typename Arg>
+    Size calculateLength(const cIter<Arg> &begin, const cIter<Arg> &end) {
+        auto temp = begin.deep_copy();
+        Size count = 0;
+        while (*temp != end) ++(*temp), ++count;
+        return count;
     }
 
 }

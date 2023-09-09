@@ -57,9 +57,9 @@ namespace STD {
 
         void shirk_to_fit();
 
-        void assign(const Iter<Arg> &begin, const Iter<Arg> &end);
+        Vector<Arg>& assign(const Iter<Arg> &begin, const Iter<Arg> &end);
 
-        void assign(const cIter<Arg> &begin, const cIter<Arg> &end);
+        Vector<Arg>& assign(const cIter<Arg> &begin, const cIter<Arg> &end);
 
         template<typename ...args>
         void emplace_back(args &&...vals);
@@ -83,9 +83,9 @@ namespace STD {
 
         Iterator erase(Size pos, bool until_end = false);
 
-        Iterator erase(const Iterator &begin);
+        Iterator erase(const Iterator &iter);
 
-        cIterator erase(const cIterator &begin);
+        cIterator erase(const cIterator &iter);
 
         Iterator erase(const Iterator &begin, const Iterator &end);
 
@@ -163,9 +163,8 @@ namespace STD {
     }
 
     template<typename Arg>
-    Vector<Arg>::Vector(const Iter<Arg> &begin, const Iter<Arg> &end) {
+    Vector<Arg>::Vector(const Iter<Arg> &begin, const Iter<Arg> &end) : size_(calculateLength(begin, end)) {
         auto iter = begin.deep_copy();
-        while (*iter != end) ++(*iter), ++size_;
         iter = begin.deep_copy();
         val_begin = Allocate_n<Arg>(size_);
         store_end = val_end = val_begin + size_;
@@ -177,10 +176,8 @@ namespace STD {
     }
 
     template<typename Arg>
-    Vector<Arg>::Vector(const cIter<Arg> &begin, const cIter<Arg> &end) {
+    Vector<Arg>::Vector(const cIter<Arg> &begin, const cIter<Arg> &end) : size_(calculateLength(begin, end)) {
         auto iter = begin.deep_copy();
-        while (*iter != end) ++(*iter), ++size_;
-        iter = begin.deep_copy();
         val_begin = Allocate_n<Arg>(size_);
         store_end = val_end = val_begin + size_;
         while (*iter != end) {
@@ -384,31 +381,38 @@ namespace STD {
     }
 
     template<typename Arg>
-    typename Vector<Arg>::Iterator Vector<Arg>::erase(const Vector::Iterator &begin) {
-        if (begin.target < val_begin)
+    typename Vector<Arg>::Iterator Vector<Arg>::erase(const Vector::Iterator &iter) {
+        if (iter.target < val_begin)
             throw outOfRange("You passed in an out-of-range iterator in the 'erase' function");
-        auto temp(begin.target);
-        while (temp < val_end) {
-            temp->~Arg();
-            ++temp;
+        if (iter.target != val_end) {
+            --size_;
+            auto temp1 = iter.target, temp2 = temp1 + 1;
+            temp1->~Arg();
+            while (temp2 != val_end) {
+                *temp1 = move(*temp2);
+                ++temp1, ++temp2;
+            }
+            --val_end;
         }
-        val_end = begin.target;
-        size_ = val_end - val_begin;
-        return begin;
+        return iter;
     }
 
     template<typename Arg>
-    typename Vector<Arg>::cIterator Vector<Arg>::erase(const Vector::cIterator &begin) {
-        if (begin.target < val_begin)
+    typename Vector<Arg>::cIterator Vector<Arg>::erase(const Vector::cIterator &iter) {
+        if (iter.target < val_begin)
             throw outOfRange("You passed in an out-of-range iterator in the 'erase' function");
-        auto temp(begin.target);
-        while (temp < val_end) {
-            temp->~Arg();
-            ++temp;
+        auto temp(iter.target);
+        if (iter.target != val_end) {
+            --size_;
+            auto temp1 = iter.target, temp2 = temp1 + 1;
+            temp1->~Arg();
+            while (temp2 != val_end) {
+                *temp1 = move(*temp2);
+                ++temp1, ++temp2;
+            }
+            --val_end;
         }
-        val_end = begin.target;
-        size_ = val_end - val_begin;
-        return begin;
+        return iter;
     }
 
     template<typename Arg>
@@ -473,9 +477,7 @@ namespace STD {
     template<typename Arg>
     void Vector<Arg>::push_back(const Iter<Arg> &begin, const Iter<Arg> &end) {
         auto temp(begin.deep_copy());
-        Size count = 0;
-        while (*temp != end) ++count, ++(*temp);
-        temp = begin.deep_copy();
+        Size count = calculateLength(begin, end);
         if (capacity() - size_ < count) reallocate(capacity() + count);
         size_ += count;
         while (*temp != end) {
@@ -487,9 +489,7 @@ namespace STD {
     template<typename Arg>
     void Vector<Arg>::push_back(const cIter<Arg> &begin, const cIter<Arg> &end) {
         auto temp(begin.deep_copy());
-        Size count = 0;
-        while (*temp != end) ++count, ++(*temp);
-        temp = begin.deep_copy();
+        Size count = calculateLength(begin, end);
         if (capacity() - size_ < count) reallocate(capacity() + count);
         size_ += count;
         while (*temp != end) {
@@ -538,7 +538,7 @@ namespace STD {
     }
 
     template<typename Arg>
-    void Vector<Arg>::assign(const Iter<Arg> &begin, const Iter<Arg> &end) {
+    Vector<Arg>& Vector<Arg>::assign(const Iter<Arg> &begin, const Iter<Arg> &end) {
         Deallocate_n(val_begin);
         auto temp = begin.deep_copy();
         Size count = 0;
@@ -552,15 +552,14 @@ namespace STD {
         store_end = val_end = t;
         val_begin = t - count;
         size_ = count;
+        return *this;
     }
 
     template<typename Arg>
-    void Vector<Arg>::assign(const cIter<Arg> &begin, const cIter<Arg> &end) {
+    Vector<Arg>& Vector<Arg>::assign(const cIter<Arg> &begin, const cIter<Arg> &end) {
         Deallocate_n(val_begin);
         auto temp = begin.deep_copy();
-        Size count = 0;
-        while (*temp != end) ++(*temp), ++count;
-        temp = begin.deep_copy();
+        Size count = calculateLength(begin, end);
         auto t = Allocate_n<Arg>(count);
         while (*temp != end) {
             *t = **temp;
@@ -569,6 +568,7 @@ namespace STD {
         store_end = val_end = t;
         val_begin = t - count;
         size_ = count;
+        return *this;
     }
 
     template<typename Arg>

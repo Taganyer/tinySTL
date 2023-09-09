@@ -6,394 +6,9 @@
 
 using namespace STD;
 
-//----------------------------------------------------------------------------------------------------------------------
-
-class String::Iterator : public Iter<char> {
-protected:
-    using Iter<char>::target;
-
-    virtual Iterator &operator=(char *ptr) {
-        target = ptr;
-        return *this;
-    };
-
-    explicit Iterator(char *ptr) : Iter<char>(ptr) {};
-
-public:
-    friend class String;
-
-    Shared_ptr<Iter<char>> deep_copy() const override { return make_shared<String::Iterator>(*this); };
-
-    Iterator(const Iterator &other) : Iter<char>(other.target) {};
-
-    ~Iterator() = default;
-
-    //该函数如果传入rIterator作为参数可能会有意外的结果
-    Iterator &operator=(const Iterator &other) {
-        target = other.target;
-        return *this;
-    };
-
-
-    using Iter<char>::operator*;
-
-    using Iter<char>::operator->;
-
-    Iterator &operator++() & override {
-        ++target;
-        return *this;
-    };
-
-    Iterator operator++(int) &{ return String::Iterator(target++); };
-
-    virtual Iterator &operator--() &{
-        --target;
-        return *this;
-    };
-
-    Iterator operator--(int) &{ return String::Iterator(target--); };
-
-    Iterator operator+(Size size) { return Iterator(target + size); };
-
-    Iterator operator-(Size size) { return Iterator(target - size); };
-
-    Iterator &operator+=(Size size) {
-        target += size;
-        return *this;
-    };
-
-    Iterator &operator-=(Size size) {
-        target -= size;
-        return *this;
-    };
-
-    friend bool
-    operator==(const Iterator &left, const Iterator &right) { return left.target == right.target; };
-
-    friend bool
-    operator!=(const Iterator &left, const Iterator &right) { return left.target != right.target; };
-
-    friend bool
-    operator>(const Iterator &left, const Iterator &right) { return left.target > right.target; };
-
-    friend bool
-    operator<(const Iterator &left, const Iterator &right) { return left.target < right.target; };
-
-    friend bool
-    operator>=(const Iterator &left, const Iterator &right) { return left.target >= right.target; };
-
-    friend bool
-    operator<=(const Iterator &left, const Iterator &right) { return left.target <= right.target; };
-
-    friend long long
-    operator-(const Iterator &left, const Iterator &right) { return left.target - right.target; };
-};
 
 //----------------------------------------------------------------------------------------------------------------------
 
-class String::cIterator : public cIter<char> {
-protected:
-    using cIter<char>::target;
-
-    virtual cIterator &operator=(char *ptr) {
-        target = ptr;
-        return *this;
-    };
-
-    explicit cIterator(char *ptr) : cIter<char>(ptr) {};
-
-public:
-    friend class String;
-
-    Shared_ptr<cIter<char>> deep_copy() const override { return make_shared<String::cIterator>(*this); };
-
-    cIterator(const cIterator &other) : cIter<char>(other.target) {};
-
-    ~cIterator() = default;
-
-    //该函数如果传入rIterator作为参数可能会有意外的结果
-    cIterator &operator=(const cIterator &other) {
-        target = other.target;
-        return *this;
-    };
-
-
-    using cIter<char>::operator*;
-
-    using cIter<char>::operator->;
-
-    cIterator &operator++() & override {
-        ++target;
-        return *this;
-    };
-
-    cIterator operator++(int) &{ return String::cIterator(target++); };
-
-    virtual cIterator &operator--() &{
-        --target;
-        return *this;
-    };
-
-    cIterator operator--(int) &{ return String::cIterator(target--); };
-
-    cIterator operator+(Size size) { return cIterator(target + size); };
-
-    cIterator operator-(Size size) { return cIterator(target - size); };
-
-    cIterator &operator+=(Size size) {
-        target += size;
-        return *this;
-    };
-
-    cIterator &operator-=(Size size) {
-        target -= size;
-        return *this;
-    };
-
-    friend bool
-    operator==(const cIterator &left, const cIterator &right) { return left.target == right.target; };
-
-    friend bool
-    operator!=(const cIterator &left, const cIterator &right) { return left.target != right.target; };
-
-    friend bool
-    operator>(const cIterator &left, const cIterator &right) { return left.target > right.target; };
-
-    friend bool
-    operator<(const cIterator &left, const cIterator &right) { return left.target < right.target; };
-
-    friend bool
-    operator>=(const cIterator &left, const cIterator &right) { return left.target >= right.target; };
-
-    friend bool
-    operator<=(const cIterator &left, const cIterator &right) { return left.target <= right.target; };
-
-    friend long long
-    operator-(const cIterator &left, const cIterator &right) { return left.target - right.target; };
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-
-class String::rIterator : public String::Iterator {
-protected:
-    using Iter<char>::target;
-
-    rIterator &operator=(char *ptr) override {
-        target = ptr;
-        return *this;
-    }
-
-    explicit rIterator(char *ptr) : String::Iterator(ptr) {};
-
-public:
-    friend class String;
-
-    Shared_ptr<Iter<char>> deep_copy() const override { return make_shared<String::rIterator>(*this); };
-
-    rIterator(const rIterator &other) : String::Iterator(other.target) {};
-
-    ~rIterator() = default;
-
-    rIterator &operator=(const rIterator &other) {
-        target = other.target;
-        return *this;
-    };
-
-    using Iterator::operator*;
-
-    using Iterator::operator->;
-
-    rIterator &operator++() & override {
-        --target;
-        return *this;
-    };
-
-    rIterator operator++(int) &{ return String::rIterator(target--); };
-
-    rIterator &operator--() & override {
-        ++target;
-        return *this;
-    };
-
-    rIterator operator--(int) &{ return String::rIterator(target++); };
-
-    rIterator operator+(Size size) const { return String::rIterator(target - size); };
-
-    rIterator operator-(Size size) const { return String::rIterator(target + size); };
-
-    rIterator &operator+=(Size size) {
-        target -= size;
-        return *this;
-    };
-
-    rIterator &operator-=(Size size) {
-        target += size;
-        return *this;
-    };
-
-    friend bool
-    operator==(const rIterator &left, const rIterator &right) { return left.target == right.target; };
-
-    friend bool
-    operator!=(const rIterator &left, const rIterator &right) { return left.target != right.target; };
-
-    friend bool
-    operator>(const rIterator &left, const rIterator &right) { return left.target < right.target; };
-
-    friend bool
-    operator<(const rIterator &left, const rIterator &right) { return left.target > right.target; };
-
-    friend bool
-    operator>=(const rIterator &left, const rIterator &right) { return left.target <= right.target; };
-
-    friend bool
-    operator<=(const rIterator &left, const rIterator &right) { return left.target >= right.target; };
-
-    friend long long
-    operator-(const rIterator &left, const rIterator &right) { return right.target - left.target; };
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-
-class String::crIterator : public String::cIterator {
-protected:
-    using cIter<char>::target;
-
-    crIterator &operator=(char *ptr) override {
-        target = ptr;
-        return *this;
-    };
-
-    explicit crIterator(char *ptr) : String::cIterator(ptr) {};
-
-public:
-    friend class String;
-
-    Shared_ptr<cIter<char>> deep_copy() const override { return make_shared<String::crIterator>(*this); };
-
-    crIterator(const crIterator &other) : String::cIterator(other.target) {};
-
-    ~crIterator() = default;
-
-    crIterator &operator=(const crIterator &other) {
-        target = other.target;
-        return *this;
-    };
-
-    using cIterator::operator*;
-
-    using cIterator::operator->;
-
-    crIterator &operator++() & override {
-        --target;
-        return *this;
-    };
-
-    crIterator operator++(int) &{ return String::crIterator(target--); };
-
-    crIterator &operator--() & override {
-        ++target;
-        return *this;
-    };
-
-    crIterator operator--(int) &{ return String::crIterator(target++); };
-
-    crIterator operator+(Size size) const { return String::crIterator(target - size); };
-
-    crIterator operator-(Size size) const { return String::crIterator(target + size); };
-
-    crIterator &operator+=(Size size) {
-        target -= size;
-        return *this;
-    };
-
-    crIterator &operator-=(Size size) {
-        target += size;
-        return *this;
-    };
-
-    friend bool
-    operator==(const crIterator &left, const crIterator &right) { return left.target == right.target; };
-
-    friend bool
-    operator!=(const crIterator &left, const crIterator &right) { return left.target != right.target; };
-
-    friend bool
-    operator>(const crIterator &left, const crIterator &right) { return left.target < right.target; };
-
-    friend bool
-    operator<(const crIterator &left, const crIterator &right) { return left.target > right.target; };
-
-    friend bool
-    operator>=(const crIterator &left, const crIterator &right) { return left.target <= right.target; };
-
-    friend bool
-    operator<=(const crIterator &left, const crIterator &right) { return left.target >= right.target; };
-
-    friend long long
-    operator-(const crIterator &left, const crIterator &right) { return right.target - left.target; };
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-
-
-String::String(Size size, char target) : size_(size), val_begin(Allocate_n<char>(size + size / 5 + 1)) {
-    val_end = val_begin + size;
-    store_end = val_begin + size + size / 5 + 1;
-    auto temp = val_begin;
-    for (int i = 0; i < size; ++i) {
-        *temp = target;
-        ++temp;
-    }
-    *store_end = '\0';
-}
-
-String::String(const Iter<char> &begin, const Iter<char> &end) {
-    auto temp(begin.deep_copy());
-    while (*temp != end) ++(*temp), ++size_;
-    temp = begin.deep_copy();
-    val_begin = Allocate_n<char>(size_ + 1);
-    store_end = val_begin + size_ + 1;
-    val_end = val_begin + size_;
-    while (*temp != end) {
-        *val_begin = **temp;
-        ++val_begin, ++(*temp);
-    }
-    val_begin = val_end - size_;
-    *val_end = '\0';
-}
-
-String::String(const cIter<char> &begin, const cIter<char> &end) {
-    auto temp(begin.deep_copy());
-    while (*temp != end) ++(*temp), ++size_;
-    temp = begin.deep_copy();
-    val_begin = Allocate_n<char>(size_ + 1);
-    store_end = val_begin + size_ + 1;
-    val_end = val_begin + size_;
-    while (*temp != end) {
-        *val_begin = **temp;
-        ++val_begin, ++(*temp);
-    }
-    val_begin = val_end - size_;
-    *val_end = '\0';
-}
-
-String::String(const String &other) : size_(other.size_), val_begin(Allocate_n<char>(other.capacity())) {
-    val_end = val_begin + size_;
-    store_end = val_begin + other.capacity();
-    auto l = val_begin, r = other.val_begin;
-    for (int i = 0; i < size_; ++i) {
-        *l = *r;
-        ++l, ++r;
-    }
-    *val_end = '\0';
-}
-
-String::String(String &&other) noexcept: size_(other.size_), val_begin(other.val_begin),
-                                         val_end(other.val_end), store_end(other.store_end) {
-    other.size_ = 0;
-    other.val_begin = other.val_end = other.store_end = nullptr;
-}
 
 void String::reallocate(Size size) {
     auto the_new = Allocate_n<char>(size), the_old = val_begin;
@@ -405,30 +20,78 @@ void String::reallocate(Size size) {
     *val_end = '\0';
 }
 
-void String::assign(const Iter<char> &begin, const Iter<char> &end) {
-    Deallocate_n(val_begin);
-    auto temp = begin.deep_copy();
-    Size count = 0;
-    while (*temp != end) ++(*temp), ++count;
-    temp = begin.deep_copy();
-    auto t = Allocate_n<char>(count + 1);
-    while (*temp != end) {
-        *t = **temp;
-        ++t, ++(*temp);
+Size String::calculateLength(const char *target) {
+    const char *temp = target;
+    Size len = 0;
+    while (*temp != '\0') ++temp, ++len;
+    return len;
+}
+
+String::String(Size size, char target) : size_(size), val_begin(Allocate_n<char>(size + size / 5 + 1)) {
+    val_end = val_begin + size;
+    store_end = val_begin + size + size / 5 + 1;
+    auto temp = val_begin;
+    for (int i = 0; i < size; ++i) {
+        *temp = target;
+        ++temp;
     }
-    store_end = t + 1;
-    val_end = t;
-    val_begin = t - count;
-    size_ = count;
     *val_end = '\0';
 }
 
-void String::assign(const cIter<char> &begin, const cIter<char> &end) {
+String::String(const char *target, Size len) : size_(len), val_begin(Allocate_n<char>(len + 1)),
+                                               store_end(val_begin + len + 1) {
+    val_end = val_begin;
+    for (int i = 0; i < len; ++i) {
+        *val_end = *target;
+        ++val_end, ++target;
+    }
+    *val_end = '\0';
+}
+
+String::String(const char *target) : String(target, calculateLength(target)) {}
+
+String::String(const String &other, Size pos) : String(other.c_str() + pos) {}
+
+String::String(const String &other, Size pos, Size len) : String(other.c_str() + pos, len) {}
+
+String::String(const String &other) : String(other.c_str(), other.size_) {}
+
+String::String(String &&other) noexcept: size_(other.size_), val_begin(other.val_begin),
+                                         val_end(other.val_end), store_end(other.store_end) {
+    other.size_ = 0;
+    other.val_begin = other.val_end = other.store_end = nullptr;
+}
+
+String::String(const Iter<char> &begin, const Iter<char> &end) : size_(STD::calculateLength(begin, end)) {
+    auto temp(begin.deep_copy());
+    val_begin = Allocate_n<char>(size_ + 1);
+    store_end = val_begin + size_ + 1;
+    val_end = val_begin + size_;
+    while (*temp != end) {
+        *val_begin = **temp;
+        ++val_begin, ++(*temp);
+    }
+    val_begin = val_end - size_;
+    *val_end = '\0';
+}
+
+String::String(const cIter<char> &begin, const cIter<char> &end) : size_(STD::calculateLength(begin, end)) {
+    auto temp(begin.deep_copy());
+    val_begin = Allocate_n<char>(size_ + 1);
+    store_end = val_begin + size_ + 1;
+    val_end = val_begin + size_;
+    while (*temp != end) {
+        *val_begin = **temp;
+        ++val_begin, ++(*temp);
+    }
+    val_begin = val_end - size_;
+    *val_end = '\0';
+}
+
+String& String::assign(const Iter<char> &begin, const Iter<char> &end) {
     Deallocate_n(val_begin);
     auto temp = begin.deep_copy();
-    Size count = 0;
-    while (*temp != end) ++(*temp), ++count;
-    temp = begin.deep_copy();
+    Size count = STD::calculateLength(begin, end);
     auto t = Allocate_n<char>(count + 1);
     while (*temp != end) {
         *t = **temp;
@@ -439,6 +102,24 @@ void String::assign(const cIter<char> &begin, const cIter<char> &end) {
     val_begin = t - count;
     size_ = count;
     *val_end = '\0';
+    return *this;
+}
+
+String& String::assign(const cIter<char> &begin, const cIter<char> &end) {
+    Deallocate_n(val_begin);
+    auto temp = begin.deep_copy();
+    Size count = STD::calculateLength(begin, end);
+    auto t = Allocate_n<char>(count + 1);
+    while (*temp != end) {
+        *t = **temp;
+        ++t, ++(*temp);
+    }
+    store_end = t + 1;
+    val_end = t;
+    val_begin = t - count;
+    size_ = count;
+    *val_end = '\0';
+    return *this;
 }
 
 void String::append(char t) {
@@ -450,11 +131,9 @@ void String::append(char t) {
 }
 
 void String::append(const char *target) {
-    auto temp = target;
-    Size count = 0;
-    while (*temp != '\0') ++temp, ++count;
+    Size count = calculateLength(target);
     if (!count) return;
-    temp = target;
+    auto temp = target;
     if (capacity() - size_ - 1 < count) reallocate(capacity() + count + 1);
     size_ += count;
     while (*temp != '\0') {
@@ -478,10 +157,8 @@ void String::append(const String &target) {
 
 void String::append(const Iter<char> &begin, const Iter<char> &end) {
     auto temp = begin.deep_copy();
-    Size count = 0;
-    while (*temp != end) ++(*temp), ++count;
+    Size count = STD::calculateLength(begin, end);
     if (capacity() - size_ - 1 < count) reallocate(capacity() + count + 1);
-    temp = begin.deep_copy();
     size_ += count;
     while (*temp != end) {
         *val_end = **temp;
@@ -492,10 +169,8 @@ void String::append(const Iter<char> &begin, const Iter<char> &end) {
 
 void String::append(const cIter<char> &begin, const cIter<char> &end) {
     auto temp = begin.deep_copy();
-    Size count = 0;
-    while (*temp != end) ++(*temp), ++count;
+    Size count = STD::calculateLength(begin, end);
     if (capacity() - size_ - 1 < count) reallocate(capacity() + count + 1);
-    temp = begin.deep_copy();
     size_ += count;
     while (*temp != end) {
         *val_end = **temp;
@@ -524,7 +199,190 @@ void String::push_back(const cIter<char> &begin, const cIter<char> &end) {
     append(begin, end);
 }
 
-void String::pop_back() {
-    --val_end;
-    *val_end = '\0';
+String::Iterator String::insert(Size pos, char t, Size size) {
+    if (!size) return String::Iterator(val_begin + pos);
+    if (pos >= size_) throw outOfRange("You passed an out-of-range value in the 'insert' function");
+    if (capacity() - size_ - 1 < size) {
+        Size record = capacity() + size;
+        auto the_new = Allocate_n<char>(record), the_old = val_begin;
+        store_end = the_new + record;
+        for (int i = 0; i < pos; ++i) {
+            *the_new = *val_begin;
+            ++the_new, ++val_begin;
+        }
+        for (int i = 0; i < size; ++i) *the_new++ = t;
+        while (val_begin != val_end) {
+            *the_new = *val_begin;
+            ++the_new, ++val_begin;
+        }
+        size_ += size;
+        val_end = the_new;
+        val_begin = val_end - size_;
+        Deallocate_n(the_old);
+        *val_end = '\0';
+    } else {
+        auto temp1 = val_end - 1, temp2 = val_end + size - 1, target_end = val_begin + pos;
+        while (temp1 >= target_end) {
+            *temp2 = *temp1;
+            --temp1, --temp2;
+        }
+        for (int i = 0; i < size; ++i) *target_end++ = t;
+        size_ += size;
+        val_end = val_begin + size_;
+        *val_end = '\0';
+    }
+    return String::Iterator(val_begin + pos);
 }
+
+String::Iterator String::insert(Size pos, const char *target, Size target_len) {
+    if (!target_len) return String::Iterator(val_begin + pos);
+    if (pos >= size_) throw outOfRange("You passed an out-of-range value in the 'insert' function");
+    if (capacity() - size_ - 1 < target_len) {
+        Size record = capacity() + target_len;
+        auto the_new = Allocate_n<char>(record), the_old = val_begin;
+        store_end = the_new + record;
+        for (int i = 0; i < pos; ++i) {
+            *the_new = *val_begin;
+            ++the_new, ++val_begin;
+        }
+        for (int i = 0; i < target_len; ++i) {
+            *the_new = *target;
+            ++the_new, ++target;
+        }
+        while (val_begin != val_end) {
+            *the_new = *val_begin;
+            ++the_new, ++val_begin;
+        }
+        size_ += target_len;
+        val_end = the_new;
+        val_begin = val_end - size_;
+        Deallocate_n(the_old);
+        *val_end = '\0';
+    } else {
+        auto temp1 = val_end - 1, temp2 = val_end + target_len - 1, target_end = val_begin + pos;
+        while (temp1 >= target_end) {
+            *temp2 = *temp1;
+            --temp1, --temp2;
+        }
+        for (int i = 0; i < target_len; ++i) {
+            *target_end = *target;
+            ++target_end, ++target;
+        }
+        size_ += target_len;
+        val_end = val_begin + size_;
+        *val_end = '\0';
+    }
+    return String::Iterator(val_begin + pos);
+}
+
+String::Iterator String::insert(Size pos, const char *target, Size target_pos, Size target_len) {
+    return insert(pos, target + target_pos, target_len);
+}
+
+String::Iterator String::insert(Size pos, const Iter<char> &begin, const Iter<char> &end) {
+    if (begin == end) return String::Iterator(val_begin + pos);
+    auto target = begin.deep_copy();
+    if (pos >= size_) throw outOfRange("You passed an out-of-range value in the 'insert' function");
+    Size target_len = STD::calculateLength(begin, end);
+    if (capacity() - size_ - 1 < target_len) {
+        Size record = capacity() + target_len;
+        auto the_new = Allocate_n<char>(record), the_old = val_begin;
+        store_end = the_new + record;
+        for (int i = 0; i < pos; ++i) {
+            *the_new = *val_begin;
+            ++the_new, ++val_begin;
+        }
+        for (int i = 0; i < target_len; ++i) {
+            *the_new = **target;
+            ++the_new, ++(*target);
+        }
+        while (val_begin != val_end) {
+            *the_new = *val_begin;
+            ++the_new, ++val_begin;
+        }
+        size_ += target_len;
+        val_end = the_new;
+        val_begin = val_end - size_;
+        Deallocate_n(the_old);
+        *val_end = '\0';
+    } else {
+        auto temp1 = val_end - 1, temp2 = val_end + target_len - 1, target_end = val_begin + pos;
+        while (temp1 >= target_end) {
+            *temp2 = *temp1;
+            --temp1, --temp2;
+        }
+        for (int i = 0; i < target_len; ++i) {
+            *target_end = **target;
+            ++target_end, ++(*target);
+        }
+        size_ += target_len;
+        val_end = val_begin + size_;
+        *val_end = '\0';
+    }
+    return String::Iterator(val_begin + pos);
+}
+
+String::cIterator String::insert(Size pos, const cIter<char> &begin, const cIter<char> &end) {
+    if (begin == end) return String::cIterator(val_begin + pos);
+    auto target = begin.deep_copy();
+    if (pos >= size_) throw outOfRange("You passed an out-of-range value in the 'insert' function");
+    Size target_len = STD::calculateLength(begin, end);
+    if (capacity() - size_ - 1 < target_len) {
+        Size record = capacity() + target_len;
+        auto the_new = Allocate_n<char>(record), the_old = val_begin;
+        store_end = the_new + record;
+        for (int i = 0; i < pos; ++i) {
+            *the_new = *val_begin;
+            ++the_new, ++val_begin;
+        }
+        for (int i = 0; i < target_len; ++i) {
+            *the_new = **target;
+            ++the_new, ++(*target);
+        }
+        while (val_begin != val_end) {
+            *the_new = *val_begin;
+            ++the_new, ++val_begin;
+        }
+        size_ += target_len;
+        val_end = the_new;
+        val_begin = val_end - size_;
+        Deallocate_n(the_old);
+        *val_end = '\0';
+    } else {
+        auto temp1 = val_end - 1, temp2 = val_end + target_len - 1, target_end = val_begin + pos;
+        while (temp1 >= target_end) {
+            *temp2 = *temp1;
+            --temp1, --temp2;
+        }
+        for (int i = 0; i < target_len; ++i) {
+            *target_end = **target;
+            ++target_end, ++(*target);
+        }
+        size_ += target_len;
+        val_end = val_begin + size_;
+        *val_end = '\0';
+    }
+    return String::cIterator(val_begin + pos);
+}
+
+String::Iterator String::insert(const String::Iterator &iter, char t, Size size) {
+    return insert(iter.target - val_begin, t, size);
+}
+
+String::Iterator String::insert(const String::Iterator &iter, const char *target, Size target_len) {
+    return insert(iter.target - val_begin, target, target_len);
+}
+
+String::Iterator String::insert(const String::Iterator &iter, const char *target, Size target_pos, Size target_len) {
+    return insert(iter.target - val_begin, target, target_len);
+}
+
+String::Iterator String::insert(const String::Iterator &iter, const Iter<char> &begin, const Iter<char> &end) {
+    return insert(iter.target - val_begin, begin, end);
+}
+
+String::cIterator String::insert(const String::Iterator &iter, const cIter<char> &begin, const cIter<char> &end) {
+    return insert(iter.target - val_begin, begin, end);
+}
+
+
