@@ -19,7 +19,7 @@ namespace STD {
 
         Arg *val_begin = nullptr, *val_end = nullptr, *store_end = nullptr;
 
-        void fill_with(Size size, Arg arg);
+        void fill_with(Size size, Arg &arg);
 
         void reallocate(Size size);
 
@@ -38,6 +38,8 @@ namespace STD {
         Vector(Size size, Arg target = Arg());
 
         Vector(const Iter<Arg> &begin, const Iter<Arg> &end);
+
+        Vector(const cIter<Arg> &begin, const cIter<Arg> &end);
 
         Vector(const Vector<Arg> &other);
 
@@ -58,12 +60,16 @@ namespace STD {
 
         void assign(const Iter<Arg> &begin, const Iter<Arg> &end);
 
+        void assign(const cIter<Arg> &begin, const cIter<Arg> &end);
+
         template<typename ...args>
         void emplace_back(args &&...vals);
 
         void push_back(Arg &val);
 
         void push_back(const Iter<Arg> &begin, const Iter<Arg> &end);
+
+        void push_back(const cIter<Arg> &begin, const cIter<Arg> &end);
 
         void pop_back();
 
@@ -72,13 +78,19 @@ namespace STD {
 
         Iterator insert(Size pos, const Arg &val);
 
-        Iterator insert(Size pos, Iter<Arg> &begin, Iter<Arg> &end);
+        Iterator insert(Size pos, const Iter<Arg> &begin, const Iter<Arg> &end);
+
+        cIterator insert(Size pos, const cIter<Arg> &begin, const cIter<Arg> &end);
 
         Iterator erase(Size pos, bool until_end = false);
 
         Iterator erase(const Iterator &begin);
 
+        cIterator erase(const cIterator &begin);
+
         Iterator erase(const Iterator &begin, const Iterator &end);
+
+        cIterator erase(const cIterator &begin, const cIterator &end);
 
         Arg &operator[](Size pos) const { return *(val_begin + pos); };
 
@@ -135,6 +147,7 @@ namespace STD {
 
     };
 
+
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg>
@@ -147,17 +160,29 @@ namespace STD {
     template<typename Arg>
     Vector<Arg>::Vector(const Iter<Arg> &begin, const Iter<Arg> &end) {
         auto iter = begin.deep_copy();
-        Size count = 0;
-        while (*iter != end) ++(*iter), ++count;
+        while (*iter != end) ++(*iter), ++size_;
         iter = begin.deep_copy();
-        size_ = count;
-        val_begin = Allocate_n<Arg>(count);
-        store_end = val_end = val_begin + count;
+        val_begin = Allocate_n<Arg>(size_);
+        store_end = val_end = val_begin + size_;
         while (*iter != end) {
             *val_begin = **iter;
             ++val_begin, ++(*iter);
         }
-        val_begin = val_end - count;
+        val_begin = val_end - size_;
+    }
+
+    template<typename Arg>
+    Vector<Arg>::Vector(const cIter<Arg> &begin, const cIter<Arg> &end) {
+        auto iter = begin.deep_copy();
+        while (*iter != end) ++(*iter), ++size_;
+        iter = begin.deep_copy();
+        val_begin = Allocate_n<Arg>(size_);
+        store_end = val_end = val_begin + size_;
+        while (*iter != end) {
+            *val_begin = **iter;
+            ++val_begin, ++(*iter);
+        }
+        val_begin = val_end - size_;
     }
 
     template<typename Arg>
@@ -175,14 +200,14 @@ namespace STD {
     void Vector<Arg>::reallocate(Size size) {
         auto the_new = Allocate_n<Arg>(size), the_old = val_begin;
         store_end = the_new + size;
-        for (int i = 0; i < size_; ++i) *(the_new++) = *(the_old++);
+        for (int i = 0; i < size_; ++i) *(the_new++) = move(*(the_old++));
         val_begin = store_end - size;
         val_end = val_begin + size_;
         Deallocate_n(the_old - size_);
     }
 
     template<typename Arg>
-    void Vector<Arg>::fill_with(Size size, Arg arg) {
+    void Vector<Arg>::fill_with(Size size, Arg &arg) {
         auto temp = val_begin;
         for (int i = 0; i < size; ++i) {
             *temp = arg;
@@ -246,7 +271,8 @@ namespace STD {
     }
 
     template<typename Arg>
-    typename Vector<Arg>::Iterator Vector<Arg>::insert(Size pos, Iter<Arg> &begin, Iter<Arg> &end) {
+    typename Vector<Arg>::Iterator Vector<Arg>::insert(Size pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
+        if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'insert' function");
         auto temp(begin.deep_copy());
         Size count = 0;
         while (*temp != end) ++count, ++(*temp);
@@ -259,7 +285,7 @@ namespace STD {
                 *t_begin = move(*val_begin);
                 ++t_begin, ++val_begin;
             }
-            while (end != *temp) {
+            while (*temp != end) {
                 *t_begin = **temp;
                 ++t_begin, ++(*temp);
             }
@@ -272,20 +298,63 @@ namespace STD {
             val_end = t_begin;
             size_ = val_end - val_begin;
         } else {
-            auto temp1 = val_begin + pos, temp2 = val_end;
-            while (temp1 != val_end) {
+            auto temp1 = val_end - 1, temp2 = val_end + count - 1, target_end = val_begin + pos;
+            while (temp1 >= target_end) {
                 *temp2 = move(*temp1);
-                ++temp1, ++temp2;
+                --temp1, --temp2;
             }
-            val_end = temp2;
-            temp1 = val_begin + pos;
             while (*temp != end) {
-                *temp1 = **temp;
-                ++temp1, ++(*temp);
+                *target_end = **temp;
+                ++(*temp), ++target_end;
             }
             size_ += count;
+            val_end = val_begin + size_;
         }
         return Iterator(val_begin + pos);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::cIterator
+    Vector<Arg>::insert(Size pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
+        if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'insert' function");
+        auto temp(begin.deep_copy());
+        Size count = 0;
+        while (*temp != end) ++count, ++(*temp);
+        if (!count) return cIterator(val_begin + pos);
+        temp = begin.deep_copy();
+        if (capacity() - size_ < count) {
+            auto t_begin = Allocate_n<Arg>(capacity() + count), t = t_begin;
+            store_end = t_begin + capacity() + count;
+            for (int i = 0; i < pos; ++i) {
+                *t_begin = move(*val_begin);
+                ++t_begin, ++val_begin;
+            }
+            while (*temp != end) {
+                *t_begin = **temp;
+                ++t_begin, ++(*temp);
+            }
+            while (val_begin != val_end) {
+                *t_begin = move(*val_begin);
+                ++t_begin, ++val_begin;
+            }
+            Deallocate_n(val_begin - size_);
+            val_begin = t;
+            val_end = t_begin;
+            size_ = val_end - val_begin;
+        } else {
+            auto temp1 = val_end - 1, temp2 = val_end + count - 1, target_end = val_begin + pos;
+            while (temp1 >= target_end) {
+                *temp2 = move(*temp1);
+                --temp1, --temp2;
+            }
+            while (*temp != end) {
+                *target_end = **temp;
+                ++(*temp), ++target_end;
+            }
+            size_ += count;
+            val_end = val_begin + size_;
+        }
+        return cIterator(val_begin + pos);
     }
 
     template<typename Arg>
@@ -325,6 +394,19 @@ namespace STD {
         return begin;
     }
 
+    template<typename Arg>
+    typename Vector<Arg>::cIterator Vector<Arg>::erase(const Vector::cIterator &begin) {
+        if (begin.target < val_begin)
+            throw outOfRange("You passed in an out-of-range iterator in the 'erase' function");
+        auto temp(begin.target);
+        while (temp < val_end) {
+            temp->~Arg();
+            ++temp;
+        }
+        val_end = begin.target;
+        size_ = val_end - val_begin;
+        return begin;
+    }
 
     template<typename Arg>
     typename Vector<Arg>::Iterator
@@ -338,10 +420,30 @@ namespace STD {
         }
         temp1 = begin.target;
         while (temp2 != val_end) {
-            *temp1 = *temp2;
+            *temp1 = move(*temp2);
             ++temp1, ++temp2;
         }
-        val_end = begin.target;
+        val_end = temp1;
+        size_ = val_end - val_begin;
+        return begin;
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::cIterator
+    Vector<Arg>::erase(const Vector::cIterator &begin, const Vector::cIterator &end) {
+        if (end < begin || begin.target < val_begin || end.target > val_end)
+            throw outOfRange("You passed in a pair of out-of-range iterators in the 'erase' function");
+        auto temp1(begin.target), temp2(end.target);
+        while (temp1 != temp2) {
+            temp1->~Arg();
+            ++temp1;
+        }
+        temp1 = begin.target;
+        while (temp2 != val_end) {
+            *temp1 = move(*temp2);
+            ++temp1, ++temp2;
+        }
+        val_end = temp1;
         size_ = val_end - val_begin;
         return begin;
     }
@@ -371,27 +473,25 @@ namespace STD {
         Size count = 0;
         while (*temp != end) ++count, ++(*temp);
         temp = begin.deep_copy();
-        if (capacity() - size_ < count) {
-            auto t = Allocate_n<Arg>(capacity() + size_);
-            store_end = capacity() + size_;
-            while (val_begin != val_end) {
-                *t = move(*val_begin);
-                ++t, ++val_begin;
-            }
-            Deallocate_n(val_begin - size_);
-            val_begin = t - size_;
-            while (*temp != end) {
-                *t = move(**temp);
-                ++t, ++(*temp);
-            }
-            val_end = t;
-            size_ = val_end - val_begin;
-        } else {
-            size_ += count;
-            while (*temp != end) {
-                *val_end = move(**temp);
-                ++val_end, ++(*temp);
-            }
+        if (capacity() - size_ < count) reallocate(capacity() + count);
+        size_ += count;
+        while (*temp != end) {
+            *val_end = **temp;
+            ++val_end, ++(*temp);
+        }
+    }
+
+    template<typename Arg>
+    void Vector<Arg>::push_back(const cIter<Arg> &begin, const cIter<Arg> &end) {
+        auto temp(begin.deep_copy());
+        Size count = 0;
+        while (*temp != end) ++count, ++(*temp);
+        temp = begin.deep_copy();
+        if (capacity() - size_ < count) reallocate(capacity() + count);
+        size_ += count;
+        while (*temp != end) {
+            *val_end = **temp;
+            ++val_end, ++(*temp);
         }
     }
 
@@ -436,6 +536,23 @@ namespace STD {
 
     template<typename Arg>
     void Vector<Arg>::assign(const Iter<Arg> &begin, const Iter<Arg> &end) {
+        Deallocate_n(val_begin);
+        auto temp = begin.deep_copy();
+        Size count = 0;
+        while (*temp != end) ++(*temp), ++count;
+        temp = begin.deep_copy();
+        auto t = Allocate_n<Arg>(count);
+        while (*temp != end) {
+            *t = **temp;
+            ++t, ++(*temp);
+        }
+        store_end = val_end = t;
+        val_begin = t - count;
+        size_ = count;
+    }
+
+    template<typename Arg>
+    void Vector<Arg>::assign(const cIter<Arg> &begin, const cIter<Arg> &end) {
         Deallocate_n(val_begin);
         auto temp = begin.deep_copy();
         Size count = 0;
@@ -514,7 +631,7 @@ namespace STD {
     protected:
         using Iter<Arg>::target;
 
-        Iterator &operator=(Arg *ptr) {
+        virtual Iterator &operator=(Arg *ptr) {
             target = ptr;
             return *this;
         }
@@ -536,7 +653,10 @@ namespace STD {
             return *this;
         };
 
-        Arg &operator*() const override { return *target; };
+
+        using Iter<Arg>::operator*;
+
+        using Iter<Arg>::operator->;
 
         Iterator &operator++() & override {
             ++target;
@@ -550,15 +670,15 @@ namespace STD {
             return *this;
         };
 
-        virtual const Iterator operator--(int) &{ return Vector<Arg>::Iterator(target--); };
+        Iterator operator--(int) &{ return Vector<Arg>::Iterator(target--); };
 
-        virtual Iterator operator+(Size size);
+        Iterator operator+(Size size);
 
-        virtual Iterator operator-(Size size);
+        Iterator operator-(Size size);
 
-        virtual Iterator &operator+=(Size size);
+        Iterator &operator+=(Size size);
 
-        virtual Iterator &operator-=(Size size);
+        Iterator &operator-=(Size size);
 
         friend bool
         operator==(const Iterator &left, const Iterator &right) { return left.target == right.target; };
@@ -589,7 +709,7 @@ namespace STD {
     protected:
         using cIter<Arg>::target;
 
-        cIterator &operator=(Arg *ptr) {
+        virtual cIterator &operator=(Arg *ptr) {
             target = ptr;
             return *this;
         };
@@ -611,29 +731,31 @@ namespace STD {
             return *this;
         };
 
-        const Arg &operator*() const override { return *target; };
+        using cIter<Arg>::operator*;
 
-        cIterator &operator++() &{
+        using cIter<Arg>::operator->;
+
+        cIterator &operator++() & override {
             ++target;
             return *this;
         };
 
         cIterator operator++(int) &{ return Vector<Arg>::cIterator(target++); };
 
-        virtual cIterator operator+(Size size);
+        cIterator operator+(Size size);
 
-        virtual cIterator operator-(Size size);
+        cIterator operator-(Size size);
 
-        virtual cIterator &operator+=(Size size);
+        cIterator &operator+=(Size size);
 
-        virtual cIterator &operator-=(Size size);
+        cIterator &operator-=(Size size);
 
         virtual cIterator &operator--() &{
             --target;
             return *this;
         };
 
-        virtual const cIterator operator--(int) &{ return Vector<Arg>::cIterator(target--); };
+        cIterator operator--(int) &{ return Vector<Arg>::cIterator(target--); };
 
         friend bool
         operator==(const cIterator &left, const cIterator &right) { return left.target == right.target; };
@@ -664,7 +786,7 @@ namespace STD {
     protected:
         using Iter<Arg>::target;
 
-        rIterator &operator=(Arg *ptr) {
+        rIterator &operator=(Arg *ptr) override {
             target = ptr;
             return *this;
         }
@@ -687,6 +809,8 @@ namespace STD {
 
         using Iterator::operator*;
 
+        using Iterator::operator->;
+
         rIterator &operator++() & override {
             --target;
             return *this;
@@ -699,15 +823,15 @@ namespace STD {
             return *this;
         };
 
-        const rIterator operator--(int) & override { return Vector<Arg>::rIterator(target++); };
+        rIterator operator--(int) &{ return Vector<Arg>::rIterator(target++); };
 
-        rIterator operator+(Size size) override;
+        rIterator operator+(Size size);
 
-        rIterator operator-(Size size) override;
+        rIterator operator-(Size size);
 
-        rIterator &operator+=(Size size) override;
+        rIterator &operator+=(Size size);
 
-        rIterator &operator-=(Size size) override;
+        rIterator &operator-=(Size size);
 
         friend bool
         operator==(const rIterator &left, const rIterator &right) { return left.target == right.target; };
@@ -738,7 +862,7 @@ namespace STD {
     protected:
         using cIter<Arg>::target;
 
-        crIterator &operator=(Arg *ptr) {
+        crIterator &operator=(Arg *ptr) override {
             target = ptr;
             return *this;
         };
@@ -761,6 +885,8 @@ namespace STD {
 
         using cIterator::operator*;
 
+        using cIterator::operator->;
+
         crIterator &operator++() & override {
             --target;
             return *this;
@@ -773,15 +899,15 @@ namespace STD {
             return *this;
         };
 
-        const crIterator operator--(int) & override { return Vector<Arg>::crIterator(target++); };
+        crIterator operator--(int) &{ return Vector<Arg>::crIterator(target++); };
 
-        crIterator operator+(Size size) override;
+        crIterator operator+(Size size);
 
-        crIterator operator-(Size size) override;
+        crIterator operator-(Size size);
 
-        crIterator &operator+=(Size size) override;
+        crIterator &operator+=(Size size);
 
-        crIterator &operator-=(Size size) override;
+        crIterator &operator-=(Size size);
 
         friend bool
         operator==(const crIterator &left, const crIterator &right) { return left.target == right.target; };
@@ -815,27 +941,23 @@ namespace STD {
 
     template<typename Arg>
     typename Vector<Arg>::Iterator &Vector<Arg>::Iterator::operator-=(Size size) {
-//        if (target - size < val_begin) throw outOfRange("You subtracted an out-of-range value to the function\n");
         target -= size;
         return *this;
     }
 
     template<typename Arg>
     typename Vector<Arg>::Iterator &Vector<Arg>::Iterator::operator+=(Size size) {
-//        if (target + size >= val_end) throw outOfRange("You added an out-of-range value to the function\n");
         target += size;
         return *this;
     }
 
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::Iterator::operator-(Size size) {
-//        if (target - size < val_begin) throw outOfRange("You subtracted an out-of-range value to the function\n");
         return Vector<Arg>::Iterator(target - size);
     }
 
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::Iterator::operator+(Size size) {
-//        if (target + size >= val_end) throw outOfRange("You added an out-of-range value to the function\n");
         return Vector<Arg>::Iterator(target + size);
     }
 
@@ -850,26 +972,22 @@ namespace STD {
 
     template<typename Arg>
     typename Vector<Arg>::cIterator Vector<Arg>::cIterator::operator-(Size size) {
-//        if (target - size < val_begin) throw outOfRange("You subtracted an out-of-range value to the function\n");
         return Vector<Arg>::cIterator(target - size);
     }
 
     template<typename Arg>
     typename Vector<Arg>::cIterator Vector<Arg>::cIterator::operator+(Size size) {
-//        if (target + size >= val_end) throw outOfRange("You added an out-of-range value to the function\n");
         return Vector<Arg>::cIterator(target + size);
     }
 
     template<typename Arg>
     typename Vector<Arg>::cIterator &Vector<Arg>::cIterator::operator+=(Size size) {
-//        if (target + size >= val_end) throw outOfRange("You added an out-of-range value to the function\n");
         target += size;
         return *this;
     }
 
     template<typename Arg>
     typename Vector<Arg>::cIterator &Vector<Arg>::cIterator::operator-=(Size size) {
-//        if (target - size < val_begin) throw outOfRange("You subtracted an out-of-range value to the function\n");
         target -= size;
         return *this;
     }
@@ -884,27 +1002,23 @@ namespace STD {
 
     template<typename Arg>
     typename Vector<Arg>::rIterator &Vector<Arg>::rIterator::operator-=(Size size) {
-//        if (target + size >= val_end) throw outOfRange("You subtracted an out-of-range value to the function\n");
         target += size;
         return *this;
     }
 
     template<typename Arg>
     typename Vector<Arg>::rIterator &Vector<Arg>::rIterator::operator+=(Size size) {
-//        if (target - size < val_begin) throw outOfRange("You added an out-of-range value to the function\n");
         target -= size;
         return *this;
     }
 
     template<typename Arg>
     typename Vector<Arg>::rIterator Vector<Arg>::rIterator::operator-(Size size) {
-//        if (target + size >= val_end) throw outOfRange("You subtracted an out-of-range value to the function\n");
         return Vector<Arg>::rIterator(target + size);
     }
 
     template<typename Arg>
     typename Vector<Arg>::rIterator Vector<Arg>::rIterator::operator+(Size size) {
-//        if (target - size < val_begin) throw outOfRange("You added an out-of-range value to the function\n");
         return Vector<Arg>::rIterator(target - size);
     }
 
@@ -917,27 +1031,23 @@ namespace STD {
 
     template<typename Arg>
     typename Vector<Arg>::crIterator &Vector<Arg>::crIterator::operator-=(Size size) {
-//        if (target + size >= val_end) throw outOfRange("You subtracted an out-of-range value to the function\n");
         target += size;
         return *this;
     }
 
     template<typename Arg>
     typename Vector<Arg>::crIterator &Vector<Arg>::crIterator::operator+=(Size size) {
-//        if (target - size < val_begin) throw outOfRange("You added an out-of-range value to the function\n");
         target -= size;
         return *this;
     }
 
     template<typename Arg>
     typename Vector<Arg>::crIterator Vector<Arg>::crIterator::operator-(Size size) {
-//        if (target + size >= val_end) throw outOfRange("You subtracted an out-of-range value to the function\n");
         return Vector<Arg>::crIterator(target + size);
     }
 
     template<typename Arg>
     typename Vector<Arg>::crIterator Vector<Arg>::crIterator::operator+(Size size) {
-//        if (target - size < val_begin) throw outOfRange("You added an out-of-range value to the function\n");
         return Vector<Arg>::crIterator(target - size);
     }
 

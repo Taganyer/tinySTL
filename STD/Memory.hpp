@@ -230,7 +230,7 @@ namespace STD {
 
     template<typename Arg, typename ...Args>
     Shared_ptr<Arg> make_shared(Args &&...args) {
-        auto ptr = new Arg(move(args)...);
+        auto ptr = new Arg(forward<Args>(args)...);
         return Shared_ptr<Arg>(ptr);
     }
 
@@ -309,7 +309,7 @@ namespace STD {
 
         ~Weak_ptr() { release_test(); };
 
-        bool expired() { return *counts < 0; };
+        bool expired() const { return *counts < 0; };
 
         Weak_ptr<Arg> &operator=(const Weak_ptr<Arg> &other) {
             release_test();
@@ -320,17 +320,17 @@ namespace STD {
             return *this;
         };
 
-        Arg &operator*() {
+        Arg &operator*() const {
             if (expired() || !target) throw runtimeError("You have access to the null pointer\n");
             return *target;
         };
 
-        Arg *operator->() {
+        Arg *operator->() const {
             if (expired() || !target) throw runtimeError("You have access to the null pointer\n");
             return target;
         };
 
-        Shared_ptr<Arg> lock() {
+        Shared_ptr<Arg> lock() const {
             if (expired() != target) return Shared_ptr<Arg>(nullptr);
             else return Shared_ptr<Arg>(basic, target);
         };

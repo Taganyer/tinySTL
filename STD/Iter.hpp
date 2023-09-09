@@ -24,6 +24,8 @@ namespace STD {
 
         virtual Type &operator*() const { return *target; };
 
+        virtual Type *operator->() const { return target; };
+
         virtual Iter<Type> &operator++() &{
             ++target;
             return *this;
@@ -57,9 +59,9 @@ namespace STD {
 
         virtual ~cIter() = default;
 
-        virtual const Type &operator*() const {
-            return *target;
-        };
+        virtual const Type &operator*() const { return *target; };
+
+        virtual const Type *operator->() const { return target; };
 
         virtual cIter<Type> &operator++() &{
             ++target;
@@ -77,7 +79,7 @@ namespace STD {
 
     template<typename Type>
     Shared_ptr<cIter<Type>> cIter<Type>::deep_copy() const {
-        return Shared_ptr<cIter<Type>>(*this);
+        return make_shared<cIter<Type>>(*this);
     }
 
 }
