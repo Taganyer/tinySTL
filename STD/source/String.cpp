@@ -20,11 +20,8 @@ void String::reallocate(Size size) {
     *val_end = '\0';
 }
 
-Size String::calculateLength(const char *target) {
-    const char *temp = target;
-    Size len = 0;
-    while (*temp != '\0') ++temp, ++len;
-    return len;
+String::String() : val_begin(Allocate_n<char>(1)), val_end(val_begin), store_end(val_begin + 1) {
+    *val_begin = '\0';
 }
 
 String::String(Size size, char target) : size_(size), val_begin(Allocate_n<char>(size + size / 5 + 1)) {
@@ -48,7 +45,7 @@ String::String(const char *target, Size len) : size_(len), val_begin(Allocate_n<
     *val_end = '\0';
 }
 
-String::String(const char *target) : String(target, calculateLength(target)) {}
+String::String(const char *target) : String(target, STD::calculateLength(target)) {}
 
 String::String(const String &other, Size pos) : String(other.c_str() + pos) {}
 
@@ -126,6 +123,18 @@ String &String::assign(const cIter<char> &begin, const cIter<char> &end) {
     return *this;
 }
 
+void String::clear(bool whether_to_release) {
+    if (whether_to_release) {
+        Deallocate_n(val_begin);
+        val_begin = val_end = store_end = nullptr;
+    } else {
+        char *temp = val_begin;
+        while (temp != val_end) *(temp++) = '\0';
+        val_end = val_begin;
+    }
+    size_ = 0;
+}
+
 void String::append(char t) {
     if (capacity() <= size_ + 1)
         reallocate(size_ + 1 > size_ + size_ / 5 ? size_ + 2 : size_ + size_ / 5 + 1);
@@ -146,7 +155,7 @@ void String::append(const char *target, Size len) {
 }
 
 void String::append(const char *target) {
-    append(target, 0, calculateLength(target));
+    append(target, 0, STD::calculateLength(target));
 }
 
 void String::append(const char *target, Size pos, Size len) {
@@ -159,12 +168,14 @@ void String::append(const String &target) {
 }
 
 void String::append(const String &target, Size pos) {
-    if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'String::append or String::push_back' function");
+    if (pos >= size_)
+        throw outOfRange("You selected an out-of-range value in the 'String::append or String::push_back' function");
     append(target.c_str() + pos);
 }
 
 void String::append(const String &target, Size pos, Size len) {
-    if (pos + len > size_) throw outOfRange("You selected an out-of-range value in the 'String::append or String::push_back' function");
+    if (pos + len > size_)
+        throw outOfRange("You selected an out-of-range value in the 'String::append or String::push_back' function");
     append(target.c_str() + pos, len);
 }
 
@@ -572,7 +583,7 @@ String &String::replace(Size pos, Size len, const char *target, Size target_len)
 }
 
 String &String::replace(Size pos, Size len, const char *target) {
-    return replace(pos, len, target, calculateLength(target));
+    return replace(pos, len, target, STD::calculateLength(target));
 }
 
 String &String::replace(Size pos, Size len, const String &target) {
@@ -604,7 +615,7 @@ String &String::replace(const String::Iterator &begin, const String::Iterator &e
     if (begin.target >= val_end || begin.target < val_begin || end.target < val_begin || end.target > val_end ||
         begin.target > end.target)
         throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
-    return replace(begin.target - val_begin, end.target - begin.target, target, calculateLength(target));
+    return replace(begin.target - val_begin, end.target - begin.target, target, STD::calculateLength(target));
 }
 
 String &String::replace(const String::Iterator &begin, const String::Iterator &end, const String &target) {
@@ -641,7 +652,7 @@ String &String::replace(const String::cIterator &begin, const String::cIterator 
     if (begin.target >= val_end || begin.target < val_begin || end.target < val_begin || end.target > val_end ||
         begin.target > end.target)
         throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
-    return replace(begin.target - val_begin, end.target - begin.target, target, calculateLength(target));
+    return replace(begin.target - val_begin, end.target - begin.target, target, STD::calculateLength(target));
 }
 
 String &String::replace(const String::cIterator &begin, const String::cIterator &end, const String &target) {
@@ -756,4 +767,217 @@ bool STD::operator>=(const String &left, const String &right) {
     }
     return r == right.val_end;
 }
+
+Size String::find(char t, Size pos) const {
+    auto temp = val_begin + pos;
+    while (temp != val_end) {
+        if (*temp == t) return temp - val_begin;
+        ++temp;
+    }
+    return String::Npos;
+}
+
+Size String::find(const char *target, Size pos) const {
+    if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'String::find' function");
+    auto temp = Boyer_Moore(target, val_begin + pos, size_ - pos);
+    return temp ? temp - val_begin : Npos;
+}
+
+Size String::find(const char *target, Size pos, Size size) const {
+    if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'String::find' function");
+    auto temp = Boyer_Moore(target, size, val_begin + pos, size_ - pos);
+    return temp ? temp - val_begin : Npos;
+}
+
+Size String::find(const String &target, Size pos) const {
+    if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'String::find' function");
+    auto temp = Boyer_Moore(target.val_begin, target.size_, val_begin + pos, size_ - pos);
+    return temp ? temp - val_begin : Npos;
+}
+
+Size String::find(const String &target, Size pos, Size size) const {
+    if (pos >= size_ || size > target.size_)
+        throw outOfRange("You selected an out-of-range value in the 'String::find' function");
+    auto temp = Boyer_Moore(target.val_begin, size, val_begin + pos, size_ - pos);
+    return temp ? temp - val_begin : Npos;
+}
+
+Size String::rfind(char t, Size pos) const {
+    if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
+    auto temp = val_end - 1;
+    while (temp >= val_begin) {
+        if (*temp == t) return temp - val_begin;
+        --temp;
+    }
+    return Npos;
+}
+
+Size String::rfind(const char *target, Size pos) const {
+    if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
+    auto temp = rBoyer_Moore(target, val_begin + pos, size_ - pos);
+    return temp ? temp - val_begin : Npos;
+}
+
+Size String::rfind(const char *target, Size pos, Size size) const {
+    if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
+    auto temp = rBoyer_Moore(target, size, val_begin + pos, size_ - pos);
+    return temp ? temp - val_begin : Npos;
+}
+
+Size String::rfind(const String &target, Size pos) const {
+    if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
+    auto temp = rBoyer_Moore(target.val_begin, target.size_, val_begin + pos, size_ - pos);
+    return temp ? temp - val_begin : Npos;
+}
+
+Size String::rfind(const String &target, Size pos, Size size) const {
+    if (pos >= size_ || size > target.size_)
+        throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
+    auto temp = rBoyer_Moore(target.val_begin, size, val_begin + pos, size_ - pos);
+    return temp ? temp - val_begin : Npos;
+}
+
+Size String::find_first_of(const char *target, Size pos, Size size) const {
+    if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'String::find_first_of' function");
+    bool store[256];
+    Memset(store, false, 256);
+    for (int i = 0; i < size; ++i) store[target[i]] = true;
+    auto temp = val_begin + pos;
+    while (temp < val_end) {
+        if (store[*temp]) return temp - val_begin;
+        ++temp;
+    }
+    return Npos;
+}
+
+Size String::find_first_of(const char *target, Size pos) const {
+    return find_first_of(target, pos, calculateLength(target));
+}
+
+Size String::find_first_of(const String &target, Size pos) const {
+    return find_first_of(target.val_begin, pos, target.size_);
+}
+
+Size String::find_first_of(const String &target, Size pos, Size size) const {
+    if (size > target.size_)
+        throw outOfRange("You selected an out-of-range value in the 'String::find_first_of' function");
+    return find_first_of(target.val_begin, pos, size);
+}
+
+Size String::find_last_of(const char *target, Size pos, Size size) const {
+    if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'String::find_last_of' function");
+    bool store[256];
+    Memset(store, false, 256);
+    for (int i = 0; i < size; ++i) store[target[i]] = true;
+    auto temp = val_end - 1;
+    while (temp >= val_begin + pos) {
+        if (store[*temp]) return temp - val_begin;
+        --temp;
+    }
+    return Npos;
+}
+
+Size String::find_last_of(const char *target, Size pos) const {
+    return find_last_of(target, pos, calculateLength(target));
+}
+
+Size String::find_last_of(const String &target, Size pos) const {
+    return find_first_of(target.val_begin, pos, target.size_);
+}
+
+Size String::find_last_of(const String &target, Size pos, Size size) const {
+    if (size > target.size_)
+        throw outOfRange("You selected an out-of-range value in the 'String::find_last_of' function");
+    return find_first_of(target.val_begin, pos, size);
+}
+
+Size String::find_first_not_of(const char *target, Size pos, Size size) const {
+    if (pos >= size_)
+        throw outOfRange("You selected an out-of-range value in the 'String::find_first_not_of' function");
+    bool store[256];
+    Memset(store, true, 256);
+    for (int i = 0; i < size; ++i) store[target[i]] = false;
+    auto temp = val_begin + pos;
+    while (temp < val_end) {
+        if (store[*temp]) return temp - val_begin;
+        ++temp;
+    }
+    return Npos;
+}
+
+Size String::find_first_not_of(const char *target, Size pos) const {
+    return find_first_not_of(target, pos, calculateLength(target));
+}
+
+Size String::find_first_not_of(const String &target, Size pos) const {
+    return find_first_not_of(target.val_begin, pos, target.size_);
+}
+
+Size String::find_first_not_of(const String &target, Size pos, Size size) const {
+    if (size > target.size_)
+        throw outOfRange("You selected an out-of-range value in the 'String::find_first_not_of' function");
+    return find_first_not_of(target.val_begin, pos, size);
+}
+
+Size String::find_last_not_of(const char *target, Size pos, Size size) const {
+    if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'String::find_last_not_of' function");
+    bool store[256];
+    Memset(store, true, 256);
+    for (int i = 0; i < size; ++i) store[target[i]] = false;
+    auto temp = val_end - 1;
+    while (temp >= val_begin + pos) {
+        if (store[*temp]) return temp - val_begin;
+        --temp;
+    }
+    return Npos;
+}
+
+Size String::find_last_not_of(const char *target, Size pos) const {
+    return find_last_not_of(target, pos, calculateLength(target));
+}
+
+Size String::find_last_not_of(const String &target, Size pos) const {
+    return find_last_not_of(target.val_begin, pos, target.size_);
+}
+
+Size String::find_last_not_of(const String &target, Size pos, Size size) const {
+    if (size > target.size_)
+        throw outOfRange("You selected an out-of-range value in the 'String::find_last_not_of' function");
+    return find_last_not_of(target.val_begin, pos, size);
+}
+
+int String::compare(Size pos1, Size n1, const char *target, Size n2) const {
+    if (pos1 + n1 > size_) throw outOfRange("You selected an out-of-range value in the 'String::compare' function");
+    const char *temp = val_begin + pos1, *end1 = temp + n1, *end2 = target + n2;
+    while (temp != end1 && target != end2) {
+        if (*temp != *target) return *temp - *target;
+        ++temp, ++target;
+    }
+    if (n1 == n2) return 0;
+    return temp == end1 ? -(*target) : *temp;
+}
+
+int String::compare(Size pos1, Size n1, const char *target) const {
+    return compare(pos1, n1, target, calculateLength(target));
+}
+
+int String::compare(const char *target) const {
+    return compare(0, size_, target, calculateLength(target));
+}
+
+int String::compare(Size pos1, Size n1, const String &target, Size pos2, Size n2) const {
+    if (pos2 + n2 > target.size_)
+        throw outOfRange("You selected an out-of-range value in the 'String::compare' function");
+    return compare(pos1, n1, target.val_begin + pos2, n2);
+}
+
+int String::compare(Size pos1, Size n1, const String &target) const {
+    return compare(pos1, n1, target.val_begin, target.size_);
+}
+
+int String::compare(const String &target) const {
+    return compare(0, size_, target.val_begin, target.size_);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 

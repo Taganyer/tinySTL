@@ -57,9 +57,9 @@ namespace STD {
 
         void shirk_to_fit();
 
-        Vector<Arg>& assign(const Iter<Arg> &begin, const Iter<Arg> &end);
+        Vector<Arg> &assign(const Iter<Arg> &begin, const Iter<Arg> &end);
 
-        Vector<Arg>& assign(const cIter<Arg> &begin, const cIter<Arg> &end);
+        Vector<Arg> &assign(const cIter<Arg> &begin, const cIter<Arg> &end);
 
         template<typename ...args>
         void emplace_back(args &&...vals);
@@ -513,7 +513,7 @@ namespace STD {
             val_begin = val_end = store_end = nullptr;
         } else {
             Arg *temp = val_begin;
-            while (temp != val_end)*(temp++).~Arg();
+            while (temp != val_end) *(temp++).~Arg();
             val_end = val_begin;
         }
         size_ = 0;
@@ -538,7 +538,7 @@ namespace STD {
     }
 
     template<typename Arg>
-    Vector<Arg>& Vector<Arg>::assign(const Iter<Arg> &begin, const Iter<Arg> &end) {
+    Vector<Arg> &Vector<Arg>::assign(const Iter<Arg> &begin, const Iter<Arg> &end) {
         Deallocate_n(val_begin);
         auto temp = begin.deep_copy();
         Size count = 0;
@@ -556,7 +556,7 @@ namespace STD {
     }
 
     template<typename Arg>
-    Vector<Arg>& Vector<Arg>::assign(const cIter<Arg> &begin, const cIter<Arg> &end) {
+    Vector<Arg> &Vector<Arg>::assign(const cIter<Arg> &begin, const cIter<Arg> &end) {
         Deallocate_n(val_begin);
         auto temp = begin.deep_copy();
         Size count = calculateLength(begin, end);

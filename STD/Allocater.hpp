@@ -11,6 +11,18 @@
 namespace STD {
     using Size = unsigned long long;
 
+    const int MAX_INT = 2147483647;
+
+    const int MIN_INT = -2147483648;
+
+    const unsigned int MAX_UINT_INT = 4294967295;
+
+    const long long MAX_LLONG = 9223372036854775807;
+
+    const long long MIN_LLONG = -9223372036854775808;
+
+    const unsigned long long MAX_UINT_LLONG = 18446744073709551615;
+
     template<typename Arg>
     Arg* Allocate(const Arg& arg) {
         auto* ptr = new Arg(arg);
@@ -64,6 +76,14 @@ namespace STD {
             Deallocate(ptr);
         }
     };
+
+    template<typename Arg>
+    void Memset(Arg *target, const Arg &val, Size size) {
+        for (int i = 0; i < size; ++i) {
+            *target = val;
+            ++target;
+        }
+    }
 }
 
 #endif //TINYSTL_ALLOCATER_HPP

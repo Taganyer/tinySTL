@@ -8,8 +8,8 @@
 #include "Iter.hpp"
 #include "Warning.hpp"
 #include "Memory.hpp"
-#include "Memory.hpp"
 #include "Allocater.hpp"
+#include "Algorithms.hpp"
 
 namespace STD {
 
@@ -23,9 +23,9 @@ namespace STD {
 
         void reallocate(Size size);
 
-        static Size calculateLength(const char *target);
-
     public:
+
+        static const Size Npos = -1;
 
         class Iterator : public Iter<char> {
         protected:
@@ -351,7 +351,7 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
 
-        String() = default;
+        String();
 
         String(Size size, char target);
 
@@ -389,6 +389,8 @@ namespace STD {
         String &assign(const Iter<char> &begin, const Iter<char> &end);
 
         String &assign(const cIter<char> &begin, const cIter<char> &end);
+
+        void clear(bool whether_to_release = false);
 
         void append(char t);
 
@@ -507,71 +509,75 @@ namespace STD {
             return *(val_end - 1);
         };
 
-        Size find(char t, Size pos = 0);
+        Size find(char t, Size pos = 0) const;
 
-        Size find(const char *target, Size pos = 0);
+        Size find(const char *target, Size pos = 0) const;
 
-        Size find(const char *target, Size pos, Size size);
+        Size find(const char *target, Size pos, Size size) const;
 
-        Size find(const String &target, Size pos = 0);
+        Size find(const String &target, Size pos = 0) const;
 
-        Size find(const String &target, Size pos, Size size);
+        Size find(const String &target, Size pos, Size size) const;
 
-        Size rfind(char t, Size pos = 0);
+        Size rfind(char t, Size pos = 0) const;
 
-        Size rfind(const char *target, Size pos = 0);
+        Size rfind(const char *target, Size pos = 0) const;
 
-        Size rfind(const char *target, Size pos, Size size);
+        Size rfind(const char *target, Size pos, Size size) const;
 
-        Size rfind(const String &target, Size pos = 0);
+        Size rfind(const String &target, Size pos = 0) const;
 
-        Size rfind(const String &target, Size pos, Size size);
+        Size rfind(const String &target, Size pos, Size size) const;
 
-        Size find_first_of(char t, Size pos = 0);
+        Size find_first_of(const char *target, Size pos = 0) const;
 
-        Size find_first_of(const char *target, Size pos = 0);
+        Size find_first_of(const char *target, Size pos, Size size) const;
 
-        Size find_first_of(const char *target, Size pos, Size size);
+        Size find_first_of(const String &target, Size pos = 0) const;
 
-        Size find_first_of(const String &target, Size pos = 0);
+        Size find_first_of(const String &target, Size pos, Size size) const;
 
-        Size find_first_of(const String &target, Size pos, Size size);
+        Size find_last_of(const char *target, Size pos = 0) const;
 
-        Size find_last_of(char t, Size pos = 0);
+        Size find_last_of(const char *target, Size pos, Size size) const;
 
-        Size find_last_of(const char *target, Size pos = 0);
+        Size find_last_of(const String &target, Size pos = 0) const;
 
-        Size find_last_of(const char *target, Size pos, Size size);
+        Size find_last_of(const String &target, Size pos, Size size) const;
 
-        Size find_last_of(const String &target, Size pos = 0);
+        Size find_first_not_of(const char *target, Size pos = 0) const;
 
-        Size find_last_of(const String &target, Size pos, Size size);
+        Size find_first_not_of(const char *target, Size pos, Size size) const;
 
-        Size find_first_not_of(char t, Size pos = 0);
+        Size find_first_not_of(const String &target, Size pos = 0) const;
 
-        Size find_first_not_of(const char *target, Size pos = 0);
+        Size find_first_not_of(const String &target, Size pos, Size size) const;
 
-        Size find_first_not_of(const char *target, Size pos, Size size);
+        Size find_last_not_of(const char *target, Size pos = 0) const;
 
-        Size find_first_not_of(const String &target, Size pos = 0);
+        Size find_last_not_of(const char *target, Size pos, Size size) const;
 
-        Size find_first_not_of(const String &target, Size pos, Size size);
+        Size find_last_not_of(const String &target, Size pos = 0) const;
 
-        Size find_last_not_of(char t, Size pos = 0);
-
-        Size find_last_not_of(const char *target, Size pos = 0);
-
-        Size find_last_not_of(const char *target, Size pos, Size size);
-
-        Size find_last_not_of(const String &target, Size pos = 0);
-
-        Size find_last_not_of(const String &target, Size pos, Size size);
+        Size find_last_not_of(const String &target, Size pos, Size size) const;
 
         String &operator=(const String &other);
 
         String &operator=(String &&other) noexcept;
 
         String &operator+=(const String &other);
+
+        int compare(const char *target) const;
+
+        int compare(Size pos1, Size n1, const char *target) const;
+
+        int compare(Size pos1, Size n1, const char *target, Size n2) const;
+
+        int compare(const String &target) const;
+
+        int compare(Size pos1, Size n1, const String &target) const;
+
+        int compare(Size pos1, Size n1, const String &target, Size pos2, Size n2) const;
 
         friend String &operator+(String &left, const String &right);
 
