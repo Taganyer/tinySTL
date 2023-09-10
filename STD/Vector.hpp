@@ -94,17 +94,17 @@ namespace STD {
         Arg &operator[](Size pos) const { return *(val_begin + pos); };
 
         Arg &at(Size pos) const {
-            if (pos >= size_) throw outOfRange("You provided an out-of-range subscript");
+            if (pos >= size_) throw outOfRange("You provided an out-of-range subscript int the 'Vector::at' function");
             return *(val_begin + pos);
         };
 
         Arg &front() {
-            if (!size_) throw outOfRange("You're accessing a non-existent element in the 'front()' function");
+            if (!size_) throw outOfRange("You're accessing a non-existent element in the 'Vector::front' function");
             return *val_begin;
         };
 
         Arg &back() {
-            if (!size_) throw outOfRange("You're accessing a non-existent element in the 'back()' function");
+            if (!size_) throw outOfRange("You're accessing a non-existent element in the 'Vector::back' function");
             return *(val_end - 1);
         };
 
@@ -218,7 +218,7 @@ namespace STD {
     template<typename Arg>
     template<typename... args>
     typename Vector<Arg>::Iterator Vector<Arg>::emplace(Size pos, args &&... vals) {
-        if (pos > size_) throw outOfRange("Your function 'emplace' was passed an out-of-range position\n");
+        if (pos > size_) throw outOfRange("Your function 'Vector::emplace' was passed an out-of-range position\n");
         Arg last = Arg(forward<args>(vals)...);
         if (capacity() <= size_) {
             Size size = size_ + 1 > size_ + size_ / 5 ? size_ + 1 : size_ + size_ / 5;
@@ -245,7 +245,7 @@ namespace STD {
 
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::insert(Size pos, const Arg &val) {
-        if (pos > size_) throw outOfRange("Your function 'insert' was passed an out-of-range position\n");
+        if (pos > size_) throw outOfRange("Your function 'Vector::insert' was passed an out-of-range position\n");
         if (capacity() <= size_) {
             Size size = size_ + 1 > size_ + size_ / 5 ? size_ + 1 : size_ + size_ / 5;
             auto the_new = Allocate_n<Arg>(size), the_old = val_begin;
@@ -272,7 +272,7 @@ namespace STD {
 
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::insert(Size pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
-        if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'insert' function");
+        if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
         auto temp(begin.deep_copy());
         Size count = 0;
         while (*temp != end) ++count, ++(*temp);
@@ -316,7 +316,7 @@ namespace STD {
     template<typename Arg>
     typename Vector<Arg>::cIterator
     Vector<Arg>::insert(Size pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
-        if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'insert' function");
+        if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
         auto temp(begin.deep_copy());
         Size count = 0;
         while (*temp != end) ++count, ++(*temp);
@@ -359,7 +359,7 @@ namespace STD {
 
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::erase(Size pos, bool until_end) {
-        if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'erase' function");
+        if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'Vector::erase' function");
         if (until_end) {
             auto now = val_begin + pos;
             while (now != val_end) {
@@ -383,7 +383,7 @@ namespace STD {
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::erase(const Vector::Iterator &iter) {
         if (iter.target < val_begin)
-            throw outOfRange("You passed in an out-of-range iterator in the 'erase' function");
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::erase' function");
         if (iter.target != val_end) {
             --size_;
             auto temp1 = iter.target, temp2 = temp1 + 1;
@@ -400,7 +400,7 @@ namespace STD {
     template<typename Arg>
     typename Vector<Arg>::cIterator Vector<Arg>::erase(const Vector::cIterator &iter) {
         if (iter.target < val_begin)
-            throw outOfRange("You passed in an out-of-range iterator in the 'erase' function");
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::erase' function");
         auto temp(iter.target);
         if (iter.target != val_end) {
             --size_;
@@ -419,7 +419,7 @@ namespace STD {
     typename Vector<Arg>::Iterator
     Vector<Arg>::erase(const Vector::Iterator &begin, const Vector::Iterator &end) {
         if (end < begin || begin.target < val_begin || end.target > val_end)
-            throw outOfRange("You passed in a pair of out-of-range iterators in the 'erase' function");
+            throw outOfRange("You passed in a pair of out-of-range iterators in the 'Vector::erase' function");
         auto temp1(begin.target), temp2(end.target);
         while (temp1 != temp2) {
             temp1->~Arg();
@@ -439,7 +439,7 @@ namespace STD {
     typename Vector<Arg>::cIterator
     Vector<Arg>::erase(const Vector::cIterator &begin, const Vector::cIterator &end) {
         if (end < begin || begin.target < val_begin || end.target > val_end)
-            throw outOfRange("You passed in a pair of out-of-range iterators in the 'erase' function");
+            throw outOfRange("You passed in a pair of out-of-range iterators in the 'Vector::erase' function");
         auto temp1(begin.target), temp2(end.target);
         while (temp1 != temp2) {
             temp1->~Arg();

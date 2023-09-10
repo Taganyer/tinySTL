@@ -72,9 +72,9 @@ namespace STD {
 
             Iterator operator--(int) &{ return String::Iterator(target--); };
 
-            Iterator operator+(Size size) { return Iterator(target + size); };
+            Iterator operator+(Size size) const { return Iterator(target + size); };
 
-            Iterator operator-(Size size) { return Iterator(target - size); };
+            Iterator operator-(Size size) const { return Iterator(target - size); };
 
             Iterator &operator+=(Size size) {
                 target += size;
@@ -153,9 +153,9 @@ namespace STD {
 
             cIterator operator--(int) &{ return String::cIterator(target--); };
 
-            cIterator operator+(Size size) { return cIterator(target + size); };
+            cIterator operator+(Size size) const { return cIterator(target + size); };
 
-            cIterator operator-(Size size) { return cIterator(target - size); };
+            cIterator operator-(Size size) const { return cIterator(target - size); };
 
             cIterator &operator+=(Size size) {
                 target += size;
@@ -386,15 +386,23 @@ namespace STD {
 
         String sub_str(Size begin, Size len);
 
-        String& assign(const Iter<char> &begin, const Iter<char> &end);
+        String &assign(const Iter<char> &begin, const Iter<char> &end);
 
-        String& assign(const cIter<char> &begin, const cIter<char> &end);
+        String &assign(const cIter<char> &begin, const cIter<char> &end);
 
         void append(char t);
 
         void append(const char *target);
 
+        void append(const char *target, Size len);
+
+        void append(const char *target, Size pos, Size len);
+
         void append(const String &target);
+
+        void append(const String &target, Size pos);
+
+        void append(const String &target, Size pos, Size len);
 
         void append(const Iter<char> &begin, const Iter<char> &end);
 
@@ -404,7 +412,15 @@ namespace STD {
 
         void push_back(const char *target);
 
+        void push_back(const char *target, Size len);
+
+        void push_back(const char *target, Size pos, Size len);
+
         void push_back(const String &target);
+
+        void push_back(const String &target, Size pos);
+
+        void push_back(const String &target, Size pos, Size len);
 
         void push_back(const Iter<char> &begin, const Iter<char> &end);
 
@@ -432,7 +448,7 @@ namespace STD {
 
         cIterator insert(const Iterator &iter, const cIter<char> &begin, const cIter<char> &end);
 
-        Iterator erase(Size pos, bool until_end = false, Size size = 1);
+        Iterator erase(Size pos, Size size = 1);
 
         Iterator erase(const Iterator &iter);
 
@@ -442,19 +458,15 @@ namespace STD {
 
         cIterator erase(const cIterator &begin, const cIterator &end);
 
-        String &replace(Size pos, char t);
-
         String &replace(Size pos, Size len, Size n, char t);
-
-        String &replace(Size pos, Size len, const char *target, Size target_len);
 
         String &replace(Size pos, Size len, const char *target);
 
-        String &replace(Size pos, Size len, const String& target);
+        String &replace(Size pos, Size len, const char *target, Size target_len);
 
-        String &replace(Size pos, Size len, const String& target, Size target_pos, Size target_len);
+        String &replace(Size pos, Size len, const String &target);
 
-        String &replace(const Iterator &iter, char t);
+        String &replace(Size pos, Size len, const String &target, Size target_pos, Size target_len);
 
         String &replace(const Iterator &begin, const Iterator &end, Size n, char t);
 
@@ -462,36 +474,36 @@ namespace STD {
 
         String &replace(const Iterator &begin, const Iterator &end, const char *target);
 
-        String &replace(const Iterator &begin, const Iterator &end, const String& target);
+        String &replace(const Iterator &begin, const Iterator &end, const String &target);
 
-        String &replace(const Iterator &begin, const Iterator &end, const String& target, Size target_pos, Size target_len);
-
-        String &replace(const cIterator &iter, char t);
+        String &
+        replace(const Iterator &begin, const Iterator &end, const String &target, Size target_pos, Size target_len);
 
         String &replace(const cIterator &begin, const cIterator &end, Size n, char t);
 
-        String &replace(const cIterator &begin, const cIterator &end, const char *target, Size target_len);
-
         String &replace(const cIterator &begin, const cIterator &end, const char *target);
 
-        String &replace(const cIterator &begin, const cIterator &end, const String& target);
+        String &replace(const cIterator &begin, const cIterator &end, const char *target, Size target_len);
 
-        String &replace(const cIterator &begin, const cIterator &end, const String& target, Size target_pos, Size target_len);
+        String &replace(const cIterator &begin, const cIterator &end, const String &target);
+
+        String &
+        replace(const cIterator &begin, const cIterator &end, const String &target, Size target_pos, Size target_len);
 
         char &operator[](Size pos) const { return *(val_begin + pos); };
 
         char &at(Size pos) const {
-            if (pos >= size_) throw outOfRange("You provided an out-of-range subscript");
+            if (pos >= size_) throw outOfRange("You provided an out-of-range subscript int the 'String::at' function");
             return *(val_begin + pos);
         };
 
         char &front() {
-            if (!size_) throw outOfRange("You're accessing a non-existent element in the 'front()' function");
+            if (!size_) throw outOfRange("You're accessing a non-existent element in the 'String::front' function");
             return *val_begin;
         };
 
         char &back() {
-            if (!size_) throw outOfRange("You're accessing a non-existent element in the 'back()' function");
+            if (!size_) throw outOfRange("You're accessing a non-existent element in the 'String::back' function");
             return *(val_end - 1);
         };
 
@@ -559,11 +571,9 @@ namespace STD {
 
         String &operator=(String &&other) noexcept;
 
-        String operator+(const String &other) const;
-
         String &operator+=(const String &other);
 
-        String &operator+=(String &&other) noexcept;
+        friend String &operator+(String &left, const String &right);
 
         friend std::ostream &operator<<(std::ostream &out, const String &target);
 
