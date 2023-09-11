@@ -26,7 +26,7 @@ namespace STD {
 
         virtual Type *operator->() const { return target; };
 
-        virtual Iter<Type> &operator++() &{
+        virtual Iter<Type> &operator++() {
             ++target;
             return *this;
         };
@@ -71,7 +71,7 @@ namespace STD {
 
         virtual const Type *operator->() const { return target; };
 
-        virtual cIter<Type> &operator++() &{
+        virtual cIter<Type> &operator++() {
             ++target;
             return *this;
         };

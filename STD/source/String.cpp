@@ -12,7 +12,7 @@ using namespace STD;
 
 void String::reallocate(Size size) {
     auto the_new = Allocate_n<char>(size), the_old = val_begin;
-    store_end = the_new + size_;
+    store_end = the_new + size;
     for (int i = 0; i < size_; ++i) *the_new++ = *the_old++;
     val_begin = store_end - size;
     val_end = val_begin + size_;
@@ -242,7 +242,7 @@ void String::push_back(const cIter<char> &begin, const cIter<char> &end) {
 
 String::Iterator String::insert(Size pos, char t, Size size) {
     if (!size) return String::Iterator(val_begin + pos);
-    if (pos >= size_) throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+    if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
     if (capacity() - size_ - 1 < size) {
         Size record = capacity() + size;
         auto the_new = Allocate_n<char>(record), the_old = val_begin;
@@ -277,7 +277,7 @@ String::Iterator String::insert(Size pos, char t, Size size) {
 
 String::Iterator String::insert(Size pos, const char *target, Size target_len) {
     if (!target_len) return String::Iterator(val_begin + pos);
-    if (pos >= size_) throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+    if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
     if (capacity() - size_ - 1 < target_len) {
         Size record = capacity() + target_len;
         auto the_new = Allocate_n<char>(record), the_old = val_begin;
@@ -323,7 +323,7 @@ String::Iterator String::insert(Size pos, const char *target, Size target_pos, S
 String::Iterator String::insert(Size pos, const Iter<char> &begin, const Iter<char> &end) {
     if (begin == end) return String::Iterator(val_begin + pos);
     auto target = begin.deep_copy();
-    if (pos >= size_) throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+    if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
     Size target_len = STD::calculateLength(begin, end);
     if (capacity() - size_ - 1 < target_len) {
         Size record = capacity() + target_len;
@@ -366,7 +366,7 @@ String::Iterator String::insert(Size pos, const Iter<char> &begin, const Iter<ch
 String::cIterator String::insert(Size pos, const cIter<char> &begin, const cIter<char> &end) {
     if (begin == end) return String::cIterator(val_begin + pos);
     auto target = begin.deep_copy();
-    if (pos >= size_) throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+    if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
     Size target_len = STD::calculateLength(begin, end);
     if (capacity() - size_ - 1 < target_len) {
         Size record = capacity() + target_len;
@@ -428,6 +428,7 @@ String::cIterator String::insert(const String::Iterator &iter, const cIter<char>
 
 String::Iterator String::erase(Size pos, Size size) {
     if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'String::erase' function");
+    if (!size) return String::Iterator(val_begin + pos);
     size = pos + size > size_ ? size_ - pos : size;
     auto temp1 = val_begin + pos, temp2 = val_begin + size;
     while (temp2 < val_end) {

@@ -64,7 +64,7 @@ namespace STD {
         template<typename ...args>
         void emplace_back(args &&...vals);
 
-        void push_back(Arg &val);
+        void push_back(const Arg &val);
 
         void push_back(const Iter<Arg> &begin, const Iter<Arg> &end);
 
@@ -466,7 +466,7 @@ namespace STD {
     }
 
     template<typename Arg>
-    void Vector<Arg>::push_back(Arg &val) {
+    void Vector<Arg>::push_back(const Arg &val) {
         if (capacity() <= size_)
             reallocate(size_ + 1 > size_ + size_ / 5 ? size_ + 1 : size_ + size_ / 5);
         *(val_begin + size_) = val;
@@ -672,19 +672,19 @@ namespace STD {
 
         using Iter<Arg>::operator->;
 
-        Iterator &operator++() & override {
+        Iterator &operator++() override {
             ++target;
             return *this;
         };
 
-        Iterator operator++(int) &{ return Vector<Arg>::Iterator(target++); };
+        Iterator operator++(int) { return Vector<Arg>::Iterator(target++); };
 
-        virtual Iterator &operator--() &{
+        virtual Iterator &operator--() {
             --target;
             return *this;
         };
 
-        Iterator operator--(int) &{ return Vector<Arg>::Iterator(target--); };
+        Iterator operator--(int) { return Vector<Arg>::Iterator(target--); };
 
         Iterator operator+(Size size) const { return Vector<Arg>::Iterator(target + size); };
 
@@ -755,12 +755,12 @@ namespace STD {
 
         using cIter<Arg>::operator->;
 
-        cIterator &operator++() & override {
+        cIterator &operator++() override {
             ++target;
             return *this;
         };
 
-        cIterator operator++(int) &{ return Vector<Arg>::cIterator(target++); };
+        cIterator operator++(int) { return Vector<Arg>::cIterator(target++); };
 
         cIterator operator+(Size size) const { return Vector<Arg>::cIterator(target + size); };
 
@@ -776,12 +776,12 @@ namespace STD {
             return *this;
         };
 
-        virtual cIterator &operator--() &{
+        virtual cIterator &operator--() {
             --target;
             return *this;
         };
 
-        cIterator operator--(int) &{ return Vector<Arg>::cIterator(target--); };
+        cIterator operator--(int) { return Vector<Arg>::cIterator(target--); };
 
         friend bool
         operator==(const cIterator &left, const cIterator &right) { return left.target == right.target; };
@@ -837,19 +837,19 @@ namespace STD {
 
         using Iterator::operator->;
 
-        rIterator &operator++() & override {
+        rIterator &operator++() override {
             --target;
             return *this;
         };
 
-        rIterator operator++(int) &{ return Vector<Arg>::rIterator(target--); };
+        rIterator operator++(int) { return Vector<Arg>::rIterator(target--); };
 
-        rIterator &operator--() & override {
+        rIterator &operator--() override {
             ++target;
             return *this;
         };
 
-        rIterator operator--(int) &{ return Vector<Arg>::rIterator(target++); };
+        rIterator operator--(int) { return Vector<Arg>::rIterator(target++); };
 
         rIterator operator+(Size size) const { return Vector<Arg>::rIterator(target - size); };
 
@@ -919,19 +919,19 @@ namespace STD {
 
         using cIterator::operator->;
 
-        crIterator &operator++() & override {
+        crIterator &operator++() override {
             --target;
             return *this;
         };
 
-        crIterator operator++(int) &{ return Vector<Arg>::crIterator(target--); };
+        crIterator operator++(int) { return Vector<Arg>::crIterator(target--); };
 
-        crIterator &operator--() & override {
+        crIterator &operator--() override {
             ++target;
             return *this;
         };
 
-        crIterator operator--(int) &{ return Vector<Arg>::crIterator(target++); };
+        crIterator operator--(int) { return Vector<Arg>::crIterator(target++); };
 
         crIterator operator+(Size size) const { return Vector<Arg>::crIterator(target - size); };
 

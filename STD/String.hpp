@@ -58,19 +58,19 @@ namespace STD {
 
             using Iter<char>::operator->;
 
-            Iterator &operator++() & override {
+            Iterator &operator++() override {
                 ++target;
                 return *this;
             };
 
-            Iterator operator++(int) &{ return String::Iterator(target++); };
+            Iterator operator++(int) { return String::Iterator(target++); };
 
-            virtual Iterator &operator--() &{
+            virtual Iterator &operator--() {
                 --target;
                 return *this;
             };
 
-            Iterator operator--(int) &{ return String::Iterator(target--); };
+            Iterator operator--(int) { return String::Iterator(target--); };
 
             Iterator operator+(Size size) const { return Iterator(target + size); };
 
@@ -139,19 +139,19 @@ namespace STD {
 
             using cIter<char>::operator->;
 
-            cIterator &operator++() & override {
+            cIterator &operator++() override {
                 ++target;
                 return *this;
             };
 
-            cIterator operator++(int) &{ return String::cIterator(target++); };
+            cIterator operator++(int) { return String::cIterator(target++); };
 
-            virtual cIterator &operator--() &{
+            virtual cIterator &operator--() {
                 --target;
                 return *this;
             };
 
-            cIterator operator--(int) &{ return String::cIterator(target--); };
+            cIterator operator--(int) { return String::cIterator(target--); };
 
             cIterator operator+(Size size) const { return cIterator(target + size); };
 
@@ -218,19 +218,19 @@ namespace STD {
 
             using Iterator::operator->;
 
-            rIterator &operator++() & override {
+            rIterator &operator++() override {
                 --target;
                 return *this;
             };
 
-            rIterator operator++(int) &{ return String::rIterator(target--); };
+            rIterator operator++(int) { return String::rIterator(target--); };
 
-            rIterator &operator--() & override {
+            rIterator &operator--() override {
                 ++target;
                 return *this;
             };
 
-            rIterator operator--(int) &{ return String::rIterator(target++); };
+            rIterator operator--(int) { return String::rIterator(target++); };
 
             rIterator operator+(Size size) const { return String::rIterator(target - size); };
 
@@ -297,19 +297,19 @@ namespace STD {
 
             using cIterator::operator->;
 
-            crIterator &operator++() & override {
+            crIterator &operator++() override {
                 --target;
                 return *this;
             };
 
-            crIterator operator++(int) &{ return String::crIterator(target--); };
+            crIterator operator++(int) { return String::crIterator(target--); };
 
-            crIterator &operator--() & override {
+            crIterator &operator--() override {
                 ++target;
                 return *this;
             };
 
-            crIterator operator--(int) &{ return String::crIterator(target++); };
+            crIterator operator--(int) { return String::crIterator(target++); };
 
             crIterator operator+(Size size) const { return String::crIterator(target - size); };
 
