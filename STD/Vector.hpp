@@ -9,7 +9,6 @@
 #include "Iter.hpp"
 #include "Warning.hpp"
 #include "Move.hpp"
-#include "Initializer_list.hpp"
 
 namespace STD {
 
@@ -37,6 +36,7 @@ namespace STD {
 
         Vector(Size size, Arg target = Arg());
 
+        //编译器给这个类开后门了，不用它没办法实现相同的效果。
         Vector(std::initializer_list<Arg> list);
 
         Vector(const Iter<Arg> &begin, const Iter<Arg> &end);
@@ -94,7 +94,7 @@ namespace STD {
 
         Iterator insert(Size pos, const Iter<Arg> &begin, const Iter<Arg> &end);
 
-        cIterator insert(Size pos, const cIter<Arg> &begin, const cIter<Arg> &end);
+        Iterator insert(Size pos, const cIter<Arg> &begin, const cIter<Arg> &end);
 
         Iterator insert(const Iterator &pos, Size size, const Arg &val);
 
@@ -175,16 +175,6 @@ namespace STD {
 
     };
 
-    template<typename Arg>
-    Vector<Arg>::Vector(std::initializer_list<Arg> list) : size_(list.size()), val_begin(Allocate_n<Arg>(size_)), val_end(val_begin) {
-        auto temp = const_cast<Arg *>(list.begin());
-        for (int i = 0; i < size_; ++i) {
-            *val_end = *temp;
-            ++val_end, ++temp;
-        }
-        store_end = val_begin;
-    }
-
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -197,6 +187,17 @@ namespace STD {
             *temp = target;
             ++temp;
         }
+    }
+
+    template<typename Arg>
+    Vector<Arg>::Vector(std::initializer_list<Arg> list) : size_(list.size()), val_begin(Allocate_n<Arg>(size_)),
+                                                           val_end(val_begin) {
+        auto temp = const_cast<Arg *>(list.begin());
+        for (int i = 0; i < size_; ++i) {
+            *val_end = *temp;
+            ++val_end, ++temp;
+        }
+        store_end = val_end;
     }
 
     template<typename Arg>
@@ -403,15 +404,18 @@ namespace STD {
     template<typename Arg>
     template<typename... args>
     typename Vector<Arg>::Iterator Vector<Arg>::emplace(const Vector<Arg>::Iterator &pos, args &&... vals) {
-        if (pos.target < val_begin || pos.target >= val_end) throw outOfRange("You passed in an out-of-range iterator in the 'Vector::emplace' function");
+        if (pos.target < val_begin || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::emplace' function");
         return emplace(pos.target - val_begin, forward<args>(vals)...);
     }
 
     template<typename Arg>
     template<typename... args>
     typename Vector<Arg>::cIterator Vector<Arg>::emplace(const Vector<Arg>::cIterator &pos, args &&... vals) {
-        if (pos.target < val_begin || pos.target >= val_end) throw outOfRange("You passed in an out-of-range iterator in the 'Vector::emplace' function");
-        return *dynamic_pointer_cast<Vector<Arg>::cIterator>(emplace(pos.target - val_begin, forward<args>(vals)...).to_const());
+        if (pos.target < val_begin || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::emplace' function");
+        return *dynamic_pointer_cast<Vector<Arg>::cIterator>(
+                emplace(pos.target - val_begin, forward<args>(vals)...).to_const());
     }
 
     template<typename Arg>
@@ -442,19 +446,56 @@ namespace STD {
     }
 
     template<typename Arg>
-    typename Vector<Arg>::Iterator Vector<Arg>::insert(Size pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
-        return Vector<Arg>::Iterator(insert(pos, *begin.to_const(), *end.to_const()).target);
+    typename Vector<Arg>::Iterator Vector<Arg>::insert(Size pos, Size size, const Arg &val) {
+        if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
+        if (!size) return Iterator(val_begin + pos);
+        if (capacity() - size_ < size) {
+            auto t_begin = Allocate_n<Arg>(capacity() + size), t = t_begin;
+            store_end = t_begin + capacity() + size;
+            for (int i = 0; i < pos; ++i) {
+                *t_begin = move(*val_begin);
+                ++t_begin, ++val_begin;
+            }
+            for (int i = 0; i < size; ++i) {
+                *t_begin = val;
+                ++t_begin;
+            }
+            while (val_begin != val_end) {
+                *t_begin = move(*val_begin);
+                ++t_begin, ++val_begin;
+            }
+            Deallocate_n(val_begin - size_);
+            val_begin = t;
+            val_end = t_begin;
+            size_ = val_end - val_begin;
+        } else {
+            auto temp1 = val_end - 1, temp2 = val_end + size - 1, target_end = val_begin + pos;
+            while (temp1 >= target_end) {
+                *temp2 = move(*temp1);
+                --temp1, --temp2;
+            }
+            for (int i = 0; i < size; ++i) {
+                *target_end = val;
+                ++target_end;
+            }
+            size_ += size;
+            val_end = val_begin + size_;
+        }
+        return Iterator(val_begin + pos);
     }
 
     template<typename Arg>
-    typename Vector<Arg>::cIterator
+    typename Vector<Arg>::Iterator Vector<Arg>::insert(Size pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
+        return Vector < Arg > ::Iterator(insert(pos, *begin.to_const(), *end.to_const()).target);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::Iterator
     Vector<Arg>::insert(Size pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
         if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
         auto temp(begin.deep_copy());
-        Size count = 0;
-        while (*temp != end) ++count, ++(*temp);
-        if (!count) return cIterator(val_begin + pos);
-        temp = begin.deep_copy();
+        Size count = calculateLength(begin, end);
+        if (!count) return Iterator(val_begin + pos);
         if (capacity() - size_ < count) {
             auto t_begin = Allocate_n<Arg>(capacity() + count), t = t_begin;
             store_end = t_begin + capacity() + count;
@@ -487,7 +528,53 @@ namespace STD {
             size_ += count;
             val_end = val_begin + size_;
         }
-        return cIterator(val_begin + pos);
+        return Iterator(val_begin + pos);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::Iterator Vector<Arg>::insert(const Iterator &pos, Size size, const Arg &val) {
+        if (pos.target < val_begin || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
+        return insert(pos.target - val_begin, size, val);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::Iterator
+    Vector<Arg>::insert(const Vector<Arg>::Iterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
+        if (pos.target < val_begin || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
+        return insert(pos.target - val_begin, begin, end);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::Iterator
+    Vector<Arg>::insert(const Vector<Arg>::Iterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
+        if (pos.target < val_begin || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
+        return insert(pos.target - val_begin, begin, end);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::cIterator Vector<Arg>::insert(const Vector<Arg>::cIterator &pos, Size size, const Arg &val) {
+        if (pos.target < val_begin || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
+        return Vector < Arg > ::cIterator(insert(pos.target - val_begin, size, val).target);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::cIterator
+    Vector<Arg>::insert(const Vector<Arg>::cIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
+        if (pos.target < val_begin || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
+        return Vector < Arg > ::cIterator(insert(pos.target - val_begin, begin, end).target);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::cIterator
+    Vector<Arg>::insert(const Vector<Arg>::cIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
+        if (pos.target < val_begin || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
+        return Vector < Arg > ::cIterator(insert(pos.target - val_begin, begin, end).target);
     }
 
     template<typename Arg>
@@ -515,7 +602,7 @@ namespace STD {
 
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::erase(const Vector::Iterator &iter) {
-        return Vector<Arg>::Iterator(erase(*dynamic_pointer_cast<Vector<Arg>::cIterator>(iter.to_const())).target);
+        return Vector < Arg > ::Iterator(erase(*dynamic_pointer_cast<Vector<Arg>::cIterator>(iter.to_const())).target);
     }
 
     template<typename Arg>
@@ -539,8 +626,8 @@ namespace STD {
     template<typename Arg>
     typename Vector<Arg>::Iterator
     Vector<Arg>::erase(const Vector::Iterator &begin, const Vector<Arg>::Iterator &end) {
-        return Vector<Arg>::Iterator(erase(*dynamic_pointer_cast<Vector<Arg>::cIterator>(begin.to_const()),
-                                 *dynamic_pointer_cast<Vector<Arg>::cIterator>(end.to_const())).target);
+        return Vector < Arg > ::Iterator(erase(*dynamic_pointer_cast<Vector<Arg>::cIterator>(begin.to_const()),
+                                               *dynamic_pointer_cast<Vector<Arg>::cIterator>(end.to_const())).target);
     }
 
     template<typename Arg>
@@ -616,12 +703,7 @@ namespace STD {
 
     template<typename Type>
     bool operator<=(const Vector<Type> &left, const Vector<Type> &right) {
-        auto l = left.val_begin, r = right.val_begin;
-        while (l != left.val_end && r != right.val_end) {
-            if (*l != *r) return *l < *r;
-            ++l, ++r;
-        }
-        return l == left.val_end;
+        return !(left > right);
     }
 
     template<typename Type>
@@ -636,12 +718,7 @@ namespace STD {
 
     template<typename Type>
     bool operator>=(const Vector<Type> &left, const Vector<Type> &right) {
-        auto l = left.val_begin, r = right.val_begin;
-        while (l != left.val_end && r != right.val_end) {
-            if (*l != *r) return *l > *r;
-            ++l, ++r;
-        }
-        return r == right.val_end;
+        return !(left < right);
     }
 
 

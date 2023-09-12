@@ -53,13 +53,15 @@ namespace STD {
 
         List(Size size, Arg target = Arg());
 
+        List(std::initializer_list<Arg> list);
+
         List(const Iter<Arg> &begin, const Iter<Arg> &end);
 
         List(const cIter<Arg> &begin, const cIter<Arg> &end);
 
         List(const List<Arg> &other);
 
-        List(List<Arg> &&other) noexcept ;
+        List(List<Arg> &&other) noexcept;
 
         ~List<Arg>();
 
@@ -208,6 +210,22 @@ namespace STD {
     }
 
     template<typename Arg>
+    List<Arg>::List(std::initializer_list<Arg> list) : size_(list.size()) {
+        if (size_) {
+            auto temp = const_cast<Arg *>(list.begin());
+            Node *last = nullptr, *now = nullptr;
+            for (int i = 0; i < size_; ++i) {
+                now = Allocate<List<Arg>::Node>(*temp, last, nullptr);
+                if (last) last->next = now;
+                else val_begin = now;
+                ++temp;
+                last = now;
+            }
+            val_end = now;
+        }
+    }
+
+    template<typename Arg>
     List<Arg>::List(const Iter<Arg> &begin, const Iter<Arg> &end) {
         auto temp = begin.deep_copy();
         Node *last = nullptr, *now = nullptr;
@@ -250,7 +268,8 @@ namespace STD {
     }
 
     template<typename Arg>
-    List<Arg>::List(List<Arg> &&other) noexcept : size_(other.size_), val_begin(other.val_begin), val_end(other.val_end) {
+    List<Arg>::List(List<Arg> &&other) noexcept : size_(other.size_), val_begin(other.val_begin),
+                                                  val_end(other.val_end) {
         other.size_ = 0;
         other.val_begin = other.val_end = nullptr;
     }
@@ -788,6 +807,8 @@ namespace STD {
 
         Shared_ptr<Iter<Arg>> deep_copy() const override { return make_shared<List<Arg>::Iterator>(*this); };
 
+        Shared_ptr<cIter<Arg>> to_const() const override { return make_shared<cIter<Arg>>(cIterator(node)); };
+
         Iterator(const Iterator &other) : Iter<Arg>(other.target), node(other.node) {};
 
         ~Iterator() = default;
@@ -866,6 +887,8 @@ namespace STD {
     public:
         friend class List<Arg>;
 
+        friend class List<Arg>::Iterator;
+
         Shared_ptr<cIter<Arg>> deep_copy() const override { return make_shared<List<Arg>::cIterator>(*this); };
 
         cIterator(const cIterator &other) : cIter<Arg>(other.target), node(other.node) {};
@@ -927,27 +950,29 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg>
-    class List<Arg>::rIterator : public List<Arg>::Iterator {
+    class List<Arg>::rIterator : public Iter<Arg> {
     protected:
-        using List<Arg>::Iterator::target;
+        using Iter<Arg>::target;
 
-        using List<Arg>::Iterator::node;
+        List<Arg>::Node *node;
 
-        virtual rIterator &operator=(List<Arg>::Node *ptr) override {
+        rIterator &operator=(List<Arg>::Node *ptr) {
             if (ptr) target = &(ptr->value);
             else target = nullptr;
             node = ptr;
             return *this;
         };
 
-        explicit rIterator(List<Arg>::Node *ptr) : List<Arg>::Iterator(ptr) {};
+        explicit rIterator(List<Arg>::Node *ptr) : Iter<Arg>(ptr ? &(ptr->value) : nullptr), node(ptr) {};
 
     public:
         friend class List<Arg>;
 
         Shared_ptr<Iter<Arg>> deep_copy() const override { return make_shared<List<Arg>::rIterator>(*this); };
 
-        rIterator(const rIterator &other) : List<Arg>::Iterator(other.node) {};
+        Shared_ptr<cIter<Arg>> to_const() const override { return make_shared<cIter<Arg>>(crIterator(node)); };
+
+        rIterator(const rIterator &other) : Iter<Arg>(other.target), node(other.node) {};
 
         ~rIterator() = default;
 
@@ -958,9 +983,9 @@ namespace STD {
         };
 
 
-        using List<Arg>::Iterator::operator*;
+        using Iter<Arg>::operator*;
 
-        using List<Arg>::Iterator::operator->;
+        using Iter<Arg>::operator->;
 
         rIterator &operator++() override {
             if (!node) throw outOfRange("List::rIterator out of range\n");
@@ -979,7 +1004,7 @@ namespace STD {
             return List<Arg>::rIterator(temp);
         };
 
-        rIterator &operator--() override {
+        rIterator &operator--() {
             if (!node) throw outOfRange("List::rIterator out of range\n");
             node = node->next;
             if (node) target = &(node->value);
@@ -1006,23 +1031,25 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg>
-    class List<Arg>::crIterator : public List<Arg>::cIterator {
+    class List<Arg>::crIterator : public cIter<Arg> {
     protected:
-        using List<Arg>::cIterator::target;
+        using cIter<Arg>::target;
 
-        using List<Arg>::cIterator::node;
+        List<Arg>::Node *node;
 
-        crIterator &operator=(List<Arg>::Node *ptr) override {
+        crIterator &operator=(List<Arg>::Node *ptr) {
             if (ptr) target = &(ptr->value);
             else target = nullptr;
             node = ptr;
             return *this;
         };
 
-        explicit crIterator(List<Arg>::Node *ptr) : List<Arg>::cIterator(ptr) {};
+        explicit crIterator(List<Arg>::Node *ptr) : cIter<Arg>(ptr ? &(ptr->value) : nullptr), node(ptr) {};
 
     public:
         friend class List<Arg>;
+
+        friend class List<Arg>::rIterator;
 
         Shared_ptr<cIter<Arg>> deep_copy() const override { return make_shared<List<Arg>::crIterator>(*this); };
 
@@ -1037,9 +1064,9 @@ namespace STD {
         };
 
 
-        using List<Arg>::cIterator::operator*;
+        using cIter<Arg>::operator*;
 
-        using List<Arg>::cIterator::operator->;
+        using cIter<Arg>::operator->;
 
         crIterator &operator++() override {
             if (!node) throw outOfRange("List::crIterator out of range\n");
@@ -1058,7 +1085,7 @@ namespace STD {
             return List<Arg>::crIterator(temp);
         };
 
-        crIterator &operator--() override {
+        crIterator &operator--() {
             if (!node) throw outOfRange("List::crIterator out of range\n");
             node = node->next;
             if (node) target = &(node->value);

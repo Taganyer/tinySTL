@@ -45,6 +45,16 @@ String::String(const char *target, Size len) : size_(len), val_begin(Allocate_n<
     *val_end = '\0';
 }
 
+String::String(std::initializer_list<char> list) : size_(list.size()), val_begin(Allocate_n<char>(size_ + 1)),
+                                                   val_end(val_begin), store_end(val_begin + size_ + 1) {
+    auto temp = const_cast<char *>(list.begin());
+    for (int i = 0; i < size_; ++i) {
+        *val_end = *temp;
+        ++val_end, ++temp;
+    }
+    *val_end = '\0';
+}
+
 String::String(const char *target) : String(target, STD::calculateLength(target)) {}
 
 String::String(const String &other, Size pos) : String(other.c_str() + pos) {}
@@ -59,18 +69,7 @@ String::String(String &&other) noexcept: size_(other.size_), val_begin(other.val
     other.val_begin = other.val_end = other.store_end = nullptr;
 }
 
-String::String(const Iter<char> &begin, const Iter<char> &end) : size_(STD::calculateLength(begin, end)) {
-    auto temp(begin.deep_copy());
-    val_begin = Allocate_n<char>(size_ + 1);
-    store_end = val_begin + size_ + 1;
-    val_end = val_begin + size_;
-    while (*temp != end) {
-        *val_begin = **temp;
-        ++val_begin, ++(*temp);
-    }
-    val_begin = val_end - size_;
-    *val_end = '\0';
-}
+String::String(const Iter<char> &begin, const Iter<char> &end) : String(*begin.to_const(), *end.to_const()) {}
 
 String::String(const cIter<char> &begin, const cIter<char> &end) : size_(STD::calculateLength(begin, end)) {
     auto temp(begin.deep_copy());
@@ -90,20 +89,7 @@ String String::sub_str(Size begin, Size len) {
 }
 
 String &String::assign(const Iter<char> &begin, const Iter<char> &end) {
-    Deallocate_n(val_begin);
-    auto temp = begin.deep_copy();
-    Size count = STD::calculateLength(begin, end);
-    auto t = Allocate_n<char>(count + 1);
-    while (*temp != end) {
-        *t = **temp;
-        ++t, ++(*temp);
-    }
-    store_end = t + 1;
-    val_end = t;
-    val_begin = t - count;
-    size_ = count;
-    *val_end = '\0';
-    return *this;
+    return assign(*begin.to_const(), *end.to_const());
 }
 
 String &String::assign(const cIter<char> &begin, const cIter<char> &end) {
@@ -180,15 +166,7 @@ void String::append(const String &target, Size pos, Size len) {
 }
 
 void String::append(const Iter<char> &begin, const Iter<char> &end) {
-    auto temp = begin.deep_copy();
-    Size count = STD::calculateLength(begin, end);
-    if (capacity() - size_ - 1 < count) reallocate(capacity() + count + 1);
-    size_ += count;
-    while (*temp != end) {
-        *val_end = **temp;
-        ++val_end, ++(*temp);
-    }
-    *val_end = '\0';
+    append(*begin.to_const(), *end.to_const());
 }
 
 void String::append(const cIter<char> &begin, const cIter<char> &end) {
@@ -233,7 +211,7 @@ void String::push_back(const String &target, Size pos, Size len) {
 
 
 void String::push_back(const Iter<char> &begin, const Iter<char> &end) {
-    append(begin, end);
+    append(*begin.to_const(), *end.to_const());
 }
 
 void String::push_back(const cIter<char> &begin, const cIter<char> &end) {
@@ -321,46 +299,7 @@ String::Iterator String::insert(Size pos, const char *target, Size target_pos, S
 }
 
 String::Iterator String::insert(Size pos, const Iter<char> &begin, const Iter<char> &end) {
-    if (begin == end) return String::Iterator(val_begin + pos);
-    auto target = begin.deep_copy();
-    if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
-    Size target_len = STD::calculateLength(begin, end);
-    if (capacity() - size_ - 1 < target_len) {
-        Size record = capacity() + target_len;
-        auto the_new = Allocate_n<char>(record), the_old = val_begin;
-        store_end = the_new + record;
-        for (int i = 0; i < pos; ++i) {
-            *the_new = *val_begin;
-            ++the_new, ++val_begin;
-        }
-        for (int i = 0; i < target_len; ++i) {
-            *the_new = **target;
-            ++the_new, ++(*target);
-        }
-        while (val_begin != val_end) {
-            *the_new = *val_begin;
-            ++the_new, ++val_begin;
-        }
-        size_ += target_len;
-        val_end = the_new;
-        val_begin = val_end - size_;
-        Deallocate_n(the_old);
-        *val_end = '\0';
-    } else {
-        auto temp1 = val_end - 1, temp2 = val_end + target_len - 1, target_end = val_begin + pos;
-        while (temp1 >= target_end) {
-            *temp2 = *temp1;
-            --temp1, --temp2;
-        }
-        for (int i = 0; i < target_len; ++i) {
-            *target_end = **target;
-            ++target_end, ++(*target);
-        }
-        size_ += target_len;
-        val_end = val_begin + size_;
-        *val_end = '\0';
-    }
-    return String::Iterator(val_begin + pos);
+    return String::Iterator(insert(pos, *begin.to_const(), *end.to_const()).target);
 }
 
 String::cIterator String::insert(Size pos, const cIter<char> &begin, const cIter<char> &end) {
@@ -743,12 +682,7 @@ bool STD::operator<(const String &left, const String &right) {
 }
 
 bool STD::operator<=(const String &left, const String &right) {
-    auto l = left.val_begin, r = right.val_begin;
-    while (l < left.val_end && r < right.val_end) {
-        if (*l == *r) ++l, ++r;
-        else return *l < *r;
-    }
-    return l == left.val_end;
+    return !(left > right);
 }
 
 bool STD::operator>(const String &left, const String &right) {
@@ -761,12 +695,7 @@ bool STD::operator>(const String &left, const String &right) {
 }
 
 bool STD::operator>=(const String &left, const String &right) {
-    auto l = left.val_begin, r = right.val_begin;
-    while (l < left.val_end && r < right.val_end) {
-        if (*l == *r) ++l, ++r;
-        else return *l > *r;
-    }
-    return r == right.val_end;
+    return !(left < right);
 }
 
 Size String::find(char t, Size pos) const {

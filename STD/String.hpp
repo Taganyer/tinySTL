@@ -43,6 +43,8 @@ namespace STD {
 
             Shared_ptr<Iter<char>> deep_copy() const override { return make_shared<String::Iterator>(*this); };
 
+            Shared_ptr<cIter<char>> to_const() const override { return make_shared<cIter<char>>(cIterator(target)); };
+
             Iterator(const Iterator &other) : Iter<char>(other.target) {};
 
             ~Iterator() = default;
@@ -122,6 +124,8 @@ namespace STD {
         public:
             friend class String;
 
+            friend class String::Iterator;
+
             Shared_ptr<cIter<char>> deep_copy() const override { return make_shared<String::cIterator>(*this); };
 
             cIterator(const cIterator &other) : cIter<char>(other.target) {};
@@ -189,23 +193,25 @@ namespace STD {
             operator-(const cIterator &left, const cIterator &right) { return left.target - right.target; };
         };
 
-        class rIterator : public String::Iterator {
+        class rIterator : public Iter<char> {
         protected:
             using Iter<char>::target;
 
-            rIterator &operator=(char *ptr) override {
+            rIterator &operator=(char *ptr) {
                 target = ptr;
                 return *this;
             }
 
-            explicit rIterator(char *ptr) : String::Iterator(ptr) {};
+            explicit rIterator(char *ptr) : Iter<char>(ptr) {};
 
         public:
             friend class String;
 
             Shared_ptr<Iter<char>> deep_copy() const override { return make_shared<String::rIterator>(*this); };
 
-            rIterator(const rIterator &other) : String::Iterator(other.target) {};
+            Shared_ptr<cIter<char>> to_const() const override { return make_shared<cIter<char>>(crIterator(target)); };
+
+            rIterator(const rIterator &other) : Iter<char>(other.target) {};
 
             ~rIterator() = default;
 
@@ -214,9 +220,9 @@ namespace STD {
                 return *this;
             };
 
-            using Iterator::operator*;
+            using Iter<char>::operator*;
 
-            using Iterator::operator->;
+            using Iter<char>::operator->;
 
             rIterator &operator++() override {
                 --target;
@@ -225,7 +231,7 @@ namespace STD {
 
             rIterator operator++(int) { return String::rIterator(target--); };
 
-            rIterator &operator--() override {
+            rIterator &operator--() {
                 ++target;
                 return *this;
             };
@@ -268,23 +274,25 @@ namespace STD {
             operator-(const rIterator &left, const rIterator &right) { return right.target - left.target; };
         };
 
-        class crIterator : public String::cIterator {
+        class crIterator : public cIter<char> {
         protected:
             using cIter<char>::target;
 
-            crIterator &operator=(char *ptr) override {
+            crIterator &operator=(char *ptr)  {
                 target = ptr;
                 return *this;
             };
 
-            explicit crIterator(char *ptr) : String::cIterator(ptr) {};
+            explicit crIterator(char *ptr) : cIter<char>(ptr) {};
 
         public:
             friend class String;
 
+            friend class String::cIterator;
+
             Shared_ptr<cIter<char>> deep_copy() const override { return make_shared<String::crIterator>(*this); };
 
-            crIterator(const crIterator &other) : String::cIterator(other.target) {};
+            crIterator(const crIterator &other) : cIter<char>(other.target) {};
 
             ~crIterator() = default;
 
@@ -293,9 +301,9 @@ namespace STD {
                 return *this;
             };
 
-            using cIterator::operator*;
+            using cIter<char>::operator*;
 
-            using cIterator::operator->;
+            using cIter<char>::operator->;
 
             crIterator &operator++() override {
                 --target;
@@ -304,7 +312,7 @@ namespace STD {
 
             crIterator operator++(int) { return String::crIterator(target--); };
 
-            crIterator &operator--() override {
+            crIterator &operator--() {
                 ++target;
                 return *this;
             };
@@ -357,6 +365,9 @@ namespace STD {
 
         String(const char *target, Size len);
 
+        //编译器给这个类开后门了，不用它没办法实现相同的效果。
+        String(std::initializer_list<char> list);
+
         String(const char *target);
 
         String(const String &other, Size pos);
@@ -371,7 +382,9 @@ namespace STD {
 
         String(const cIter<char> &begin, const cIter<char> &end);
 
-        ~String() { Deallocate_n(val_begin); };
+        ~String() {
+            Deallocate_n(val_begin);
+        };
 
         Size size() const { return size_; };
 

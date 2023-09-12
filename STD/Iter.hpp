@@ -32,9 +32,9 @@ namespace STD {
 
     public:
         //这个函数是为了使迭代器能够在用户代码中保持多态性而设立。
-        virtual Shared_ptr<Iter<Type>> deep_copy() const;
+        virtual Shared_ptr<Iter<Type>> deep_copy() const { return make_shared<Iter<Type>>(*this); };
 
-        virtual Shared_ptr<cIter<Type>> to_const() const;
+        virtual Shared_ptr<cIter<Type>> to_const() const { return make_shared<cIter<Type>>(cIter<Type>(target)); };
 
         explicit Iter(Type *ptr) : target(ptr) {};
 
@@ -57,16 +57,6 @@ namespace STD {
             return left.target != right.target;
         }
     };
-
-    template<typename Type>
-    Shared_ptr<Iter<Type>> Iter<Type>::deep_copy() const {
-        return make_shared<Iter<Type>>(*this);
-    }
-
-    template<typename Type>
-    Shared_ptr<cIter<Type>> Iter<Type>::to_const() const {
-        return make_shared<cIter<Type>>(cIter<Type>(target));
-    }
 
 //----------------------------------------------------------------------------------------------------------------------
 
