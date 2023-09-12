@@ -696,7 +696,7 @@ String &String::operator=(String &&other) noexcept {
     return *this;
 }
 
-String &STD::operator+(String &left, const String &right) {
+String STD::operator+(String &left, const String &right) {
     left.append(right);
     return left;
 }

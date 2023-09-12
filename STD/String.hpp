@@ -579,7 +579,7 @@ namespace STD {
 
         int compare(Size pos1, Size n1, const String &target, Size pos2, Size n2) const;
 
-        friend String &operator+(String &left, const String &right);
+        friend String operator+(String &left, const String &right);
 
         friend std::ostream &operator<<(std::ostream &out, const String &target);
 

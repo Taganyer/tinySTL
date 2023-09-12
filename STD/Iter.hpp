@@ -10,6 +10,22 @@
 namespace STD {
 
     template<typename Type>
+    class Iter;
+
+    template<typename Type>
+    class cIter;
+
+    template<typename Arg>
+    Size calculateLength(const Iter<Arg> &begin, const Iter<Arg> &end) {
+        auto temp = begin.deep_copy();
+        Size count = 0;
+        while (*temp != end) ++(*temp), ++count;
+        return count;
+    }
+
+//----------------------------------------------------------------------------------------------------------------------
+
+    template<typename Type>
     class Iter {
     protected:
         Type *target = nullptr;
@@ -17,6 +33,8 @@ namespace STD {
     public:
         //这个函数是为了使迭代器能够在用户代码中保持多态性而设立。
         virtual Shared_ptr<Iter<Type>> deep_copy() const;
+
+        virtual Shared_ptr<cIter<Type>> to_const() const;
 
         explicit Iter(Type *ptr) : target(ptr) {};
 
@@ -45,12 +63,9 @@ namespace STD {
         return make_shared<Iter<Type>>(*this);
     }
 
-    template<typename Arg>
-    Size calculateLength(const Iter<Arg> &begin, const Iter<Arg> &end) {
-        auto temp = begin.deep_copy();
-        Size count = 0;
-        while (*temp != end) ++(*temp), ++count;
-        return count;
+    template<typename Type>
+    Shared_ptr<cIter<Type>> Iter<Type>::to_const() const {
+        return make_shared<cIter<Type>>(cIter<Type>(target));
     }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -61,6 +76,8 @@ namespace STD {
         Type *target = nullptr;
 
     public:
+        friend class Iter<Type>;
+
         virtual Shared_ptr<cIter<Type>> deep_copy() const;
 
         explicit cIter(Type *ptr) : target(ptr) {};
