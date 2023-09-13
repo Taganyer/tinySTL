@@ -1,0 +1,5 @@
+
+P	cpp:S1235
+"4'A' has virtual functions but non-virtual destructor(Ã™ÄÏ8‘íîÎ¨1
+U	cpp:S1235"4'B' has virtual functions but non-virtual destructor(Ø€Â—şÿÿÿÿ8‘íîÎ¨1
+S	cpp:S3471"2Annotate this function with "override" or "final".(™À‘Öúÿÿÿÿ8›íîÎ¨1

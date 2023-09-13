@@ -1,0 +1,7 @@
+
+kcpp:S876"KRemove the unary minus operator or change the expression's underlying type.(—·ƒ¼üÿÿÿÿ8ÄöäÃ¨1
+a	cpp:S5425""E"std::forward" is never called on this forwarding reference argument.(¯ó´8Çªƒ¨1
+_	cpp:S5500b">"std::move" is never called on this rvalue reference argument.(ı¼‹Šÿÿÿÿÿ8åöéÂ¨1
+Z	cpp:S5500d">"std::move" is never called on this rvalue reference argument.(§©ôĞ8åöéÂ¨1
+Z	cpp:S5500f">"std::move" is never called on this rvalue reference argument.(‘Ğˆ8åöéÂ¨1
+Z	cpp:S5500f">"std::move" is never called on this rvalue reference argument.(‘Ğˆ8ÃŠëÂ¨1

@@ -1,0 +1,16 @@
+
+Á	cpp:S4963"¤Remove this class' destructor, copy constructor, move constructor, copy assignment operator and move assignment operator so that the class follows the rule of Zero.(åñ£ƒ8Åï¨1
+z	cpp:S1448"^Class has 117 methods, which is greater than the 35 authorized. Split it into smaller classes.(åñ£ƒ8Åï¨1
+ˆ	cpp:S4963"lRemove this class' copy constructor and copy assignment operator so that the class follows the rule of Zero.(ç•›8Åï¨1
+S	cpp:S34712"2Annotate this function with "override" or "final".(ÖåÒœÿÿÿÿÿ8Åï¨1
+ˆ	cpp:S4963q"lRemove this class' copy constructor and copy assignment operator so that the class follows the rule of Zero.(ĞÍ±‰8Ñï¨1
+O	cpp:S3471…"2Annotate this function with "override" or "final".(êƒ­Ô8Ñï¨1
+‰	cpp:S4963Ä"lRemove this class' copy constructor and copy assignment operator so that the class follows the rule of Zero.(ÌÉ˜Ç8áï¨1
+O	cpp:S3471Ø"2Annotate this function with "override" or "final".(·˜ÀÓ8áï¨1
+‰	cpp:S4963•"lRemove this class' copy constructor and copy assignment operator so that the class follows the rule of Zero.(ã ò­8ñï¨1
+O	cpp:S3471©"2Annotate this function with "override" or "final".(†€Äç8ŒâşË¨1
+L	cpp:S1709ñ"/Add the "explicit" keyword to this constructor.(Å„ù8éâåÇ¨1
+Š	cpp:S5964"nModify this class to remove the overlap between the "initializer_list" constructor and the other constructors.(åñ£ƒ8ÜÊÚÇ¨1
+Q	cpp:S1709ó"/Add the "explicit" keyword to this constructor.(É––øÿÿÿÿÿ8ÆÿôÌ¨1
+d	cpp:S3519¼"GOut of bound memory access (access exceeds upper limit of memory block)(‘Çıî8¯õ¨1
+w	cpp:S3519Š"UReturned pointer value points outside the original object (potential buffer overflow)(Ç…Ã§ıÿÿÿÿ8²õ¨1
