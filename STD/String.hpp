@@ -43,7 +43,7 @@ namespace STD {
 
             Shared_ptr<Iter<char>> deep_copy() const override { return make_shared<String::Iterator>(*this); };
 
-            Shared_ptr<cIter<char>> to_const() const override { return make_shared<cIter<char>>(cIterator(target)); };
+            Shared_ptr<cIter<char>> to_const() const override { return make_shared<String::cIterator>(cIterator(target)); };
 
             Iterator(const Iterator &other) : Iter<char>(other.target) {};
 
@@ -209,7 +209,7 @@ namespace STD {
 
             Shared_ptr<Iter<char>> deep_copy() const override { return make_shared<String::rIterator>(*this); };
 
-            Shared_ptr<cIter<char>> to_const() const override { return make_shared<cIter<char>>(crIterator(target)); };
+            Shared_ptr<cIter<char>> to_const() const override { return make_shared<String::crIterator>(crIterator(target)); };
 
             rIterator(const rIterator &other) : Iter<char>(other.target) {};
 
