@@ -1,18 +1,0 @@
-
-Æ	cpp:S4963"¤Remove this class' destructor, copy constructor, move constructor, copy assignment operator and move assignment operator so that the class follows the rule of Zero.(öàÕøÿÿÿÿ8éÅ¨1
-~	cpp:S1448"]Class has 50 methods, which is greater than the 35 authorized. Split it into smaller classes.(öàÕøÿÿÿÿ8©Ú“¨1
-ÿ	cpp:S3624"âExplicitly define or delete the missing copy constructor and copy assignment operator so that they will not be implicitly provided. Additionally, you may consider defining the move assignment operator and the move constructor.(şÂ¢Á8¬›úè¨1
-e	cpp:S4963"IRemove this class' destructor so that the class follows the rule of Zero.(şÂ¢Á8¬›úè¨1
-P	cpp:S1709"/Add the "explicit" keyword to this constructor.(øŒïóûÿÿÿÿ8Ü×£¨1
-_	cpp:S5500">"std::move" is never called on this rvalue reference argument.(àÖ´ğÿÿÿÿÿ8ÀÓ–¨1
-_	cpp:S5500">"std::move" is never called on this rvalue reference argument.(È½‰…ûÿÿÿÿ8¸Ú ¨1
-P	cpp:S1709="/Add the "explicit" keyword to this constructor.(Ç Šÿÿÿÿÿ8Ù®øÎ¨1
-K	cpp:S5817¾")This function should be declared "const".(ÜÈé÷ÿÿÿÿÿ8‹şàï¨1
-H	cpp:S3656§"+Member variables should not be "protected".(Áû®©8Âì‡î¨1
-‰	cpp:S4963§"lRemove this class' copy constructor and copy assignment operator so that the class follows the rule of Zero.(Áû®©8Äì‡î¨1
-M	cpp:S3656ó"+Member variables should not be "protected".(’Ï˜åûÿÿÿÿ8Êì‡î¨1
-	cpp:S4963ó"lRemove this class' copy constructor and copy assignment operator so that the class follows the rule of Zero.(’Ï˜åûÿÿÿÿ8Êì‡î¨1
-M	cpp:S3656¿"+Member variables should not be "protected".(çœşøÿÿÿÿ8Ìì‡î¨1
-	cpp:S4963¿"lRemove this class' copy constructor and copy assignment operator so that the class follows the rule of Zero.(çœşøÿÿÿÿ8Ìì‡î¨1
-H	cpp:S3656‹"+Member variables should not be "protected".(£»Á8Õì‡î¨1
-‰	cpp:S4963‹"lRemove this class' copy constructor and copy assignment operator so that the class follows the rule of Zero.(£»Á8Õì‡î¨1

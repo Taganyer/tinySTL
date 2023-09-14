@@ -1,3 +1,0 @@
-D:/Codes/CLionProjects/tinySTL/cmake-build-debug/CMakeFiles/tinySTL.dir
-D:/Codes/CLionProjects/tinySTL/cmake-build-debug/CMakeFiles/edit_cache.dir
-D:/Codes/CLionProjects/tinySTL/cmake-build-debug/CMakeFiles/rebuild_cache.dir

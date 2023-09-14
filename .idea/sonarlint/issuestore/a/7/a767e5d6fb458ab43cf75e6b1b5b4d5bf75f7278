@@ -1,8 +1,0 @@
-
-Æ	cpp:S4963"¤Remove this class' destructor, copy constructor, move constructor, copy assignment operator and move assignment operator so that the class follows the rule of Zero.(Õ–Ùşÿÿÿÿ8¥Şü¨1
-~	cpp:S1448"]Class has 54 methods, which is greater than the 35 authorized. Split it into smaller classes.(Õ–Ùşÿÿÿÿ8¥Şü¨1
-P	cpp:S1709("/Add the "explicit" keyword to this constructor.(„Şãşÿÿÿÿÿ8‡ì·Æ¨1
-‰	cpp:S4963Ø"lRemove this class' copy constructor and copy assignment operator so that the class follows the rule of Zero.(ıâç8ÈÊ–Æ¨1
-	cpp:S4963°"lRemove this class' copy constructor and copy assignment operator so that the class follows the rule of Zero.(ı¡ƒÚşÿÿÿÿ8ÈÊ–Æ¨1
-	cpp:S4963…"lRemove this class' copy constructor and copy assignment operator so that the class follows the rule of Zero.(ÔŒ„„øÿÿÿÿ8ÈÊ–Æ¨1
-‰	cpp:S4963Û"lRemove this class' copy constructor and copy assignment operator so that the class follows the rule of Zero.(×ìˆ¯8×Ê–Æ¨1
