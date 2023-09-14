@@ -1,5 +1,0 @@
-# ninja log v5
-9	740	7160535707493814	CMakeFiles/tinySTL.dir/main.cpp.obj	13523c2238f59db4
-761	1295	7160535712815431	tinySTL.exe	9fce2c1c13d54dec
-1	760	7160535707703127	CMakeFiles/tinySTL.dir/STD/source/String.cpp.obj	286e43c6438ea26a
-17	742	7160535707503825	CMakeFiles/tinySTL.dir/STD/source/Algorithms.cpp.obj	100936246f5562a3
