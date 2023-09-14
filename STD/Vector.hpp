@@ -88,6 +88,12 @@ namespace STD {
         template<typename ...args>
         cIterator emplace(const cIterator &pos, args &&...vals);
 
+        template<typename ...args>
+        rIterator emplace(const rIterator &pos, args &&...vals);
+
+        template<typename ...args>
+        crIterator emplace(const crIterator &pos, args &&...vals);
+
         Iterator insert(Size pos, const Arg &val);
 
         Iterator insert(Size pos, Size size, const Arg &val);
@@ -108,7 +114,21 @@ namespace STD {
 
         cIterator insert(const cIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end);
 
-        Iterator erase(Size pos, bool until_end = false);
+        rIterator insert(const rIterator &pos, Size size, const Arg &val);
+
+        rIterator insert(const rIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end);
+
+        rIterator insert(const rIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end);
+
+        crIterator insert(const crIterator &pos, Size size, const Arg &val);
+
+        crIterator insert(const crIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end);
+
+        crIterator insert(const crIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end);
+
+        Iterator erase(Size pos, Size size);
+
+        Iterator erase(Size pos);
 
         Iterator erase(const Iterator &iter);
 
@@ -117,6 +137,14 @@ namespace STD {
         Iterator erase(const Iterator &begin, const Iterator &end);
 
         cIterator erase(const cIterator &begin, const cIterator &end);
+
+        rIterator erase(const rIterator &iter);
+
+        crIterator erase(const crIterator &iter);
+
+        rIterator erase(const rIterator &begin, const rIterator &end);
+
+        crIterator erase(const crIterator &begin, const crIterator &end);
 
         Arg &operator[](Size pos) const { return *(val_begin + pos); };
 
@@ -387,7 +415,6 @@ namespace STD {
                 else *(the_new++) = *(the_old++);
             }
             ++size_;
-            the_old = val_begin;
             val_begin = store_end - size;
             val_end = val_begin + size_;
             Deallocate_n(the_old);
@@ -404,7 +431,7 @@ namespace STD {
     template<typename Arg>
     template<typename... args>
     typename Vector<Arg>::Iterator Vector<Arg>::emplace(const Vector<Arg>::Iterator &pos, args &&... vals) {
-        if (pos.target < val_begin || pos.target >= val_end)
+        if (pos.target < val_begin || pos.target > val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'Vector::emplace' function");
         return emplace(pos.target - val_begin, forward<args>(vals)...);
     }
@@ -412,37 +439,30 @@ namespace STD {
     template<typename Arg>
     template<typename... args>
     typename Vector<Arg>::cIterator Vector<Arg>::emplace(const Vector<Arg>::cIterator &pos, args &&... vals) {
-        if (pos.target < val_begin || pos.target >= val_end)
+        if (pos.target < val_begin || pos.target > val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'Vector::emplace' function");
-        return *dynamic_pointer_cast<Vector<Arg>::cIterator>(
-                emplace(pos.target - val_begin, forward<args>(vals)...).to_const());
+        return Vector<Arg>::cIterator(emplace(pos.target - val_begin, forward<args>(vals)...).target);
+    }
+
+    template<typename Arg>
+    template<typename... args>
+    typename Vector<Arg>::rIterator Vector<Arg>::emplace(const Vector<Arg>::rIterator &pos, args &&... vals) {
+        if (pos.target < val_begin - 1 || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::emplace' function");
+        return Vector<Arg>::rIterator(emplace(pos.target - val_begin + 1, forward<args>(vals)...).target - 1);
+    }
+
+    template<typename Arg>
+    template<typename... args>
+    typename Vector<Arg>::crIterator Vector<Arg>::emplace(const Vector<Arg>::crIterator &pos, args &&... vals) {
+        if (pos.target < val_begin - 1 || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::emplace' function");
+        return Vector<Arg>::crIterator(emplace(pos.target - val_begin + 1, forward<args>(vals)...).target - 1);
     }
 
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::insert(Size pos, const Arg &val) {
-        if (pos > size_) throw outOfRange("Your function 'Vector::insert' was passed an out-of-range position\n");
-        if (capacity() <= size_) {
-            Size size = size_ + 1 > size_ + size_ / 5 ? size_ + 1 : size_ + size_ / 5;
-            auto the_new = Allocate_n<Arg>(size), the_old = val_begin;
-            store_end = the_new + size;
-            for (int i = 0; i <= size_; ++i) {
-                if (i == pos) *(the_new++) = val;
-                else *(the_new++) = *(the_old++);
-            }
-            ++size_;
-            the_old = val_begin;
-            val_begin = store_end - size;
-            val_end = val_begin + size_;
-            Deallocate_n(the_old);
-        } else {
-            Arg last = val;
-            auto temp = val_begin + pos;
-            while (temp != val_end) swap(last, *(temp++));
-            *temp = last;
-            ++val_end;
-            ++size_;
-        }
-        return Iterator(val_begin + pos);
+        return insert(pos, 1, val);
     }
 
     template<typename Arg>
@@ -486,7 +506,7 @@ namespace STD {
 
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::insert(Size pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
-        return Vector < Arg > ::Iterator(insert(pos, *begin.to_const(), *end.to_const()).target);
+        return Vector<Arg>::Iterator(insert(pos, *begin.to_const(), *end.to_const()).target);
     }
 
     template<typename Arg>
@@ -533,7 +553,7 @@ namespace STD {
 
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::insert(const Iterator &pos, Size size, const Arg &val) {
-        if (pos.target < val_begin || pos.target >= val_end)
+        if (pos.target < val_begin || pos.target > val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
         return insert(pos.target - val_begin, size, val);
     }
@@ -541,7 +561,7 @@ namespace STD {
     template<typename Arg>
     typename Vector<Arg>::Iterator
     Vector<Arg>::insert(const Vector<Arg>::Iterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
-        if (pos.target < val_begin || pos.target >= val_end)
+        if (pos.target < val_begin || pos.target > val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
         return insert(pos.target - val_begin, begin, end);
     }
@@ -549,85 +569,158 @@ namespace STD {
     template<typename Arg>
     typename Vector<Arg>::Iterator
     Vector<Arg>::insert(const Vector<Arg>::Iterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
-        if (pos.target < val_begin || pos.target >= val_end)
+        if (pos.target < val_begin || pos.target > val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
         return insert(pos.target - val_begin, begin, end);
     }
 
     template<typename Arg>
     typename Vector<Arg>::cIterator Vector<Arg>::insert(const Vector<Arg>::cIterator &pos, Size size, const Arg &val) {
-        if (pos.target < val_begin || pos.target >= val_end)
+        if (pos.target < val_begin || pos.target > val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
-        return Vector < Arg > ::cIterator(insert(pos.target - val_begin, size, val).target);
+        return Vector<Arg>::cIterator(insert(pos.target - val_begin, size, val).target);
     }
 
     template<typename Arg>
     typename Vector<Arg>::cIterator
     Vector<Arg>::insert(const Vector<Arg>::cIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
-        if (pos.target < val_begin || pos.target >= val_end)
+        if (pos.target < val_begin || pos.target > val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
-        return Vector < Arg > ::cIterator(insert(pos.target - val_begin, begin, end).target);
+        return Vector<Arg>::cIterator(insert(pos.target - val_begin, begin, end).target);
     }
 
     template<typename Arg>
     typename Vector<Arg>::cIterator
     Vector<Arg>::insert(const Vector<Arg>::cIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
-        if (pos.target < val_begin || pos.target >= val_end)
+        if (pos.target < val_begin || pos.target > val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
-        return Vector < Arg > ::cIterator(insert(pos.target - val_begin, begin, end).target);
+        return Vector<Arg>::cIterator(insert(pos.target - val_begin, begin, end).target);
     }
 
     template<typename Arg>
-    typename Vector<Arg>::Iterator Vector<Arg>::erase(Size pos, bool until_end) {
-        if (pos >= size_) throw outOfRange("You selected an out-of-range value in the 'Vector::erase' function");
-        if (until_end) {
-            auto now = val_begin + pos;
-            while (now != val_end) {
-                now->~Arg();
-                ++now;
+    typename Vector<Arg>::rIterator Vector<Arg>::insert(const rIterator &pos, Size size, const Arg &val) {
+        if (pos.target < val_begin - 1 || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
+        return Vector<Arg>::rIterator(insert(pos.target - val_begin + 1, size, val).target - 1);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::rIterator
+    Vector<Arg>::insert(const Vector<Arg>::rIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
+        return insert(pos, *begin.to_const(), *end.to_const());
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::rIterator
+    Vector<Arg>::insert(const Vector<Arg>::rIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
+        if (pos.target < val_begin - 1 || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
+        Size count = calculateLength(begin, end), index = pos.target - val_begin + 1;
+        if (!count) return pos;
+        auto temp(begin.deep_copy());
+        Arg *answer;
+        if (capacity() - size_ < count) {
+            Arg *t_begin = Allocate_n<Arg>(capacity() + count), *t = t_begin;
+            store_end = t_begin + capacity() + count;
+            for (int i = 0; i < index; ++i) {
+                *t_begin = move(*val_begin);
+                ++t_begin, ++val_begin;
             }
-            val_end = val_begin + pos;
-            size_ = pos;
+            answer = t_begin += count - 1;
+            while (*temp != end) {
+                *t_begin = **temp;
+                --t_begin, ++(*temp);
+            }
+            t_begin += count + 1;
+            while (val_begin != val_end) {
+                *t_begin = move(*val_begin);
+                ++t_begin, ++val_begin;
+            }
+            Deallocate_n(val_begin - size_);
+            val_begin = t;
+            val_end = t_begin;
+            size_ = val_end - val_begin;
         } else {
-            auto now = val_begin + pos, next = now + 1;
-            now->~Arg();
-            while (next != val_end) {
-                *now = move(*next);
-                ++now, ++next;
+            auto temp1 = val_end - 1, temp2 = val_end + count - 1, target_end = val_begin + index;
+            while (temp1 >= target_end) {
+                *temp2 = move(*temp1);
+                --temp1, --temp2;
             }
-            --val_end;
-            --size_;
+            answer = temp2;
+            while (*temp != end) {
+                *temp2 = **temp;
+                ++(*temp), --temp2;
+            }
+            size_ += count;
+            val_end = val_begin + size_;
         }
+        return Vector<Arg>::rIterator(answer);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::crIterator
+    Vector<Arg>::insert(const Vector<Arg>::crIterator &pos, Size size, const Arg &val) {
+        if (pos.target < val_begin - 1 || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
+        return Vector<Arg>::crIterator(insert(pos.target - val_begin + 1, size, val).target - 1);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::crIterator
+    Vector<Arg>::insert(const Vector<Arg>::crIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
+        return Vector<Arg>::crIterator(insert(Vector<Arg>::rIterator(pos.target), *begin.to_const(), *end.to_const()).target);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::crIterator
+    Vector<Arg>::insert(const Vector<Arg>::crIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
+        if (pos.target < val_begin - 1 || pos.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
+        return Vector<Arg>::crIterator(insert(Vector<Arg>::rIterator(pos.target), begin, end).target);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::Iterator Vector<Arg>::erase(Size pos, Size size) {
+        if (!size) return Vector::Iterator(val_begin + pos);
+        if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
+        auto temp1 = val_begin + pos, temp2 = val_begin + pos;
+        if (pos + size > size_) size = size_ - pos;
+        size_ -= size;
+        for (int i = 0; i < size; ++i) {
+            temp1->~Arg();
+            ++temp1;
+        }
+        while (temp1 != val_end) {
+            *temp2 = *temp1;
+            ++temp1, ++temp2;
+        }
+        val_end = temp2;
+        return Vector::Iterator(val_begin + pos);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::Iterator Vector<Arg>::erase(Size pos) {
+        return erase(pos, 1);
     }
 
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::erase(const Vector::Iterator &iter) {
-        return Vector < Arg > ::Iterator(erase(*dynamic_pointer_cast<Vector<Arg>::cIterator>(iter.to_const())).target);
+        if (iter.target < val_begin || iter.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::erase' function");
+        return erase(iter.target - val_begin, 1);
     }
 
     template<typename Arg>
     typename Vector<Arg>::cIterator Vector<Arg>::erase(const Vector<Arg>::cIterator &iter) {
         if (iter.target < val_begin)
             throw outOfRange("You passed in an out-of-range iterator in the 'Vector::erase' function");
-        auto temp(iter.target);
-        if (iter.target != val_end) {
-            --size_;
-            auto temp1 = iter.target, temp2 = temp1 + 1;
-            temp1->~Arg();
-            while (temp2 != val_end) {
-                *temp1 = move(*temp2);
-                ++temp1, ++temp2;
-            }
-            --val_end;
-        }
-        return iter;
+        return erase(iter.target - val_begin, 1);
     }
 
     template<typename Arg>
     typename Vector<Arg>::Iterator
     Vector<Arg>::erase(const Vector::Iterator &begin, const Vector<Arg>::Iterator &end) {
-        return Vector < Arg > ::Iterator(erase(*dynamic_pointer_cast<Vector<Arg>::cIterator>(begin.to_const()),
-                                               *dynamic_pointer_cast<Vector<Arg>::cIterator>(end.to_const())).target);
+        return erase(begin.target - val_begin, end - begin);
     }
 
     template<typename Arg>
@@ -635,19 +728,37 @@ namespace STD {
     Vector<Arg>::erase(const Vector::cIterator &begin, const Vector<Arg>::cIterator &end) {
         if (end < begin || begin.target < val_begin || end.target > val_end)
             throw outOfRange("You passed in a pair of out-of-range iterators in the 'Vector::erase' function");
-        auto temp1(begin.target), temp2(end.target);
-        while (temp1 != temp2) {
-            temp1->~Arg();
-            ++temp1;
-        }
-        temp1 = begin.target;
-        while (temp2 != val_end) {
-            *temp1 = move(*temp2);
-            ++temp1, ++temp2;
-        }
-        val_end = temp1;
-        size_ = val_end - val_begin;
-        return begin;
+        return Vector<Arg>::cIterator(erase(begin.target - val_begin, end - begin).target);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::rIterator Vector<Arg>::erase(const Vector::rIterator &iter) {
+        if (iter.target < val_begin || iter.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::erase' function");
+        return Vector<Arg>::rIterator(erase(iter.target - val_begin, 1).target - 1);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::crIterator Vector<Arg>::erase(const Vector<Arg>::crIterator &iter) {
+        if (iter.target < val_begin || iter.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::erase' function");
+        return Vector<Arg>::crIterator(erase(iter.target - val_begin, 1).target - 1);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::rIterator
+    Vector<Arg>::erase(const Vector::rIterator &begin, const Vector<Arg>::rIterator &end) {
+        if (end > begin || begin.target >= val_end || end.target < val_begin - 1)
+            throw outOfRange("You passed in a pair of out-of-range iterators in the 'Vector::erase' function");
+        return Vector<Arg>::rIterator(erase(end.target - val_begin + 1, end - begin).target - 1);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::crIterator
+    Vector<Arg>::erase(const Vector::crIterator &begin, const Vector<Arg>::crIterator &end) {
+        if (end > begin || begin.target >= val_end || end.target < val_begin - 1)
+            throw outOfRange("You passed in a pair of out-of-range iterators in the 'Vector::erase' function");
+        return Vector<Arg>::crIterator(erase(end.target - val_begin + 1, end - begin).target - 1);
     }
 
     template<typename Arg>

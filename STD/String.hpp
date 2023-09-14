@@ -43,7 +43,9 @@ namespace STD {
 
             Shared_ptr<Iter<char>> deep_copy() const override { return make_shared<String::Iterator>(*this); };
 
-            Shared_ptr<cIter<char>> to_const() const override { return make_shared<String::cIterator>(cIterator(target)); };
+            Shared_ptr<cIter<char>> to_const() const override {
+                return make_shared<String::cIterator>(cIterator(target));
+            };
 
             Iterator(const Iterator &other) : Iter<char>(other.target) {};
 
@@ -209,7 +211,9 @@ namespace STD {
 
             Shared_ptr<Iter<char>> deep_copy() const override { return make_shared<String::rIterator>(*this); };
 
-            Shared_ptr<cIter<char>> to_const() const override { return make_shared<String::crIterator>(crIterator(target)); };
+            Shared_ptr<cIter<char>> to_const() const override {
+                return make_shared<String::crIterator>(crIterator(target));
+            };
 
             rIterator(const rIterator &other) : Iter<char>(other.target) {};
 
@@ -278,7 +282,7 @@ namespace STD {
         protected:
             using cIter<char>::target;
 
-            crIterator &operator=(char *ptr)  {
+            crIterator &operator=(char *ptr) {
                 target = ptr;
                 return *this;
             };
@@ -405,7 +409,7 @@ namespace STD {
 
         void clear(bool whether_to_release = false);
 
-        void append(char t);
+        void append(char t, Size len = 1);
 
         void append(const char *target);
 
@@ -423,7 +427,7 @@ namespace STD {
 
         void append(const cIter<char> &begin, const cIter<char> &end);
 
-        void push_back(char t);
+        void push_back(char t, Size len = 1);
 
         void push_back(const char *target);
 
@@ -445,23 +449,73 @@ namespace STD {
 
         Iterator insert(Size pos, char t, Size size = 1);
 
+        Iterator insert(Size pos, const char *target);
+
         Iterator insert(Size pos, const char *target, Size target_len);
 
         Iterator insert(Size pos, const char *target, Size target_pos, Size target_len);
 
+        Iterator insert(Size pos, const String &target, Size target_pos = 0, Size target_len = Npos);
+
         Iterator insert(Size pos, const Iter<char> &begin, const Iter<char> &end);
 
-        cIterator insert(Size pos, const cIter<char> &begin, const cIter<char> &end);
+        Iterator insert(Size pos, const cIter<char> &begin, const cIter<char> &end);
 
         Iterator insert(const Iterator &iter, char t, Size size = 1);
+
+        Iterator insert(const Iterator &iter, const char *target);
 
         Iterator insert(const Iterator &iter, const char *target, Size target_len);
 
         Iterator insert(const Iterator &iter, const char *target, Size target_pos, Size target_len);
 
+        Iterator insert(const Iterator &iter, const String &target, Size target_pos = 0, Size target_len = Npos);
+
         Iterator insert(const Iterator &iter, const Iter<char> &begin, const Iter<char> &end);
 
-        cIterator insert(const Iterator &iter, const cIter<char> &begin, const cIter<char> &end);
+        Iterator insert(const Iterator &iter, const cIter<char> &begin, const cIter<char> &end);
+
+        cIterator insert(const cIterator &iter, char t, Size size = 1);
+
+        cIterator insert(const cIterator &iter, const char *target);
+
+        cIterator insert(const cIterator &iter, const char *target, Size target_len);
+
+        cIterator insert(const cIterator &iter, const char *target, Size target_pos, Size target_len);
+
+        cIterator insert(const cIterator &iter, const String &target, Size target_pos = 0, Size target_len = Npos);
+
+        cIterator insert(const cIterator &iter, const Iter<char> &begin, const Iter<char> &end);
+
+        cIterator insert(const cIterator &iter, const cIter<char> &begin, const cIter<char> &end);
+
+        rIterator insert(const rIterator &iter, char t, Size size = 1);
+
+        rIterator insert(const rIterator &iter, const char *target);
+
+        rIterator insert(const rIterator &iter, const char *target, Size target_len);
+
+        rIterator insert(const rIterator &iter, const char *target, Size target_pos, Size target_len);
+
+        rIterator insert(const rIterator &iter, const String &target, Size target_pos = 0, Size target_len = Npos);
+
+        rIterator insert(const rIterator &iter, const Iter<char> &begin, const Iter<char> &end);
+
+        rIterator insert(const rIterator &iter, const cIter<char> &begin, const cIter<char> &end);
+
+        crIterator insert(const crIterator &iter, char t, Size size = 1);
+
+        crIterator insert(const crIterator &iter, const char *target);
+
+        crIterator insert(const crIterator &iter, const char *target, Size target_len);
+
+        crIterator insert(const crIterator &iter, const char *target, Size target_pos, Size target_len);
+
+        crIterator insert(const crIterator &iter, const String &target, Size target_pos = 0, Size target_len = Npos);
+
+        crIterator insert(const crIterator &iter, const Iter<char> &begin, const Iter<char> &end);
+
+        crIterator insert(const crIterator &iter, const cIter<char> &begin, const cIter<char> &end);
 
         Iterator erase(Size pos, Size size = 1);
 
@@ -473,6 +527,14 @@ namespace STD {
 
         cIterator erase(const cIterator &begin, const cIterator &end);
 
+        rIterator erase(const rIterator &iter);
+
+        crIterator erase(const crIterator &iter);
+
+        rIterator erase(const rIterator &begin, const rIterator &end);
+
+        crIterator erase(const crIterator &begin, const crIterator &end);
+
         String &replace(Size pos, Size len, Size n, char t);
 
         String &replace(Size pos, Size len, const char *target);
@@ -480,6 +542,10 @@ namespace STD {
         String &replace(Size pos, Size len, const char *target, Size target_len);
 
         String &replace(Size pos, Size len, const String &target);
+
+        String &replace(Size pos, Size len, const Iter<char> &begin, const Iter<char> &end);
+
+        String &replace(Size pos, Size len, const cIter<char> &begin, const cIter<char> &end);
 
         String &replace(Size pos, Size len, const String &target, Size target_pos, Size target_len);
 
@@ -494,6 +560,12 @@ namespace STD {
         String &
         replace(const Iterator &begin, const Iterator &end, const String &target, Size target_pos, Size target_len);
 
+        String &replace(const Iterator &begin, const Iterator &end, const Iter<char> &target_begin,
+                        const Iter<char> &target_end);
+
+        String &replace(const Iterator &begin, const Iterator &end, const cIter<char> &target_begin,
+                        const cIter<char> &target_end);
+
         String &replace(const cIterator &begin, const cIterator &end, Size n, char t);
 
         String &replace(const cIterator &begin, const cIterator &end, const char *target);
@@ -504,6 +576,46 @@ namespace STD {
 
         String &
         replace(const cIterator &begin, const cIterator &end, const String &target, Size target_pos, Size target_len);
+
+        String &replace(const cIterator &begin, const cIterator &end, const Iter<char> &target_begin,
+                        const Iter<char> &target_end);
+
+        String &replace(const cIterator &begin, const cIterator &end, const cIter<char> &target_begin,
+                        const cIter<char> &target_end);
+
+        String &replace(const rIterator &begin, const rIterator &end, Size n, char t);
+
+        String &replace(const rIterator &begin, const rIterator &end, const char *target, Size target_len);
+
+        String &replace(const rIterator &begin, const rIterator &end, const char *target);
+
+        String &replace(const rIterator &begin, const rIterator &end, const String &target);
+
+        String &
+        replace(const rIterator &begin, const rIterator &end, const String &target, Size target_pos, Size target_len);
+
+        String &replace(const rIterator &begin, const rIterator &end, const Iter<char> &target_begin,
+                        const Iter<char> &target_end);
+
+        String &replace(const rIterator &begin, const rIterator &end, const cIter<char> &target_begin,
+                        const cIter<char> &target_end);
+
+        String &replace(const crIterator &begin, const crIterator &end, Size n, char t);
+
+        String &replace(const crIterator &begin, const crIterator &end, const char *target, Size target_len);
+
+        String &replace(const crIterator &begin, const crIterator &end, const char *target);
+
+        String &replace(const crIterator &begin, const crIterator &end, const String &target);
+
+        String &
+        replace(const crIterator &begin, const crIterator &end, const String &target, Size target_pos, Size target_len);
+
+        String &replace(const crIterator &begin, const crIterator &end, const Iter<char> &target_begin,
+                        const Iter<char> &target_end);
+
+        String &replace(const crIterator &begin, const crIterator &end, const cIter<char> &target_begin,
+                        const cIter<char> &target_end);
 
         char &operator[](Size pos) const { return *(val_begin + pos); };
 
