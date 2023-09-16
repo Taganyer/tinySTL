@@ -80,6 +80,8 @@ namespace STD {
 
         List<Arg> &assign(const cIter<Arg> &begin, const cIter<Arg> &end);
 
+        List<Arg> &assign(std::initializer_list<Arg> list);
+
         template<typename ...args>
         void emplace_front(args &&...vals);
 
@@ -122,6 +124,10 @@ namespace STD {
 
         cIterator insert(const cIterator &pos, const Arg &target);
 
+        Iterator insert(const Iterator &pos, std::initializer_list<Arg> list);
+
+        cIterator insert(const cIterator &pos, std::initializer_list<Arg> list);
+
         Iterator insert(const Iterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end);
 
         cIterator insert(const cIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end);
@@ -133,6 +139,10 @@ namespace STD {
         rIterator insert(const rIterator &pos, const Arg &target);
 
         crIterator insert(const crIterator &pos, const Arg &target);
+
+        rIterator insert(const rIterator &pos, std::initializer_list<Arg> list);
+
+        crIterator insert(const crIterator &pos, std::initializer_list<Arg> list);
 
         rIterator insert(const rIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end);
 
@@ -577,7 +587,7 @@ namespace STD {
     template<typename Arg>
     typename List<Arg>::rIterator
     List<Arg>::insert(const List<Arg>::rIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
-        return List<Arg>::rIterator(insert(List<Arg>::crIterator(pos.node), *begin.to_const(),*end.to_const()).node);
+        return List<Arg>::rIterator(insert(List<Arg>::crIterator(pos.node), *begin.to_const(), *end.to_const()).node);
     }
 
     template<typename Arg>

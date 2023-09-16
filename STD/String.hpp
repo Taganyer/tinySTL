@@ -23,6 +23,24 @@ namespace STD {
 
         void reallocate(Size size);
 
+        void forward(Size pos_from, Size pos_to);
+
+        char *backward(Size pos_from, Size pos_to);
+
+        static void fill_with(char *pos, char target, Size size);
+
+        static void fill_with(char *pos, const char *target, Size size);
+
+        static void fill_with(char *pos, const std::initializer_list<char> &list);
+
+        static void fill_with(char *pos, const cIter<char> &begin, Size size);
+
+        static void rfill_with(char *pos, const char *target, Size size);
+
+        static void rfill_with(char *pos, const std::initializer_list<char> &list);
+
+        static void rfill_with(char *pos, const cIter<char> &begin, Size size);
+
     public:
 
         static const Size Npos = -1;
@@ -370,7 +388,7 @@ namespace STD {
         String(const char *target, Size len);
 
         //编译器给这个类开后门了，不用它没办法实现相同的效果。
-        String(std::initializer_list<char> list);
+        String(const std::initializer_list<char> &list);
 
         String(const char *target);
 
@@ -449,6 +467,8 @@ namespace STD {
 
         Iterator insert(Size pos, char t, Size size = 1);
 
+        Iterator insert(Size pos, const std::initializer_list<char> &list);
+
         Iterator insert(Size pos, const char *target);
 
         Iterator insert(Size pos, const char *target, Size target_len);
@@ -462,6 +482,8 @@ namespace STD {
         Iterator insert(Size pos, const cIter<char> &begin, const cIter<char> &end);
 
         Iterator insert(const Iterator &iter, char t, Size size = 1);
+
+        Iterator insert(const Iterator &iter, const std::initializer_list<char> &list);
 
         Iterator insert(const Iterator &iter, const char *target);
 
@@ -477,6 +499,8 @@ namespace STD {
 
         cIterator insert(const cIterator &iter, char t, Size size = 1);
 
+        cIterator insert(const cIterator &iter, const std::initializer_list<char> &list);
+
         cIterator insert(const cIterator &iter, const char *target);
 
         cIterator insert(const cIterator &iter, const char *target, Size target_len);
@@ -491,6 +515,8 @@ namespace STD {
 
         rIterator insert(const rIterator &iter, char t, Size size = 1);
 
+        rIterator insert(const rIterator &iter, const std::initializer_list<char> &list);
+
         rIterator insert(const rIterator &iter, const char *target);
 
         rIterator insert(const rIterator &iter, const char *target, Size target_len);
@@ -504,6 +530,8 @@ namespace STD {
         rIterator insert(const rIterator &iter, const cIter<char> &begin, const cIter<char> &end);
 
         crIterator insert(const crIterator &iter, char t, Size size = 1);
+
+        crIterator insert(const crIterator &iter, const std::initializer_list<char> &list);
 
         crIterator insert(const crIterator &iter, const char *target);
 
@@ -537,6 +565,8 @@ namespace STD {
 
         String &replace(Size pos, Size len, Size n, char t);
 
+        String &replace(Size pos, Size len, const std::initializer_list<char> &list);
+
         String &replace(Size pos, Size len, const char *target);
 
         String &replace(Size pos, Size len, const char *target, Size target_len);
@@ -550,6 +580,8 @@ namespace STD {
         String &replace(Size pos, Size len, const String &target, Size target_pos, Size target_len);
 
         String &replace(const Iterator &begin, const Iterator &end, Size n, char t);
+
+        String &replace(const Iterator &begin, const Iterator &end, const std::initializer_list<char> &list);
 
         String &replace(const Iterator &begin, const Iterator &end, const char *target, Size target_len);
 
@@ -568,6 +600,8 @@ namespace STD {
 
         String &replace(const cIterator &begin, const cIterator &end, Size n, char t);
 
+        String &replace(const cIterator &begin, const cIterator &end, const std::initializer_list<char> &list);
+
         String &replace(const cIterator &begin, const cIterator &end, const char *target);
 
         String &replace(const cIterator &begin, const cIterator &end, const char *target, Size target_len);
@@ -585,6 +619,8 @@ namespace STD {
 
         String &replace(const rIterator &begin, const rIterator &end, Size n, char t);
 
+        String &replace(const rIterator &begin, const rIterator &end, const std::initializer_list<char> &list);
+
         String &replace(const rIterator &begin, const rIterator &end, const char *target, Size target_len);
 
         String &replace(const rIterator &begin, const rIterator &end, const char *target);
@@ -601,6 +637,8 @@ namespace STD {
                         const cIter<char> &target_end);
 
         String &replace(const crIterator &begin, const crIterator &end, Size n, char t);
+
+        String &replace(const crIterator &begin, const crIterator &end, const std::initializer_list<char> &list);
 
         String &replace(const crIterator &begin, const crIterator &end, const char *target, Size target_len);
 
@@ -692,6 +730,8 @@ namespace STD {
 
         String &operator+=(const String &other);
 
+        String &operator*=(int size);
+
         int compare(const char *target) const;
 
         int compare(Size pos1, Size n1, const char *target) const;
@@ -704,7 +744,9 @@ namespace STD {
 
         int compare(Size pos1, Size n1, const String &target, Size pos2, Size n2) const;
 
-        friend String operator+(String &left, const String &right);
+        friend String operator+(const String &left, const String &right);
+
+        friend String operator*(const String &target, int size);
 
         friend std::ostream &operator<<(std::ostream &out, const String &target);
 

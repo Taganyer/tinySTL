@@ -16,4 +16,7 @@ add_executable(tinySTL main.cpp
         STD/source/Algorithms.cpp
         STD/List.hpp
         STD/List.hpp
-        STD/Initializer_list.hpp)
+        STD/Initializer_list.hpp
+        STD/Forward_list.hpp
+        STD/Forward_list.hpp
+)

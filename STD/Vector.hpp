@@ -22,6 +22,24 @@ namespace STD {
 
         void reallocate(Size size);
 
+        Arg *backward(Size pos_from, Size pos_to);
+
+        static void fill_with(Arg *pos, Arg target, Size size);
+
+        static void fill_with(Arg *pos, const std::initializer_list<Arg> &list);
+
+        static void fill_with(Arg *pos, const Arg *target, Size size);
+
+        static void fill_with(Arg *pos, const cIter<Arg> &begin, Size size);
+
+        static void rfill_with(Arg *pos, Arg target, Size size);
+
+        static void rfill_with(Arg *pos, const std::initializer_list<Arg> &list);
+
+        static void rfill_with(Arg *pos, const Arg *target, Size size);
+
+        static void rfill_with(Arg *pos, const cIter<Arg> &begin, Size size);
+
     public:
 
         class Iterator;
@@ -37,7 +55,7 @@ namespace STD {
         Vector(Size size, Arg target = Arg());
 
         //编译器给这个类开后门了，不用它没办法实现相同的效果。
-        Vector(std::initializer_list<Arg> list);
+        Vector(const std::initializer_list<Arg> &list);
 
         Vector(const Iter<Arg> &begin, const Iter<Arg> &end);
 
@@ -71,7 +89,7 @@ namespace STD {
 
         void push_back(const Arg &val);
 
-        void push_back(Size size, const Arg &val);
+        void push_back(Size size, const Arg &val);;
 
         void push_back(const Iter<Arg> &begin, const Iter<Arg> &end);
 
@@ -94,9 +112,9 @@ namespace STD {
         template<typename ...args>
         crIterator emplace(const crIterator &pos, args &&...vals);
 
-        Iterator insert(Size pos, const Arg &val);
+        Iterator insert(Size pos, const Arg &val, Size size = 1);
 
-        Iterator insert(Size pos, Size size, const Arg &val);
+        Iterator insert(Size pos, const std::initializer_list<Arg> &list);
 
         Iterator insert(Size pos, const Iter<Arg> &begin, const Iter<Arg> &end);
 
@@ -104,11 +122,15 @@ namespace STD {
 
         Iterator insert(const Iterator &pos, Size size, const Arg &val);
 
+        Iterator insert(const Iterator &pos, const std::initializer_list<Arg> &list);
+
         Iterator insert(const Iterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end);
 
         Iterator insert(const Iterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end);
 
         cIterator insert(const cIterator &pos, Size size, const Arg &val);
+
+        cIterator insert(const cIterator &pos, const std::initializer_list<Arg> &list);
 
         cIterator insert(const cIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end);
 
@@ -116,11 +138,15 @@ namespace STD {
 
         rIterator insert(const rIterator &pos, Size size, const Arg &val);
 
+        rIterator insert(const rIterator &pos, const std::initializer_list<Arg> &list);
+
         rIterator insert(const rIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end);
 
         rIterator insert(const rIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end);
 
         crIterator insert(const crIterator &pos, Size size, const Arg &val);
+
+        crIterator insert(const crIterator &pos, const std::initializer_list<Arg> &list);
 
         crIterator insert(const crIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end);
 
@@ -210,58 +236,31 @@ namespace STD {
     Vector<Arg>::Vector(Size size, Arg target) : val_begin(Allocate_n<Arg>(size + size / 5)), size_(size) {
         val_end = val_begin + size;
         store_end = val_begin + size + size / 5;
-        auto temp = val_begin;
-        for (int i = 0; i < size; ++i) {
-            *temp = target;
-            ++temp;
-        }
+        fill_with(val_begin, target, size);
     }
 
     template<typename Arg>
-    Vector<Arg>::Vector(std::initializer_list<Arg> list) : size_(list.size()), val_begin(Allocate_n<Arg>(size_)),
-                                                           val_end(val_begin) {
-        auto temp = const_cast<Arg *>(list.begin());
-        for (int i = 0; i < size_; ++i) {
-            *val_end = *temp;
-            ++val_end, ++temp;
-        }
+    Vector<Arg>::Vector(const std::initializer_list<Arg> &list) : size_(list.size()), val_begin(Allocate_n<Arg>(size_)),
+                                                           val_end(val_begin + list.size()) {
+        fill_with(val_begin, list);
         store_end = val_end;
     }
 
     template<typename Arg>
-    Vector<Arg>::Vector(const Iter<Arg> &begin, const Iter<Arg> &end) : size_(calculateLength(begin, end)) {
-        auto iter = begin.deep_copy();
-        iter = begin.deep_copy();
-        val_begin = Allocate_n<Arg>(size_);
-        store_end = val_end = val_begin + size_;
-        while (*iter != end) {
-            *val_begin = **iter;
-            ++val_begin, ++(*iter);
-        }
-        val_begin = val_end - size_;
-    }
+    Vector<Arg>::Vector(const Iter<Arg> &begin, const Iter<Arg> &end) : Vector(*begin.to_const(), *end.to_const()) {}
 
     template<typename Arg>
     Vector<Arg>::Vector(const cIter<Arg> &begin, const cIter<Arg> &end) : size_(calculateLength(begin, end)) {
-        auto iter = begin.deep_copy();
         val_begin = Allocate_n<Arg>(size_);
         store_end = val_end = val_begin + size_;
-        while (*iter != end) {
-            *val_begin = **iter;
-            ++val_begin, ++(*iter);
-        }
-        val_begin = val_end - size_;
+        fill_with(val_begin, begin, size_);
     }
 
     template<typename Arg>
     Vector<Arg>::Vector(const Vector<Arg> &other) : size_(other.size_), val_begin(Allocate_n<Arg>(other.capacity())) {
         val_end = val_begin + size_;
         store_end = val_begin + other.capacity();
-        auto l = val_begin, r = other.val_begin;
-        for (int i = 0; i < size_; ++i) {
-            *l = *r;
-            ++l, ++r;
-        }
+        fill_with(val_begin, other.val_begin, other.size_);
     }
 
     template<typename Arg>
@@ -279,6 +278,95 @@ namespace STD {
         val_begin = store_end - size;
         val_end = val_begin + size_;
         Deallocate_n(the_old - size_);
+    }
+
+    template<typename Arg>
+    Arg *Vector<Arg>::backward(Size pos_from, Size pos_to) {
+        Size new_size = size_ + pos_to - pos_from;
+        if (new_size > capacity()) {
+            auto the_new = Allocate_n<Arg>(new_size), temp = the_new;
+            for (int i = 0; i < pos_from; ++i) {
+                *temp = move(*val_begin);
+                ++temp, ++val_begin;
+            }
+            temp = the_new + pos_to;
+            while (val_begin < val_end) {
+                *temp = *val_begin;
+                ++temp, ++val_begin;
+            }
+            val_begin = the_new;
+            store_end = val_end = temp;
+        } else {
+            auto temp1 = val_end - 1, temp2 = val_end - 1 + pos_to - pos_from, target_end = val_begin + pos_from;
+            val_end = temp2 + 1;
+            while (temp1 >= target_end) {
+                *temp2 = move(*temp1);
+                --temp1, --temp2;
+            }
+        }
+        size_ += pos_to - pos_from;
+        return val_begin + pos_from;
+    }
+
+    template<typename Arg>
+    void Vector<Arg>::fill_with(Arg *pos, Arg target, Size size) {
+        for (int i = 0; i < size; ++i) {
+            *pos = target;
+            ++pos;
+        }
+    }
+
+    template<typename Arg>
+    void Vector<Arg>::fill_with(Arg *pos, const Arg *target, Size size) {
+        for (int i = 0; i < size; ++i) {
+            *pos = *target;
+            ++pos, ++target;
+        }
+    }
+
+    template<typename Arg>
+    void Vector<Arg>::fill_with(Arg *pos, const std::initializer_list<Arg> &list) {
+        for (auto &t: list) {
+            *pos = t;
+            ++pos;
+        }
+    }
+
+    template<typename Arg>
+    void Vector<Arg>::fill_with(Arg *pos, const cIter<Arg> &begin, Size size) {
+        auto temp = begin.deep_copy();
+        for (int i = 0; i < size; ++i) {
+            *pos = **temp;
+            ++pos, ++(*temp);
+        }
+    }
+
+    template<typename Arg>
+    void Vector<Arg>::rfill_with(Arg *pos, const Arg *target, Size size) {
+        pos += size - 1;
+        for (int i = 0; i < size; ++i) {
+            *pos = *target;
+            --pos, ++target;
+        }
+    }
+
+    template<typename Arg>
+    void Vector<Arg>::rfill_with(Arg *pos, const std::initializer_list<Arg> &list) {
+        pos += list.size() - 1;
+        for (auto &t: list) {
+            *pos = t;
+            --pos;
+        }
+    }
+
+    template<typename Arg>
+    void Vector<Arg>::rfill_with(Arg *pos, const cIter<Arg> &begin, Size size) {
+        pos += size - 1;
+        auto temp = begin.deep_copy();
+        for (int i = 0; i < size; ++i) {
+            *pos = **temp;
+            --pos, ++(*temp);
+        }
     }
 
     template<typename Arg>
@@ -303,25 +391,18 @@ namespace STD {
             return;
         }
         auto temp = Allocate_n<Arg>(size_);
-        for (int i = 0; i < size_; ++i) {
-            *temp = *val_begin;
-            ++temp, ++val_begin;
-        }
-        Deallocate_n(val_begin - size_);
-        store_end = val_end = temp;
-        val_begin = temp - size_;
+        fill_with(temp, val_begin, size_);
+        Deallocate_n(val_begin);
+        val_begin = temp;
+        store_end = val_end = temp + size_;
     }
 
     template<typename Arg>
     Vector<Arg> &Vector<Arg>::assign(Size size, const Arg &val) {
         Deallocate_n(val_begin);
-        auto t = Allocate_n<Arg>(size);
-        for (int i = 0; i < size; ++i) {
-            *t = val;
-            ++t;
-        }
-        store_end = val_end = t;
-        val_begin = t - size;
+        val_begin = Allocate_n<Arg>(size);
+        fill_with(val_begin, val, size);
+        store_end = val_end = val_begin + size;
         size_ = size;
         return *this;
     }
@@ -334,16 +415,10 @@ namespace STD {
     template<typename Arg>
     Vector<Arg> &Vector<Arg>::assign(const cIter<Arg> &begin, const cIter<Arg> &end) {
         Deallocate_n(val_begin);
-        auto temp = begin.deep_copy();
-        Size count = calculateLength(begin, end);
-        auto t = Allocate_n<Arg>(count);
-        while (*temp != end) {
-            *t = **temp;
-            ++t, ++(*temp);
-        }
-        store_end = val_end = t;
-        val_begin = t - count;
-        size_ = count;
+        size_ = calculateLength(begin, end);
+        val_begin = Allocate_n<Arg>(size_);
+        fill_with(val_begin, begin, size_);
+        store_end = val_end = val_begin + size_;
         return *this;
     }
 
@@ -370,10 +445,9 @@ namespace STD {
     void Vector<Arg>::push_back(Size size, const Arg &val) {
         if (capacity() - size_ < size) reallocate(capacity() + size);
         size_ += size;
-        for (int i = 0; i < size; ++i) {
-            *val_end = val;
-            ++val_end;
-        }
+        fill_with(val_end, val, size);
+        size_ += size;
+        val_end += size;
     }
 
     template<typename Arg>
@@ -386,11 +460,9 @@ namespace STD {
         auto temp(begin.deep_copy());
         Size count = calculateLength(begin, end);
         if (capacity() - size_ < count) reallocate(capacity() + count);
+        fill_with(val_end, begin, count);
         size_ += count;
-        while (*temp != end) {
-            *val_end = **temp;
-            ++val_end, ++(*temp);
-        }
+        val_end += count;
     }
 
     template<typename Arg>
@@ -405,26 +477,7 @@ namespace STD {
     template<typename... args>
     typename Vector<Arg>::Iterator Vector<Arg>::emplace(Size pos, args &&... vals) {
         if (pos > size_) throw outOfRange("Your function 'Vector::emplace' was passed an out-of-range position\n");
-        Arg last = Arg(forward<args>(vals)...);
-        if (capacity() <= size_) {
-            Size size = size_ + 1 > size_ + size_ / 5 ? size_ + 1 : size_ + size_ / 5;
-            auto the_new = Allocate_n<Arg>(size), the_old = val_begin;
-            store_end = the_new + size;
-            for (int i = 0; i <= size_; ++i) {
-                if (i == pos) *(the_new++) = last;
-                else *(the_new++) = *(the_old++);
-            }
-            ++size_;
-            val_begin = store_end - size;
-            val_end = val_begin + size_;
-            Deallocate_n(the_old);
-        } else {
-            auto temp = val_begin + pos;
-            while (temp != val_end) swap(last, *(temp++));
-            *temp = last;
-            ++val_end;
-            ++size_;
-        }
+        *backward(pos, pos + 1) = Arg(forward<args>(vals)...);
         return Iterator(val_begin + pos);
     }
 
@@ -461,47 +514,19 @@ namespace STD {
     }
 
     template<typename Arg>
-    typename Vector<Arg>::Iterator Vector<Arg>::insert(Size pos, const Arg &val) {
-        return insert(pos, 1, val);
+    typename Vector<Arg>::Iterator Vector<Arg>::insert(Size pos, const Arg &val, Size size) {
+        if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
+        if (!size) return Iterator(val_begin + pos);
+        fill_with(backward(pos, pos + size), val, size);
+        return Iterator(val_begin + pos);
     }
 
     template<typename Arg>
-    typename Vector<Arg>::Iterator Vector<Arg>::insert(Size pos, Size size, const Arg &val) {
-        if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
-        if (!size) return Iterator(val_begin + pos);
-        if (capacity() - size_ < size) {
-            auto t_begin = Allocate_n<Arg>(capacity() + size), t = t_begin;
-            store_end = t_begin + capacity() + size;
-            for (int i = 0; i < pos; ++i) {
-                *t_begin = move(*val_begin);
-                ++t_begin, ++val_begin;
-            }
-            for (int i = 0; i < size; ++i) {
-                *t_begin = val;
-                ++t_begin;
-            }
-            while (val_begin != val_end) {
-                *t_begin = move(*val_begin);
-                ++t_begin, ++val_begin;
-            }
-            Deallocate_n(val_begin - size_);
-            val_begin = t;
-            val_end = t_begin;
-            size_ = val_end - val_begin;
-        } else {
-            auto temp1 = val_end - 1, temp2 = val_end + size - 1, target_end = val_begin + pos;
-            while (temp1 >= target_end) {
-                *temp2 = move(*temp1);
-                --temp1, --temp2;
-            }
-            for (int i = 0; i < size; ++i) {
-                *target_end = val;
-                ++target_end;
-            }
-            size_ += size;
-            val_end = val_begin + size_;
-        }
-        return Iterator(val_begin + pos);
+    typename Vector<Arg>::Iterator Vector<Arg>::insert(Size pos, const std::initializer_list<Arg> &list) {
+        if (!list.size()) return Vector<Arg>::Iterator(val_begin + pos);
+        if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+        fill_with(backward(pos, pos + list.size()), list);
+        return Vector<Arg>::Iterator(val_begin + pos);
     }
 
     template<typename Arg>
@@ -513,41 +538,8 @@ namespace STD {
     typename Vector<Arg>::Iterator
     Vector<Arg>::insert(Size pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
         if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
-        auto temp(begin.deep_copy());
-        Size count = calculateLength(begin, end);
-        if (!count) return Iterator(val_begin + pos);
-        if (capacity() - size_ < count) {
-            auto t_begin = Allocate_n<Arg>(capacity() + count), t = t_begin;
-            store_end = t_begin + capacity() + count;
-            for (int i = 0; i < pos; ++i) {
-                *t_begin = move(*val_begin);
-                ++t_begin, ++val_begin;
-            }
-            while (*temp != end) {
-                *t_begin = **temp;
-                ++t_begin, ++(*temp);
-            }
-            while (val_begin != val_end) {
-                *t_begin = move(*val_begin);
-                ++t_begin, ++val_begin;
-            }
-            Deallocate_n(val_begin - size_);
-            val_begin = t;
-            val_end = t_begin;
-            size_ = val_end - val_begin;
-        } else {
-            auto temp1 = val_end - 1, temp2 = val_end + count - 1, target_end = val_begin + pos;
-            while (temp1 >= target_end) {
-                *temp2 = move(*temp1);
-                --temp1, --temp2;
-            }
-            while (*temp != end) {
-                *target_end = **temp;
-                ++(*temp), ++target_end;
-            }
-            size_ += count;
-            val_end = val_begin + size_;
-        }
+        Size size = calculateLength(begin, end);
+        fill_with(backward(pos, pos + size), begin, size);
         return Iterator(val_begin + pos);
     }
 
@@ -556,6 +548,11 @@ namespace STD {
         if (pos.target < val_begin || pos.target > val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
         return insert(pos.target - val_begin, size, val);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::Iterator Vector<Arg>::insert(const Iterator &pos, const std::initializer_list<Arg> &list) {
+        return insert(pos.target - val_begin, list);
     }
 
     template<typename Arg>
@@ -582,6 +579,11 @@ namespace STD {
     }
 
     template<typename Arg>
+    typename Vector<Arg>::cIterator Vector<Arg>::insert(const cIterator &pos, const std::initializer_list<Arg> &list) {
+        return cIterator(insert(pos.target - val_begin, list).target);
+    }
+
+    template<typename Arg>
     typename Vector<Arg>::cIterator
     Vector<Arg>::insert(const Vector<Arg>::cIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
         if (pos.target < val_begin || pos.target > val_end)
@@ -605,6 +607,17 @@ namespace STD {
     }
 
     template<typename Arg>
+    typename Vector<Arg>::rIterator Vector<Arg>::insert(const rIterator &pos, const std::initializer_list<Arg> &list) {
+        if (!list.size()) return pos;
+        if (pos.target < val_begin - 1 || pos.target >= val_end)
+            throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+        Size temp = pos.target - val_begin + 1;
+        rfill_with(backward(temp, temp + list.size()), list);
+        return Vector<Arg>::rIterator(val_begin + temp + list.size() - 1);
+    }
+
+
+    template<typename Arg>
     typename Vector<Arg>::rIterator
     Vector<Arg>::insert(const Vector<Arg>::rIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
         return insert(pos, *begin.to_const(), *end.to_const());
@@ -615,46 +628,10 @@ namespace STD {
     Vector<Arg>::insert(const Vector<Arg>::rIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
         if (pos.target < val_begin - 1 || pos.target >= val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
-        Size count = calculateLength(begin, end), index = pos.target - val_begin + 1;
-        if (!count) return pos;
-        auto temp(begin.deep_copy());
-        Arg *answer;
-        if (capacity() - size_ < count) {
-            Arg *t_begin = Allocate_n<Arg>(capacity() + count), *t = t_begin;
-            store_end = t_begin + capacity() + count;
-            for (int i = 0; i < index; ++i) {
-                *t_begin = move(*val_begin);
-                ++t_begin, ++val_begin;
-            }
-            answer = t_begin += count - 1;
-            while (*temp != end) {
-                *t_begin = **temp;
-                --t_begin, ++(*temp);
-            }
-            t_begin += count + 1;
-            while (val_begin != val_end) {
-                *t_begin = move(*val_begin);
-                ++t_begin, ++val_begin;
-            }
-            Deallocate_n(val_begin - size_);
-            val_begin = t;
-            val_end = t_begin;
-            size_ = val_end - val_begin;
-        } else {
-            auto temp1 = val_end - 1, temp2 = val_end + count - 1, target_end = val_begin + index;
-            while (temp1 >= target_end) {
-                *temp2 = move(*temp1);
-                --temp1, --temp2;
-            }
-            answer = temp2;
-            while (*temp != end) {
-                *temp2 = **temp;
-                ++(*temp), --temp2;
-            }
-            size_ += count;
-            val_end = val_begin + size_;
-        }
-        return Vector<Arg>::rIterator(answer);
+        Size target_len = STD::calculateLength(begin, end);
+        auto temp = backward(pos.target - val_begin + 1, pos.target - val_begin + 1 + target_len);
+        rfill_with(temp, begin, target_len);
+        return Vector<Arg>::rIterator(temp + target_len - 1);
     }
 
     template<typename Arg>
@@ -667,8 +644,15 @@ namespace STD {
 
     template<typename Arg>
     typename Vector<Arg>::crIterator
+    Vector<Arg>::insert(const Vector<Arg>::crIterator &pos, const std::initializer_list<Arg> &list) {
+        return Vector<Arg>::crIterator(insert(rIterator(pos.target), list).target);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::crIterator
     Vector<Arg>::insert(const Vector<Arg>::crIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
-        return Vector<Arg>::crIterator(insert(Vector<Arg>::rIterator(pos.target), *begin.to_const(), *end.to_const()).target);
+        return Vector<Arg>::crIterator(
+                insert(Vector<Arg>::rIterator(pos.target), *begin.to_const(), *end.to_const()).target);
     }
 
     template<typename Arg>
