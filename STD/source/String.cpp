@@ -819,20 +819,19 @@ String &String::replace(const String::crIterator &begin, const String::crIterato
 }
 
 String &String::operator=(const String &other) {
+    if (this == &other) return *this;
     Deallocate_n(val_begin);
-    val_end = val_begin = Allocate_n<char>(other.size_ + 1);
+    val_begin = Allocate_n<char>(other.size_ + 1);
     size_ = other.size_;
-    store_end = val_begin + other.size_ + 1;
-    auto temp = other.val_begin;
-    for (int i = 0; i < other.size_; ++i) {
-        *val_end = *temp;
-        ++val_end, ++temp;
-    }
+    val_end = val_begin + other.size_;
+    store_end = val_end + 1;
+    fill_with(val_begin, other.val_begin, size_);
     *val_end = '\0';
     return *this;
 }
 
 String &String::operator=(String &&other) noexcept {
+    if (this == &other) return *this;
     Deallocate_n(val_begin);
     size_ = other.size_;
     val_begin = other.val_begin;

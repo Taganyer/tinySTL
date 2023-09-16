@@ -58,7 +58,7 @@ namespace STD {
 
         List(Size size, Arg target = Arg());
 
-        List(std::initializer_list<Arg> list);
+        List(const std::initializer_list<Arg> &list);
 
         List(const Iter<Arg> &begin, const Iter<Arg> &end);
 
@@ -80,7 +80,7 @@ namespace STD {
 
         List<Arg> &assign(const cIter<Arg> &begin, const cIter<Arg> &end);
 
-        List<Arg> &assign(std::initializer_list<Arg> list);
+        List<Arg> &assign(const std::initializer_list<Arg> &list);
 
         template<typename ...args>
         void emplace_front(args &&...vals);
@@ -124,9 +124,9 @@ namespace STD {
 
         cIterator insert(const cIterator &pos, const Arg &target);
 
-        Iterator insert(const Iterator &pos, std::initializer_list<Arg> list);
+        Iterator insert(const Iterator &pos, const std::initializer_list<Arg> &list);
 
-        cIterator insert(const cIterator &pos, std::initializer_list<Arg> list);
+        cIterator insert(const cIterator &pos, const std::initializer_list<Arg> &list);
 
         Iterator insert(const Iterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end);
 
@@ -140,9 +140,9 @@ namespace STD {
 
         crIterator insert(const crIterator &pos, const Arg &target);
 
-        rIterator insert(const rIterator &pos, std::initializer_list<Arg> list);
+        rIterator insert(const rIterator &pos, const std::initializer_list<Arg> &list);
 
-        crIterator insert(const crIterator &pos, std::initializer_list<Arg> list);
+        crIterator insert(const crIterator &pos, const std::initializer_list<Arg> &list);
 
         rIterator insert(const rIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end);
 
@@ -170,12 +170,12 @@ namespace STD {
 
         Arg &front() {
             if (!size_) throw outOfRange("You're accessing a non-existent element in the 'List::front' function");
-            return val_begin->value;
+            return val_begin->next->value;
         };
 
         Arg &back() {
             if (!size_) throw outOfRange("You're accessing a non-existent element in the 'List::back' function");
-            return val_end->value;
+            return val_end->last->value;
         };
 
         List<Arg> &operator=(const List<Arg> &other);
@@ -200,21 +200,21 @@ namespace STD {
         template<typename Type>
         friend bool operator>=(const List<Type> &left, const List<Type> &right);
 
-        Iterator begin() { return Iterator(val_begin->next); };
+        Iterator begin() const { return Iterator(val_begin->next); };
 
-        Iterator end() { return Iterator(val_end); };
+        Iterator end() const { return Iterator(val_end); };
 
-        cIterator cbegin() { return cIterator(val_begin->next); };
+        cIterator cbegin() const { return cIterator(val_begin->next); };
 
-        cIterator cend() { return cIterator(val_end); };
+        cIterator cend() const { return cIterator(val_end); };
 
-        rIterator rbegin() { return rIterator(val_end->last); };
+        rIterator rbegin() const { return rIterator(val_end->last); };
 
-        rIterator rend() { return rIterator(val_begin); };
+        rIterator rend() const { return rIterator(val_begin); };
 
-        crIterator crbegin() { return crIterator(val_end->last); };
+        crIterator crbegin() const { return crIterator(val_end->last); };
 
-        crIterator crend() { return crIterator(val_begin); };
+        crIterator crend() const { return crIterator(val_begin); };
 
     };
 
@@ -251,7 +251,7 @@ namespace STD {
     }
 
     template<typename Arg>
-    List<Arg>::List(std::initializer_list<Arg> list) : size_(list.size()) {
+    List<Arg>::List(const std::initializer_list<Arg> &list) : size_(list.size()) {
         if (size_) {
             auto temp = const_cast<Arg *>(list.begin());
             Node *last = val_begin, *now = val_begin;
@@ -338,6 +338,21 @@ namespace STD {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+
+    template<typename Arg>
+    List<Arg> &List<Arg>::assign(const std::initializer_list<Arg> &list) {
+        clear();
+        size_ = list.size();
+        Node *last = val_begin, *now = val_begin;
+        for (auto &t: list) {
+            now = Allocate<List<Arg>::Node>(t, last, nullptr);
+            last->next = now;
+            last = now;
+        }
+        val_end->last = now;
+        now->next = val_end;
+        return *this;
+    }
 
     template<typename Arg>
     List<Arg> &List<Arg>::assign(const Iter<Arg> &begin, const Iter<Arg> &end) {
@@ -532,6 +547,29 @@ namespace STD {
 
     template<typename Arg>
     typename List<Arg>::Iterator
+    List<Arg>::insert(const List<Arg>::Iterator &pos, const std::initializer_list<Arg> &list) {
+        if (!pos.node->last) throw outOfRange("You passed in an out-of-range iterator in the 'List::insert' function");
+        size_ += list.size();
+        auto last = pos.node->last, now = pos.node->last, head = nullptr;
+        for (auto &t: list) {
+            now = Allocate<List<Arg>::Node>(t, last, nullptr);
+            if (!head) head = now;
+            last->next = now;
+            last = now;
+        }
+        pos.node->last = now;
+        now->next = pos.node;
+        return List::Iterator(head);
+    }
+
+    template<typename Arg>
+    typename List<Arg>::cIterator
+    List<Arg>::insert(const List<Arg>::cIterator &pos, const std::initializer_list<Arg> &list) {
+        return List<Arg>::cIterator(insert(Iterator(pos.node), list).node);
+    }
+
+    template<typename Arg>
+    typename List<Arg>::Iterator
     List<Arg>::insert(const List<Arg>::Iterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
         return List<Arg>::Iterator(insert(List<Arg>::cIterator(pos.node), *begin.to_const(), *end.to_const()).node);
     }
@@ -582,6 +620,29 @@ namespace STD {
         pos.node->next = temp;
         ++size_;
         return List<Arg>::crIterator(temp);
+    }
+
+    template<typename Arg>
+    typename List<Arg>::rIterator
+    List<Arg>::insert(const List<Arg>::rIterator &pos, const std::initializer_list<Arg> &list) {
+        if (!pos.node->next) throw outOfRange("You passed in an out-of-range iterator in the 'List::insert' function");
+        size_ += list.size();
+        auto next = pos.node->next, now = pos.node->next, tail = nullptr;
+        for (auto &t: list) {
+            now = Allocate<List<Arg>::Node>(t, nullptr, next);
+            if (!tail) tail = now;
+            next->last = now;
+            next = now;
+        }
+        pos.node->next = now;
+        now->last = pos.node;
+        return List::Iterator(tail);
+    }
+
+    template<typename Arg>
+    typename List<Arg>::crIterator
+    List<Arg>::insert(const List<Arg>::crIterator &pos, const std::initializer_list<Arg> &list) {
+        return List<Arg>::crIterator(insert(rIterator(pos.node), list).node);
     }
 
     template<typename Arg>
@@ -646,16 +707,8 @@ namespace STD {
     template<typename Arg>
     typename List<Arg>::cIterator List<Arg>::erase(const List<Arg>::cIterator &begin, const List<Arg>::cIterator &end) {
         if (!begin.target) throw outOfRange("You passed in an out-of-range iterator in the 'List::erase' function");
-        Node *last = begin.node->last;
-        auto temp = static_pointer_cast<List<Arg>::cIterator>(begin.deep_copy());
-        while (*temp != end) {
-            auto t = temp->node;
-            ++(*temp), --size_;
-            Deallocate(t);
-        }
-        last->next = temp->node;
-        temp->node->last = last;
-        return List<Arg>::cIterator(temp->node);
+        size_ -= release(begin.node, end.node);
+        return List<Arg>::cIterator(end.node);
     }
 
     template<typename Arg>
@@ -683,20 +736,13 @@ namespace STD {
     typename List<Arg>::crIterator
     List<Arg>::erase(const List<Arg>::crIterator &begin, const List<Arg>::crIterator &end) {
         if (!begin.target) throw outOfRange("You passed in an out-of-range iterator in the 'List::erase' function");
-        Node *next = begin.node->next;
-        auto temp = static_pointer_cast<List<Arg>::cIterator>(begin.deep_copy());
-        while (*temp != end) {
-            auto t = temp->node;
-            ++(*temp), --size_;
-            Deallocate(t);
-        }
-        next->last = temp->node;
-        temp->node->next = next;
-        return List<Arg>::crIterator(temp->node);
+        size_ -= release(end.node->next, begin.node->next);
+        return List<Arg>::crIterator(end.node->next);
     }
 
     template<typename Arg>
     List<Arg> &List<Arg>::operator=(const List<Arg> &other) {
+        if (this == &other) return *this;
         clear();
         size_ = other.size_;
         Node *last = val_begin, *now = val_begin, *temp = other.val_begin->next;
@@ -714,6 +760,7 @@ namespace STD {
 
     template<typename Arg>
     List<Arg> &List<Arg>::operator=(List<Arg> &&other) noexcept {
+        if (this == &other) return *this;
         clear();
         if (other.size_) {
             size_ = other.size_;

@@ -211,21 +211,21 @@ namespace STD {
         template<typename Type>
         friend bool operator>=(const Vector<Type> &left, const Vector<Type> &right);
 
-        Iterator begin() { return Vector<Arg>::Iterator(val_begin); };
+        Iterator begin() const { return Vector<Arg>::Iterator(val_begin); };
 
-        Iterator end() { return Vector<Arg>::Iterator(val_end); };
+        Iterator end() const { return Vector<Arg>::Iterator(val_end); };
 
-        cIterator cbegin() { return Vector<Arg>::cIterator(val_begin); };
+        cIterator cbegin() const { return Vector<Arg>::cIterator(val_begin); };
 
-        cIterator cend() { return Vector<Arg>::cIterator(val_end); };
+        cIterator cend() const { return Vector<Arg>::cIterator(val_end); };
 
-        rIterator rbegin() { return Vector<Arg>::rIterator(val_end - 1); };
+        rIterator rbegin() const { return Vector<Arg>::rIterator(val_end - 1); };
 
-        rIterator rend() { return Vector<Arg>::rIterator(val_begin - 1); };
+        rIterator rend() const { return Vector<Arg>::rIterator(val_begin - 1); };
 
-        crIterator crbegin() { return Vector<Arg>::crIterator(val_end - 1); };
+        crIterator crbegin() const { return Vector<Arg>::crIterator(val_end - 1); };
 
-        crIterator crend() { return Vector<Arg>::crIterator(val_begin - 1); }
+        crIterator crend() const { return Vector<Arg>::crIterator(val_begin - 1); }
 
     };
 
@@ -241,7 +241,7 @@ namespace STD {
 
     template<typename Arg>
     Vector<Arg>::Vector(const std::initializer_list<Arg> &list) : size_(list.size()), val_begin(Allocate_n<Arg>(size_)),
-                                                           val_end(val_begin + list.size()) {
+                                                                  val_end(val_begin + list.size()) {
         fill_with(val_begin, list);
         store_end = val_end;
     }
@@ -747,21 +747,19 @@ namespace STD {
 
     template<typename Arg>
     Vector<Arg> &Vector<Arg>::operator=(const Vector<Arg> &other) {
+        if (this == &other) return *this;
         Deallocate_n(val_begin);
         size_ = other.size_;
         val_begin = Allocate_n<Arg>(other.capacity());
         val_end = val_begin + size_;
         store_end = val_begin + other.capacity();
-        auto l = val_begin, r = other.val_begin;
-        for (int i = 0; i < size_; ++i) {
-            *l = *r;
-            ++l, ++r;
-        }
+        fill_with(val_begin, other.val_begin, size_);
         return *this;
     }
 
     template<typename Arg>
     Vector<Arg> &Vector<Arg>::operator=(Vector<Arg> &&other) noexcept {
+        if (this == &other) return *this;
         size_ = other.size_;
         val_begin = other.val_begin;
         val_end = other.val_end;

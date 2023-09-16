@@ -764,21 +764,21 @@ namespace STD {
 
         friend bool operator>=(const String &left, const String &right);
 
-        Iterator begin() { return String::Iterator(val_begin); };
+        Iterator begin() const { return String::Iterator(val_begin); };
 
-        Iterator end() { return String::Iterator(val_end); };
+        Iterator end() const { return String::Iterator(val_end); };
 
-        cIterator cbegin() { return String::cIterator(val_begin); };
+        cIterator cbegin() const { return String::cIterator(val_begin); };
 
-        cIterator cend() { return String::cIterator(val_end); };
+        cIterator cend() const { return String::cIterator(val_end); };
 
-        rIterator rbegin() { return String::rIterator(val_end - 1); };
+        rIterator rbegin() const { return String::rIterator(val_end - 1); };
 
-        rIterator rend() { return String::rIterator(val_begin - 1); };
+        rIterator rend() const { return String::rIterator(val_begin - 1); };
 
-        crIterator crbegin() { return String::crIterator(val_end - 1); };
+        crIterator crbegin() const { return String::crIterator(val_end - 1); };
 
-        crIterator crend() { return String::crIterator(val_begin - 1); }
+        crIterator crend() const { return String::crIterator(val_begin - 1); }
 
     };
 
