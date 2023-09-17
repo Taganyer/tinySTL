@@ -1,0 +1,110 @@
+//
+// Created by 86152 on 2023/8/19.
+//
+
+#ifndef TINYSTL_ITER_HPP
+#define TINYSTL_ITER_HPP
+
+#include "Memory.hpp"
+
+namespace STD {
+
+    template<typename Type>
+    class Iter;
+
+    template<typename Type>
+    class cIter;
+
+    template<typename Arg>
+    Size calculateLength(const Iter<Arg> &begin, const Iter<Arg> &end) {
+        auto temp = begin.deep_copy();
+        Size count = 0;
+        while (*temp != end) ++(*temp), ++count;
+        return count;
+    }
+
+//----------------------------------------------------------------------------------------------------------------------
+
+    template<typename Type>
+    class Iter {
+    protected:
+        Type *target = nullptr;
+
+    public:
+        //这个函数是为了使迭代器能够在用户代码中保持多态性而设立。
+        virtual Shared_ptr<Iter<Type>> deep_copy() const { return make_shared<Iter<Type>>(*this); };
+
+        virtual Shared_ptr<cIter<Type>> to_const() const { return make_shared<cIter<Type>>(cIter<Type>(target)); };
+
+        explicit Iter(Type *ptr) : target(ptr) {};
+
+        virtual ~Iter() = default;
+
+        virtual Type &operator*() const { return *target; };
+
+        virtual Type *operator->() const { return target; };
+
+        virtual Iter<Type> &operator++() {
+            ++target;
+            return *this;
+        };
+
+        inline friend bool operator==(const Iter<Type> &left, const Iter<Type> &right) {
+            return left.target == right.target;
+        }
+
+        inline friend bool operator!=(const Iter<Type> &left, const Iter<Type> &right) {
+            return left.target != right.target;
+        }
+    };
+
+//----------------------------------------------------------------------------------------------------------------------
+
+    template<typename Type>
+    class cIter {
+    protected:
+        Type *target = nullptr;
+
+    public:
+        friend class Iter<Type>;
+
+        virtual Shared_ptr<cIter<Type>> deep_copy() const;
+
+        explicit cIter(Type *ptr) : target(ptr) {};
+
+        virtual ~cIter() = default;
+
+        virtual const Type &operator*() const { return *target; };
+
+        virtual const Type *operator->() const { return target; };
+
+        virtual cIter<Type> &operator++() {
+            ++target;
+            return *this;
+        };
+
+        friend bool operator==(const cIter<Type> &left, const cIter<Type> &right) {
+            return left.target == right.target;
+        }
+
+        friend bool operator!=(const cIter<Type> &left, const cIter<Type> &right) {
+            return left.target != right.target;
+        }
+    };
+
+    template<typename Type>
+    Shared_ptr<cIter<Type>> cIter<Type>::deep_copy() const {
+        return make_shared<cIter<Type>>(*this);
+    }
+
+    template<typename Arg>
+    Size calculateLength(const cIter<Arg> &begin, const cIter<Arg> &end) {
+        auto temp = begin.deep_copy();
+        Size count = 0;
+        while (*temp != end) ++(*temp), ++count;
+        return count;
+    }
+
+}
+
+#endif //TINYSTL_ITER_HPP
