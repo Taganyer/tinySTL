@@ -119,10 +119,12 @@ namespace STD {
 
         cIterator erase_after(const cIterator &begin, const cIterator &end);
 
-        Arg &front() {
+        Arg &front() const {
             if (!size_) throw outOfRange("You're accessing a non-existent element in the 'List::front' function");
             return val_begin->next->value;
         };
+
+        bool empty() const { return !size_; };
 
         Forward_list<Arg> &operator=(const Forward_list<Arg> &other);
 

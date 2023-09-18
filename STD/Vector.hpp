@@ -179,15 +179,17 @@ namespace STD {
             return *(val_begin + pos);
         };
 
-        Arg &front() {
+        Arg &front() const {
             if (!size_) throw outOfRange("You're accessing a non-existent element in the 'Vector::front' function");
             return *val_begin;
         };
 
-        Arg &back() {
+        Arg &back() const {
             if (!size_) throw outOfRange("You're accessing a non-existent element in the 'Vector::back' function");
             return *(val_end - 1);
         };
+
+        bool empty() const { return !size_; };
 
         Vector<Arg> &operator=(const Vector<Arg> &other);
 
@@ -600,7 +602,7 @@ namespace STD {
     }
 
     template<typename Arg>
-    typename Vector<Arg>::rIterator Vector<Arg>::insert(const rIterator &pos, Size size, const Arg &val) {
+    typename Vector<Arg>::rIterator Vector<Arg>::insert(const Vector<Arg>::rIterator &pos, Size size, const Arg &val) {
         if (pos.target < val_begin - 1 || pos.target >= val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
         return Vector<Arg>::rIterator(insert(pos.target - val_begin + 1, size, val).target - 1);

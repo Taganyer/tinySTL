@@ -168,15 +168,17 @@ namespace STD {
 
         crIterator erase(const crIterator &begin, const crIterator &end);
 
-        Arg &front() {
+        Arg &front() const {
             if (!size_) throw outOfRange("You're accessing a non-existent element in the 'List::front' function");
             return val_begin->next->value;
         };
 
-        Arg &back() {
+        Arg &back() const {
             if (!size_) throw outOfRange("You're accessing a non-existent element in the 'List::back' function");
             return val_end->last->value;
         };
+
+        bool empty() const { return !size_; };
 
         List<Arg> &operator=(const List<Arg> &other);
 

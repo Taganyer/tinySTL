@@ -662,15 +662,17 @@ namespace STD {
             return *(val_begin + pos);
         };
 
-        char &front() {
+        char &front() const {
             if (!size_) throw outOfRange("You're accessing a non-existent element in the 'String::front' function");
             return *val_begin;
         };
 
-        char &back() {
+        char &back() const {
             if (!size_) throw outOfRange("You're accessing a non-existent element in the 'String::back' function");
             return *(val_end - 1);
         };
+
+        bool empty() const { return !size_; };
 
         Size find(char t, Size pos = 0) const;
 
