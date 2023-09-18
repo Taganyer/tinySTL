@@ -834,7 +834,7 @@ namespace STD {
 
         List<Arg>::Node *node = nullptr;
 
-        virtual Iterator &operator=(List<Arg>::Node *ptr) {
+        Iterator &operator=(List<Arg>::Node *ptr) {
             target = ptr->value;
             node = ptr;
             return *this;
@@ -878,7 +878,7 @@ namespace STD {
             return List<Arg>::Iterator(temp);
         };
 
-        virtual Iterator &operator--() {
+        Iterator &operator--() {
             if (!node->last) throw outOfRange("List::Iterator out of range\n");
             node = node->last;
             target = node->value;
@@ -910,7 +910,7 @@ namespace STD {
 
         List<Arg>::Node *node = nullptr;
 
-        virtual cIterator &operator=(List<Arg>::Node *ptr) {
+        cIterator &operator=(List<Arg>::Node *ptr) {
             target = ptr->value;
             node = ptr;
             return *this;
@@ -955,7 +955,7 @@ namespace STD {
             return List<Arg>::cIterator(temp);
         };
 
-        virtual cIterator &operator--() {
+        cIterator &operator--() {
             if (!node->last) throw outOfRange("List::cIterator out of range\n");
             node = node->last;
             target = node->value;

@@ -49,7 +49,7 @@ namespace STD {
         protected:
             using Iter<char>::target;
 
-            virtual Iterator &operator=(char *ptr) {
+            Iterator &operator=(char *ptr) {
                 target = ptr;
                 return *this;
             };
@@ -87,7 +87,7 @@ namespace STD {
 
             Iterator operator++(int) { return String::Iterator(target++); };
 
-            virtual Iterator &operator--() {
+            Iterator &operator--() {
                 --target;
                 return *this;
             };
@@ -134,7 +134,7 @@ namespace STD {
         protected:
             using cIter<char>::target;
 
-            virtual cIterator &operator=(char *ptr) {
+            cIterator &operator=(char *ptr) {
                 target = ptr;
                 return *this;
             };
@@ -170,7 +170,7 @@ namespace STD {
 
             cIterator operator++(int) { return String::cIterator(target++); };
 
-            virtual cIterator &operator--() {
+            cIterator &operator--() {
                 --target;
                 return *this;
             };

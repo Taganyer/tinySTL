@@ -239,7 +239,7 @@ namespace STD {
     protected:
         using Iter<Arg>::target;
 
-        virtual Iterator &operator=(Arg *ptr) {
+        Iterator &operator=(Arg *ptr) {
             target = ptr;
             return *this;
         };
@@ -259,7 +259,6 @@ namespace STD {
 
         ~Iterator() = default;
 
-        //该函数如果传入rIterator作为参数可能会有意外的结果
         Iterator &operator=(const Iterator &other) {
             target = other.target;
             return *this;
@@ -277,7 +276,7 @@ namespace STD {
 
         Iterator operator++(int) { return Array<Arg, size_>::Iterator(target++); };
 
-        virtual Iterator &operator--() {
+        Iterator &operator--() {
             --target;
             return *this;
         };
@@ -318,7 +317,6 @@ namespace STD {
 
         friend long long
         operator-(const Iterator &left, const Iterator &right) { return left.target - right.target; };
-
     };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -328,7 +326,7 @@ namespace STD {
     protected:
         using cIter<Arg>::target;
 
-        virtual cIterator &operator=(Arg *ptr) {
+        cIterator &operator=(Arg *ptr) {
             target = ptr;
             return *this;
         };
@@ -346,7 +344,6 @@ namespace STD {
 
         ~cIterator() override = default;
 
-        //该函数如果传入crIterator作为参数可能会有意外的结果
         cIterator &operator=(const cIterator &other) {
             target = other.target;
             return *this;
@@ -377,7 +374,7 @@ namespace STD {
             return *this;
         };
 
-        virtual cIterator &operator--() {
+        cIterator &operator--() {
             --target;
             return *this;
         };
@@ -575,6 +572,7 @@ namespace STD {
         friend long long
         operator-(const crIterator &left, const crIterator &right) { return right.target - left.target; };
     };
+
 }
 
 #endif //TINYSTL_ARRAY_HPP

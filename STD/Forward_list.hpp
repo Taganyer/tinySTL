@@ -598,7 +598,7 @@ namespace STD {
 
         Forward_list<Arg>::Node *node = nullptr;
 
-        virtual Iterator &operator=(Forward_list<Arg>::Node *ptr) {
+        Iterator &operator=(Forward_list<Arg>::Node *ptr) {
             target = ptr->value;
             node = ptr;
             return *this;
@@ -657,7 +657,7 @@ namespace STD {
 
         Forward_list<Arg>::Node *node = nullptr;
 
-        virtual cIterator &operator=(Forward_list<Arg>::Node *ptr) {
+        cIterator &operator=(Forward_list<Arg>::Node *ptr) {
             target = ptr->value;
             node = ptr;
             return *this;
