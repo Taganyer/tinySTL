@@ -89,7 +89,7 @@ namespace STD {
 
         void push_back(const Arg &val);
 
-        void push_back(Size size, const Arg &val);;
+        void push_back(Size size, const Arg &val);
 
         void push_back(const Iter<Arg> &begin, const Iter<Arg> &end);
 
@@ -668,7 +668,7 @@ namespace STD {
     template<typename Arg>
     typename Vector<Arg>::Iterator Vector<Arg>::erase(Size pos, Size size) {
         if (!size) return Vector::Iterator(val_begin + pos);
-        if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
+        if (pos > size_) throw outOfRange("You passed an out-of-range value in the 'Vector::erase' function");
         auto temp1 = val_begin + pos, temp2 = val_begin + pos;
         if (pos + size > size_) size = size_ - pos;
         size_ -= size;

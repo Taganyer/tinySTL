@@ -60,7 +60,7 @@ namespace STD {
 
         Array<Arg, size_> &operator=(const Array<Arg, size_> &other);
 
-        Array<Arg, size_> &operator=(Array<Arg, size_> &&other);
+        Array<Arg, size_> &operator=(Array<Arg, size_> &&other) noexcept;
 
         template<typename Type>
         friend bool operator==(const Array<Arg, size_> &left, const Array<Arg, size_> &right);
@@ -163,6 +163,7 @@ namespace STD {
 
     template<typename Arg, Size size_>
     Array<Arg, size_> &Array<Arg, size_>::operator=(const Array<Arg, size_> &other) {
+        if (this == &other) return *this;
         auto temp = val_begin, iter = other.val_begin;
         for (Size i = 0; i < size_; ++i) {
             *temp = *iter;
@@ -172,7 +173,8 @@ namespace STD {
     }
 
     template<typename Arg, Size size_>
-    Array<Arg, size_> &Array<Arg, size_>::operator=(Array<Arg, size_> &&other) {
+    Array<Arg, size_> &Array<Arg, size_>::operator=(Array<Arg, size_> &&other)  noexcept {
+        if (this == &other) return *this;
         val_begin = other.val_begin;
         other.val_begin = Allocate_n<Arg>(size_);
         return *this;
