@@ -89,6 +89,8 @@ namespace STD {
 
         void push_back(const Arg &val);
 
+        void push_back(Arg &&val);
+
         void push_back(Size size, const Arg &val);
 
         void push_back(const Iter<Arg> &begin, const Iter<Arg> &end);
@@ -439,6 +441,15 @@ namespace STD {
         if (capacity() <= size_)
             reallocate(size_ + 1 > size_ + size_ / 5 ? size_ + 1 : size_ + size_ / 5);
         *(val_begin + size_) = val;
+        ++size_;
+        ++val_end;
+    }
+
+    template<typename Arg>
+    void Vector<Arg>::push_back(Arg &&val) {
+        if (capacity() <= size_)
+            reallocate(size_ + 1 > size_ + size_ / 5 ? size_ + 1 : size_ + size_ / 5);
+        *(val_begin + size_) = move(val);
         ++size_;
         ++val_end;
     }

@@ -165,6 +165,8 @@ namespace STD {
 
         void push_front(const Arg &val);
 
+        void push_front(Arg &&val);
+
         void push_front(Size size, const Arg &val);
 
         void push_front(const Iter<Arg> &begin, const Iter<Arg> &end);
@@ -177,6 +179,8 @@ namespace STD {
         void emplace_back(args &&...vals);
 
         void push_back(const Arg &val);
+
+        void push_back(Arg &&val);
 
         void push_back(Size size, const Arg &val);;
 
@@ -569,31 +573,39 @@ namespace STD {
     template<typename Arg>
     template<typename... args>
     void Deque<Arg>::emplace_front(args &&... vals) {
-        ++size_;
         if (map_begin == 0 && val_begin == 0)
             expand_capacity(1, false);
         subtract(map_begin, val_begin);
         map[map_begin][val_begin] = Arg(vals...);
+        ++size_;
     }
 
     template<typename Arg>
     void Deque<Arg>::push_front(const Arg &val) {
-        auto target = Allocate<Arg>(val);
-        ++size_;
         if (map_begin == 0 && val_begin == 0)
             expand_capacity(1, false);
         subtract(map_begin, val_begin);
         map[map_begin][val_begin] = val;
+        ++size_;
+    }
+
+    template<typename Arg>
+    void Deque<Arg>::push_front(Arg &&val) {
+        if (map_begin == 0 && val_begin == 0)
+            expand_capacity(1, false);
+        subtract(map_begin, val_begin);
+        map[map_begin][val_begin] = move(val);
+        ++size_;
     }
 
     template<typename Arg>
     void Deque<Arg>::push_front(Size size, const Arg &val) {
-        size_ += size;
         auto rest = left_rest();
         if (rest < size)
             expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, false);
         subtract(map_begin, val_begin, size);
         fill(0, val, size, add);
+        size_ += size;
     }
 
     template<typename Arg>
@@ -604,44 +616,53 @@ namespace STD {
     template<typename Arg>
     void Deque<Arg>::push_front(const cIter<Arg> &begin, const cIter<Arg> &end) {
         auto size = calculateLength(begin, end);
-        size_ += size;
         auto rest = left_rest();
         if (rest < size)
             expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, false);
         subtract(map_begin, val_begin, size);
         fill(0, begin, size, add);
+        size_ += size;
     }
 
     template<typename Arg>
     void Deque<Arg>::pop_front() {
         map[map_begin][val_begin].~Arg();
         add(map_begin, val_begin);
+        --size_;
     }
 
     template<typename Arg>
     template<typename... args>
     void Deque<Arg>::emplace_back(args &&... vals) {
-        ++size_;
         if (map_end == map_size) expand_capacity(1, true);
         map[map_end][val_end] = Arg(vals...);
         add(map_end, val_end);
+        ++size_;
     }
 
     template<typename Arg>
     void Deque<Arg>::push_back(const Arg &val) {
         if (map_end == map_size) expand_capacity(1, true);
         map[map_end][val_end] = val;
-        ++size_;
         add(map_end, val_end);
+        ++size_;
+    }
+
+    template<typename Arg>
+    void Deque<Arg>::push_back(Arg &&val) {
+        if (map_end == map_size) expand_capacity(1, true);
+        map[map_end][val_end] = move(val);
+        add(map_end, val_end);
+        ++size_;
     }
 
     template<typename Arg>
     void Deque<Arg>::push_back(Size size, const Arg &val) {
-        size_ += size;
         auto rest = right_rest();
         if (rest < size) expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, true);
         add(map_end, val_end, size);
         fill(size_ - size, val, size, add);
+        size_ += size;
     }
 
     template<typename Arg>
@@ -652,17 +673,18 @@ namespace STD {
     template<typename Arg>
     void Deque<Arg>::push_back(const cIter<Arg> &begin, const cIter<Arg> &end) {
         auto size = calculateLength(begin, end);
-        size_ += size;
         auto rest = right_rest();
         if (rest < size) expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, true);
         add(map_end, val_end, size);
         fill(size_ - size, begin, size, add);
+        size_ += size;
     }
 
     template<typename Arg>
     void Deque<Arg>::pop_back() {
         subtract(map_end, val_end);
         map[map_end][val_end].~Arg();
+        --size_;
     }
 
     template<typename Arg>
@@ -742,7 +764,7 @@ namespace STD {
             backward_move_element(size, size_ - pos);
             fill(pos, val, size, add);
         }
-        ++size_;
+        size_ += size;
         auto pair = find_ptr(pos);
         return Deque::Iterator(*pair.first + pair.second, pair.first, pair.second);
     }
@@ -762,7 +784,7 @@ namespace STD {
             backward_move_element(size, size_ - pos);
             fill(pos, list, add);
         }
-        ++size_;
+        size_ += size;
         auto pair = find_ptr(pos);
         return Deque::Iterator(*pair.first + pair.second, pair.first, pair.second);
     }
@@ -787,7 +809,7 @@ namespace STD {
             backward_move_element(size, size_ - pos);
             fill(pos, begin, size, add);
         }
-        ++size_;
+        size_ += size;
         auto pair = find_ptr(pos);
         return Deque::Iterator(*pair.first + pair.second, pair.first, pair.second);
     }
@@ -857,7 +879,7 @@ namespace STD {
             backward_move_element(size, size_ - index);
             fill(index + size - 1, val, size, subtract);
         }
-        ++size_;
+        size_ += size;
         auto pair = find_ptr(index + size - 1);
         return Deque::rIterator(*pair.first + pair.second, pair.first, pair.second);
     }
@@ -879,7 +901,7 @@ namespace STD {
             backward_move_element(size, size_ - index);
             fill(index + size - 1, list, subtract);
         }
-        ++size_;
+        size_ += size;
         auto pair = find_ptr(index + size - 1);
         return Deque::rIterator(*pair.first + pair.second, pair.first, pair.second);
     }
@@ -907,7 +929,7 @@ namespace STD {
             backward_move_element(size, size_ - index);
             fill(index + size - 1, begin, size, subtract);
         }
-        ++size_;
+        size_ += size;
         auto pair = find_ptr(index + size - 1);
         return Deque::rIterator(*pair.first + pair.second, pair.first, pair.second);
     }

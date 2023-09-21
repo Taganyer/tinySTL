@@ -87,6 +87,8 @@ namespace STD {
 
         void push_front(const Arg &val);
 
+        void push_front(Arg &&val);
+
         void push_front(const Arg &val, Size size);
 
         void push_front(const Iter<Arg> &begin, const Iter<Arg> &end);
@@ -99,6 +101,8 @@ namespace STD {
         void emplace_back(args &&...vals);
 
         void push_back(const Arg &val);
+
+        void push_back(Arg &&val);
 
         void push_back(const Arg &val, Size size);
 
@@ -390,7 +394,14 @@ namespace STD {
 
     template<typename Arg>
     void List<Arg>::push_front(const Arg &val) {
-        push_front(val, 1);
+        ++size_;
+        val_begin->next = Allocate<Node>(val, val_begin, val_begin->next);
+    }
+
+    template<typename Arg>
+    void List<Arg>::push_front(Arg &&val) {
+        ++size_;
+        val_begin->next = Allocate<Node>(move(val), val_begin, val_begin->next);
     }
 
     template<typename Arg>
@@ -449,7 +460,14 @@ namespace STD {
 
     template<typename Arg>
     void List<Arg>::push_back(const Arg &val) {
-        push_back(val, 1);
+        ++size_;
+        val_end->last = Allocate<Node>(val, val_end->last, val_end);
+    }
+
+    template<typename Arg>
+    void List<Arg>::push_back(Arg &&val) {
+        ++size_;
+        val_end->last = Allocate<Node>(move(val), val_end->last, val_end);
     }
 
     template<typename Arg>

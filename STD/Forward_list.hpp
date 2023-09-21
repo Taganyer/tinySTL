@@ -77,6 +77,8 @@ namespace STD {
 
         void push_front(const Arg &val);
 
+        void push_front(Arg &&val);
+
         void push_front(const Arg &val, Size size);
 
         void push_front(const Iter<Arg> &begin, const Iter<Arg> &end);
@@ -302,6 +304,13 @@ namespace STD {
     template<typename Arg>
     void Forward_list<Arg>::push_front(const Arg &val) {
         auto temp = Allocate<Node>(val, val_begin->next);
+        val_begin->next = temp;
+        ++size_;
+    }
+
+    template<typename Arg>
+    void Forward_list<Arg>::push_front(Arg &&val) {
+        auto temp = Allocate<Node>(move(val), val_begin->next);
         val_begin->next = temp;
         ++size_;
     }

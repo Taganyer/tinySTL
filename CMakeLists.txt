@@ -9,4 +9,7 @@ add_executable(tinySTL main.cpp
         STD/List.hpp
         STD/Array.hpp
         STD/Deque.hpp
+        STD/Stack.hpp
+        STD/Function.hpp
+        STD/Queue.hpp
 )
