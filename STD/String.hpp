@@ -45,7 +45,7 @@ namespace STD {
 
         static const Size Npos = -1;
 
-        class Iterator : public Iter<char> {
+        class Iterator : public Random_Iter<char> {
         protected:
             using Iter<char>::target;
 
@@ -54,7 +54,7 @@ namespace STD {
                 return *this;
             };
 
-            explicit Iterator(char *ptr) : Iter<char>(ptr) {};
+            explicit Iterator(char *ptr) : Random_Iter<char>(ptr) {};
 
         public:
             friend class String;
@@ -63,15 +63,6 @@ namespace STD {
 
             Shared_ptr<cIter<char>> to_const() const override {
                 return make_shared<String::cIterator>(cIterator(target));
-            };
-
-            Iterator(const Iterator &other) : Iter<char>(other.target) {};
-
-            ~Iterator() = default;
-
-            Iterator &operator=(const Iterator &other) {
-                target = other.target;
-                return *this;
             };
 
 
@@ -86,7 +77,7 @@ namespace STD {
 
             Iterator operator++(int) { return String::Iterator(target++); };
 
-            Iterator &operator--() {
+            Iterator &operator--() override {
                 --target;
                 return *this;
             };
@@ -97,12 +88,12 @@ namespace STD {
 
             Iterator operator-(Size size) const { return Iterator(target - size); };
 
-            Iterator &operator+=(Size size) {
+            Iterator &operator+=(Size size) override {
                 target += size;
                 return *this;
             };
 
-            Iterator &operator-=(Size size) {
+            Iterator &operator-=(Size size) override {
                 target -= size;
                 return *this;
             };
@@ -129,7 +120,7 @@ namespace STD {
             operator-(const Iterator &left, const Iterator &right) { return left.target - right.target; };
         };
 
-        class cIterator : public cIter<char> {
+        class cIterator : public cRandom_Iter<char> {
         protected:
             using cIter<char>::target;
 
@@ -138,7 +129,7 @@ namespace STD {
                 return *this;
             };
 
-            explicit cIterator(char *ptr) : cIter<char>(ptr) {};
+            explicit cIterator(char *ptr) : cRandom_Iter<char>(ptr) {};
 
         public:
             friend class String;
@@ -146,16 +137,6 @@ namespace STD {
             friend class String::Iterator;
 
             Shared_ptr<cIter<char>> deep_copy() const override { return make_shared<String::cIterator>(*this); };
-
-            cIterator(const cIterator &other) : cIter<char>(other.target) {};
-
-            ~cIterator() = default;
-
-            cIterator &operator=(const cIterator &other) {
-                target = other.target;
-                return *this;
-            };
-
 
             using cIter<char>::operator*;
 
@@ -168,7 +149,7 @@ namespace STD {
 
             cIterator operator++(int) { return String::cIterator(target++); };
 
-            cIterator &operator--() {
+            cIterator &operator--() override {
                 --target;
                 return *this;
             };
@@ -179,12 +160,12 @@ namespace STD {
 
             cIterator operator-(Size size) const { return cIterator(target - size); };
 
-            cIterator &operator+=(Size size) {
+            cIterator &operator+=(Size size) override {
                 target += size;
                 return *this;
             };
 
-            cIterator &operator-=(Size size) {
+            cIterator &operator-=(Size size) override {
                 target -= size;
                 return *this;
             };
@@ -211,7 +192,7 @@ namespace STD {
             operator-(const cIterator &left, const cIterator &right) { return left.target - right.target; };
         };
 
-        class rIterator : public Iter<char> {
+        class rIterator : public Random_Iter<char> {
         protected:
             using Iter<char>::target;
 
@@ -220,7 +201,15 @@ namespace STD {
                 return *this;
             }
 
-            explicit rIterator(char *ptr) : Iter<char>(ptr) {};
+            explicit rIterator(char *ptr) : Random_Iter<char>(ptr) {};
+
+            bool less(const Random_Iter<char> &other) const override {
+                return target > dynamic_cast<const rIterator &>(other).target;
+            }
+
+            bool not_greater_than(const Random_Iter<char> &other) const override {
+                return target >= dynamic_cast<const rIterator &>(other).target;
+            }
 
         public:
             friend class String;
@@ -229,15 +218,6 @@ namespace STD {
 
             Shared_ptr<cIter<char>> to_const() const override {
                 return make_shared<String::crIterator>(crIterator(target));
-            };
-
-            rIterator(const rIterator &other) : Iter<char>(other.target) {};
-
-            ~rIterator() = default;
-
-            rIterator &operator=(const rIterator &other) {
-                target = other.target;
-                return *this;
             };
 
             using Iter<char>::operator*;
@@ -251,7 +231,7 @@ namespace STD {
 
             rIterator operator++(int) { return String::rIterator(target--); };
 
-            rIterator &operator--() {
+            rIterator &operator--() override {
                 ++target;
                 return *this;
             };
@@ -262,12 +242,12 @@ namespace STD {
 
             rIterator operator-(Size size) const { return String::rIterator(target + size); };
 
-            rIterator &operator+=(Size size) {
+            rIterator &operator+=(Size size) override {
                 target -= size;
                 return *this;
             };
 
-            rIterator &operator-=(Size size) {
+            rIterator &operator-=(Size size) override {
                 target += size;
                 return *this;
             };
@@ -294,7 +274,7 @@ namespace STD {
             operator-(const rIterator &left, const rIterator &right) { return right.target - left.target; };
         };
 
-        class crIterator : public cIter<char> {
+        class crIterator : public cRandom_Iter<char> {
         protected:
             using cIter<char>::target;
 
@@ -303,7 +283,15 @@ namespace STD {
                 return *this;
             };
 
-            explicit crIterator(char *ptr) : cIter<char>(ptr) {};
+            bool less(const cRandom_Iter<char> &other) const override {
+                return target > dynamic_cast<const crIterator &>(other).target;
+            }
+
+            bool not_greater_than(const cRandom_Iter<char> &other) const override {
+                return target >= dynamic_cast<const crIterator &>(other).target;
+            }
+
+            explicit crIterator(char *ptr) : cRandom_Iter<char>(ptr) {};
 
         public:
             friend class String;
@@ -311,15 +299,6 @@ namespace STD {
             friend class String::cIterator;
 
             Shared_ptr<cIter<char>> deep_copy() const override { return make_shared<String::crIterator>(*this); };
-
-            crIterator(const crIterator &other) : cIter<char>(other.target) {};
-
-            ~crIterator() = default;
-
-            crIterator &operator=(const crIterator &other) {
-                target = other.target;
-                return *this;
-            };
 
             using cIter<char>::operator*;
 
@@ -332,7 +311,7 @@ namespace STD {
 
             crIterator operator++(int) { return String::crIterator(target--); };
 
-            crIterator &operator--() {
+            crIterator &operator--() override {
                 ++target;
                 return *this;
             };
@@ -343,15 +322,23 @@ namespace STD {
 
             crIterator operator-(Size size) const { return String::crIterator(target + size); };
 
-            crIterator &operator+=(Size size) {
+            crIterator &operator+=(Size size) override {
                 target -= size;
                 return *this;
             };
 
-            crIterator &operator-=(Size size) {
+            crIterator &operator-=(Size size) override {
                 target += size;
                 return *this;
             };
+
+            bool less(const crIterator &other) const {
+                return target > other.target;
+            }
+
+            bool not_greater_than(const crIterator &other) const {
+                return target >= other.target;
+            }
 
             friend bool
             operator==(const crIterator &left, const crIterator &right) { return left.target == right.target; };

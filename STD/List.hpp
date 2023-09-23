@@ -54,7 +54,10 @@ namespace STD {
 
         class crIterator;
 
-        List() = default;
+        List() {
+            val_begin->next = val_end;
+            val_end->last = val_begin;
+        };
 
         List(Size size, Arg target = Arg());
 
@@ -174,12 +177,12 @@ namespace STD {
 
         Arg &front() const {
             if (!size_) throw outOfRange("You're accessing a non-existent element in the 'List::front' function");
-            return val_begin->next->value;
+            return *(val_begin->next->value);
         };
 
         Arg &back() const {
             if (!size_) throw outOfRange("You're accessing a non-existent element in the 'List::back' function");
-            return val_end->last->value;
+            return *(val_end->last->value);
         };
 
         bool empty() const { return !size_; };
@@ -396,12 +399,14 @@ namespace STD {
     void List<Arg>::push_front(const Arg &val) {
         ++size_;
         val_begin->next = Allocate<Node>(val, val_begin, val_begin->next);
+        val_begin->next->next->last = val_begin->next;
     }
 
     template<typename Arg>
     void List<Arg>::push_front(Arg &&val) {
         ++size_;
         val_begin->next = Allocate<Node>(move(val), val_begin, val_begin->next);
+        val_begin->next->next->last = val_begin->next;
     }
 
     template<typename Arg>
@@ -462,12 +467,14 @@ namespace STD {
     void List<Arg>::push_back(const Arg &val) {
         ++size_;
         val_end->last = Allocate<Node>(val, val_end->last, val_end);
+        val_end->last->last->next = val_end->last;
     }
 
     template<typename Arg>
     void List<Arg>::push_back(Arg &&val) {
         ++size_;
         val_end->last = Allocate<Node>(move(val), val_end->last, val_end);
+        val_end->last->last->next = val_end->last;
     }
 
     template<typename Arg>
@@ -846,7 +853,7 @@ namespace STD {
 
 
     template<typename Arg>
-    class List<Arg>::Iterator : public Iter<Arg> {
+    class List<Arg>::Iterator : public Bidirectional_Iter<Arg> {
     protected:
         using Iter<Arg>::target;
 
@@ -858,7 +865,7 @@ namespace STD {
             return *this;
         };
 
-        explicit Iterator(List<Arg>::Node *ptr) : Iter<Arg>(ptr->value), node(ptr) {};
+        explicit Iterator(List<Arg>::Node *ptr) : Bidirectional_Iter<Arg>(ptr->value), node(ptr) {};
 
     public:
         friend class List<Arg>;
@@ -866,16 +873,6 @@ namespace STD {
         Shared_ptr<Iter<Arg>> deep_copy() const override { return make_shared<List<Arg>::Iterator>(*this); };
 
         Shared_ptr<cIter<Arg>> to_const() const override { return make_shared<List<Arg>::cIterator>(cIterator(node)); };
-
-        Iterator(const Iterator &other) : Iter<Arg>(other.target), node(other.node) {};
-
-        ~Iterator() = default;
-
-        Iterator &operator=(const Iterator &other) {
-            target = other.target;
-            node = other.node;
-            return *this;
-        };
 
         using Iter<Arg>::operator*;
 
@@ -896,7 +893,7 @@ namespace STD {
             return List<Arg>::Iterator(temp);
         };
 
-        Iterator &operator--() {
+        Iterator &operator--() override {
             if (!node->last) throw outOfRange("List::Iterator out of range\n");
             node = node->last;
             target = node->value;
@@ -922,7 +919,7 @@ namespace STD {
 
 
     template<typename Arg>
-    class List<Arg>::cIterator : public cIter<Arg> {
+    class List<Arg>::cIterator : public cBidirectional_Iter<Arg> {
     protected:
         using cIter<Arg>::target;
 
@@ -934,7 +931,7 @@ namespace STD {
             return *this;
         };
 
-        explicit cIterator(List<Arg>::Node *ptr) : cIter<Arg>(ptr->value), node(ptr) {};
+        explicit cIterator(List<Arg>::Node *ptr) : cBidirectional_Iter<Arg>(ptr->value), node(ptr) {};
 
     public:
         friend class List<Arg>;
@@ -942,17 +939,6 @@ namespace STD {
         friend class List<Arg>::Iterator;
 
         Shared_ptr<cIter<Arg>> deep_copy() const override { return make_shared<List<Arg>::cIterator>(*this); };
-
-        cIterator(const cIterator &other) : cIter<Arg>(other.target), node(other.node) {};
-
-        ~cIterator() = default;
-
-        cIterator &operator=(const cIterator &other) {
-            target = other.target;
-            node = other.node;
-            return *this;
-        };
-
 
         using cIter<Arg>::operator*;
 
@@ -973,7 +959,7 @@ namespace STD {
             return List<Arg>::cIterator(temp);
         };
 
-        cIterator &operator--() {
+        cIterator &operator--() override {
             if (!node->last) throw outOfRange("List::cIterator out of range\n");
             node = node->last;
             target = node->value;
@@ -998,7 +984,7 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg>
-    class List<Arg>::rIterator : public Iter<Arg> {
+    class List<Arg>::rIterator : public Bidirectional_Iter<Arg> {
     protected:
         using Iter<Arg>::target;
 
@@ -1010,7 +996,7 @@ namespace STD {
             return *this;
         };
 
-        explicit rIterator(List<Arg>::Node *ptr) : Iter<Arg>(ptr->value), node(ptr) {};
+        explicit rIterator(List<Arg>::Node *ptr) : Bidirectional_Iter<Arg>(ptr->value), node(ptr) {};
 
     public:
         friend class List<Arg>;
@@ -1020,17 +1006,6 @@ namespace STD {
         Shared_ptr<cIter<Arg>> to_const() const override {
             return make_shared<List<Arg>::crIterator>(crIterator(node));
         };
-
-        rIterator(const rIterator &other) : Iter<Arg>(other.target), node(other.node) {};
-
-        ~rIterator() = default;
-
-        rIterator &operator=(const rIterator &other) {
-            target = other.target;
-            node = other.node;
-            return *this;
-        };
-
 
         using Iter<Arg>::operator*;
 
@@ -1051,7 +1026,7 @@ namespace STD {
             return List<Arg>::rIterator(temp);
         };
 
-        rIterator &operator--() {
+        rIterator &operator--() override {
             if (!node->next) throw outOfRange("List::rIterator out of range\n");
             node = node->next;
             target = node->value;
@@ -1076,7 +1051,7 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg>
-    class List<Arg>::crIterator : public cIter<Arg> {
+    class List<Arg>::crIterator : public cBidirectional_Iter<Arg> {
     protected:
         using cIter<Arg>::target;
 
@@ -1088,7 +1063,7 @@ namespace STD {
             return *this;
         };
 
-        explicit crIterator(List<Arg>::Node *ptr) : cIter<Arg>(ptr->value), node(ptr) {};
+        explicit crIterator(List<Arg>::Node *ptr) : cBidirectional_Iter<Arg>(ptr->value), node(ptr) {};
 
     public:
         friend class List<Arg>;
@@ -1096,17 +1071,6 @@ namespace STD {
         friend class List<Arg>::rIterator;
 
         Shared_ptr<cIter<Arg>> deep_copy() const override { return make_shared<List<Arg>::crIterator>(*this); };
-
-        crIterator(const crIterator &other) : cIter<Arg>(other.target), node(other.node) {};
-
-        ~crIterator() = default;
-
-        crIterator &operator=(const crIterator &other) {
-            target = other.target;
-            node = other.node;
-            return *this;
-        };
-
 
         using cIter<Arg>::operator*;
 
@@ -1127,7 +1091,7 @@ namespace STD {
             return List<Arg>::crIterator(temp);
         };
 
-        crIterator &operator--() {
+        crIterator &operator--() override {
             if (!node->next) throw outOfRange("List::crIterator out of range\n");
             node = node->next;
             target = node->value;

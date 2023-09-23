@@ -22,6 +22,10 @@ namespace STD {
 
         Stack(Container &&target) : target(move(target)) {};
 
+        Stack(const Iter<Arg> &begin, const Iter<Arg> &end) : target(Container(begin, end)) {};
+
+        Stack(const cIter<Arg> &begin, const cIter<Arg> &end) : target(Container(begin, end)) {};
+
         Arg &top() const {
             return target.back();
         };

@@ -530,9 +530,9 @@ namespace STD {
         map = new_map;
         map_size = new_map_size;
         val_begin = rest / 2;
-        val_end = j1 - 1;
+        val_end = j1;
         map_begin = 0;
-        map_end = map_size - 1;
+        map_end = i1;
     }
 
     template<typename Arg>
@@ -1125,7 +1125,7 @@ namespace STD {
 
     template<typename Arg>
     class Deque<Arg>::
-    Iterator : public Iter<Arg> {
+    Iterator : public Random_Iter<Arg> {
     protected:
         using Iter<Arg>::target;
 
@@ -1133,7 +1133,19 @@ namespace STD {
 
         int pos;
 
-        explicit Iterator(Arg *ptr, Arg **map_ptr, int index) : Iter<Arg>(ptr), map(map_ptr), pos(index) {};
+        explicit Iterator(Arg *ptr, Arg **map_ptr, int index) : Random_Iter<Arg>(ptr), map(map_ptr), pos(index) {};
+
+        bool less(const Random_Iter<Arg> &other) const override {
+            const auto &temp = dynamic_cast<const Iterator &>(other);
+            if (map != temp.map) return map < temp.map;
+            return pos < temp.pos;
+        }
+
+        bool not_greater_than(const Random_Iter<Arg> &other) const override {
+            const auto &temp = dynamic_cast<const Iterator &>(other);
+            if (map != temp.map) return map > temp.map;
+            return pos <= temp.pos;
+        }
 
     public:
         friend class Deque<Arg>;
@@ -1142,17 +1154,6 @@ namespace STD {
 
         Shared_ptr<cIter<Arg>> to_const() const override {
             return make_shared<Deque<Arg>::cIterator>(Deque<Arg>::cIterator(target, map, pos));
-        };
-
-        Iterator(const Iterator &other) : Iter<Arg>(other.target), map(other.map), pos(other.pos) {};
-
-        ~Iterator() = default;
-
-        Iterator &operator=(const Iterator &other) {
-            target = other.target;
-            map = other.map;
-            pos = other.pos;
-            return *this;
         };
 
         using Iter<Arg>::operator*;
@@ -1172,7 +1173,7 @@ namespace STD {
             return Deque<Arg>::Iterator(temp1, temp2, temp3);
         };
 
-        Iterator &operator--() {
+        Iterator &operator--() override {
             subtract(map, pos, target);
             return *this;
         };
@@ -1201,12 +1202,12 @@ namespace STD {
             return Deque<Arg>::Iterator(temp1, temp2, temp3);
         };
 
-        Iterator &operator+=(Size size) {
+        Iterator &operator+=(Size size) override {
             add(map, pos, target, size);
             return *this;
         };
 
-        Iterator &operator-=(Size size) {
+        Iterator &operator-=(Size size) override {
             subtract(map, pos, target, size);
             return *this;
         };
@@ -1245,7 +1246,7 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg>
-    class Deque<Arg>::cIterator : public cIter<Arg> {
+    class Deque<Arg>::cIterator : public cRandom_Iter<Arg> {
     protected:
         using cIter<Arg>::target;
 
@@ -1253,7 +1254,19 @@ namespace STD {
 
         int pos;
 
-        explicit cIterator(Arg *ptr, Arg **map_ptr, int index) : cIter<Arg>(ptr), map(map_ptr), pos(index) {};
+        explicit cIterator(Arg *ptr, Arg **map_ptr, int index) : cRandom_Iter<Arg>(ptr), map(map_ptr), pos(index) {};
+
+        bool less(const cRandom_Iter<Arg> &other) const override {
+            const auto &temp = dynamic_cast<const cIterator &>(other);
+            if (map != temp.map) return map < temp.map;
+            return pos < temp.pos;
+        }
+
+        bool not_greater_than(const cRandom_Iter<Arg> &other) const override {
+            const auto &temp = dynamic_cast<const cIterator &>(other);
+            if (map != temp.map) return map < temp.map;
+            return pos <= temp.pos;
+        }
 
     public:
         friend class Deque<Arg>;
@@ -1261,17 +1274,6 @@ namespace STD {
         friend class Deque<Arg>::Iterator;
 
         Shared_ptr<cIter<Arg>> deep_copy() const override { return make_shared<Deque<Arg>::cIterator>(*this); };
-
-        cIterator(const cIterator &other) : cIter<Arg>(other.target), map(other.map), pos(other.pos) {};
-
-        ~cIterator() = default;
-
-        cIterator &operator=(const cIterator &other) {
-            target = other.target;
-            map = other.map;
-            pos = other.pos;
-            return *this;
-        };
 
         using cIter<Arg>::operator*;
 
@@ -1290,7 +1292,7 @@ namespace STD {
             return Deque<Arg>::cIterator(temp1, temp2, temp3);
         };
 
-        cIterator &operator--() {
+        cIterator &operator--() override {
             subtract(map, pos, target);
             return *this;
         };
@@ -1319,12 +1321,12 @@ namespace STD {
             return Deque<Arg>::cIterator(temp1, temp2, temp3);
         };
 
-        cIterator &operator+=(Size size) {
+        cIterator &operator+=(Size size) override {
             add(map, pos, target, size);
             return *this;
         };
 
-        cIterator &operator-=(Size size) {
+        cIterator &operator-=(Size size) override {
             subtract(map, pos, target, size);
             return *this;
         };
@@ -1362,7 +1364,7 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg>
-    class Deque<Arg>::rIterator : public Iter<Arg> {
+    class Deque<Arg>::rIterator : public Random_Iter<Arg> {
     protected:
         using Iter<Arg>::target;
 
@@ -1370,7 +1372,19 @@ namespace STD {
 
         int pos;
 
-        explicit rIterator(Arg *ptr, Arg **map_ptr, int index) : Iter<Arg>(ptr), map(map_ptr), pos(index) {};
+        explicit rIterator(Arg *ptr, Arg **map_ptr, int index) : Random_Iter<Arg>(ptr), map(map_ptr), pos(index) {};
+
+        bool less(const Random_Iter<Arg> &other) const override {
+            const auto &temp = dynamic_cast<const rIterator &>(other);
+            if (map != temp.map) return map > temp.map;
+            return pos > temp.pos;
+        }
+
+        bool not_greater_than(const Random_Iter<Arg> &other) const override {
+            const auto &temp = dynamic_cast<const rIterator &>(other);
+            if (map != temp.map) return map > temp.map;
+            return pos >= temp.pos;
+        }
 
     public:
         friend class Deque<Arg>;
@@ -1381,22 +1395,11 @@ namespace STD {
             return make_shared<Deque<Arg>::crIterator>(Deque<Arg>::crIterator(target, map, pos));
         };
 
-        rIterator(const rIterator &other) : Iter<Arg>(other.target), map(other.map), pos(other.pos) {};
-
-        ~rIterator() = default;
-
-        rIterator &operator=(const rIterator &other) {
-            target = other.target;
-            map = other.map;
-            pos = other.pos;
-            return *this;
-        };
-
         using Iter<Arg>::operator*;
 
         using Iter<Arg>::operator->;
 
-        rIterator &operator--() {
+        rIterator &operator--() override {
             add(map, pos, target);
             return *this;
         };
@@ -1438,12 +1441,12 @@ namespace STD {
             return Deque<Arg>::rIterator(temp1, temp2, temp3);
         };
 
-        rIterator &operator-=(Size size) {
+        rIterator &operator-=(Size size) override {
             add(map, pos, target, size);
             return *this;
         };
 
-        rIterator &operator+=(Size size) {
+        rIterator &operator+=(Size size) override {
             subtract(map, pos, target, size);
             return *this;
         };
@@ -1482,7 +1485,7 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg>
-    class Deque<Arg>::crIterator : public cIter<Arg> {
+    class Deque<Arg>::crIterator : public cRandom_Iter<Arg> {
     protected:
         using cIter<Arg>::target;
 
@@ -1490,7 +1493,19 @@ namespace STD {
 
         int pos;
 
-        explicit crIterator(Arg *ptr, Arg **map_ptr, int index) : cIter<Arg>(ptr), map(map_ptr), pos(index) {};
+        explicit crIterator(Arg *ptr, Arg **map_ptr, int index) : cRandom_Iter<Arg>(ptr), map(map_ptr), pos(index) {};
+
+        bool less(const cRandom_Iter<Arg> &other) const override {
+            const auto &temp = dynamic_cast<const crIterator &>(other);
+            if (map != temp.map) return map > temp.map;
+            return pos > temp.pos;
+        }
+
+        bool not_greater_than(const cRandom_Iter<Arg> &other) const override {
+            const auto &temp = dynamic_cast<const crIterator &>(other);
+            if (map != temp.map) return map > temp.map;
+            return pos >= temp.pos;
+        }
 
     public:
         friend class Deque<Arg>;
@@ -1499,22 +1514,11 @@ namespace STD {
 
         Shared_ptr<cIter<Arg>> deep_copy() const override { return make_shared<Deque<Arg>::crIterator>(*this); };
 
-        crIterator(const crIterator &other) : cIter<Arg>(other.target), map(other.map), pos(other.pos) {};
-
-        ~crIterator() = default;
-
-        crIterator &operator=(const crIterator &other) {
-            target = other.target;
-            map = other.map;
-            pos = other.pos;
-            return *this;
-        };
-
         using cIter<Arg>::operator*;
 
         using cIter<Arg>::operator->;
 
-        crIterator &operator--() {
+        crIterator &operator--() override {
             add(map, pos, target);
             return *this;
         };
@@ -1556,12 +1560,12 @@ namespace STD {
             return Deque<Arg>::crIterator(temp1, temp2, temp3);
         };
 
-        crIterator &operator-=(Size size) {
+        crIterator &operator-=(Size size) override {
             add(map, pos, target, size);
             return *this;
         };
 
-        crIterator &operator+=(Size size) {
+        crIterator &operator+=(Size size) override {
             subtract(map, pos, target, size);
             return *this;
         };

@@ -173,7 +173,7 @@ namespace STD {
     }
 
     template<typename Arg, Size size_>
-    Array<Arg, size_> &Array<Arg, size_>::operator=(Array<Arg, size_> &&other)  noexcept {
+    Array<Arg, size_> &Array<Arg, size_>::operator=(Array<Arg, size_> &&other) noexcept {
         if (this == &other) return *this;
         val_begin = other.val_begin;
         other.val_begin = Allocate_n<Arg>(size_);
@@ -237,7 +237,7 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg, Size size_>
-    class Array<Arg, size_>::Iterator : public Iter<Arg> {
+    class Array<Arg, size_>::Iterator : public Random_Iter<Arg> {
     protected:
         using Iter<Arg>::target;
 
@@ -246,7 +246,7 @@ namespace STD {
             return *this;
         };
 
-        explicit Iterator(Arg *ptr) : Iter<Arg>(ptr) {};
+        explicit Iterator(Arg *ptr) : Random_Iter<Arg>(ptr) {};
 
     public:
         friend class Array<Arg, size_>;
@@ -256,16 +256,6 @@ namespace STD {
         Shared_ptr<cIter<Arg>> to_const() const override {
             return make_shared<Array<Arg, size_>::cIterator>(Array<Arg, size_>::cIterator(target));
         };
-
-        Iterator(const Iterator &other) : Iter<Arg>(other.target) {};
-
-        ~Iterator() = default;
-
-        Iterator &operator=(const Iterator &other) {
-            target = other.target;
-            return *this;
-        };
-
 
         using Iter<Arg>::operator*;
 
@@ -278,7 +268,7 @@ namespace STD {
 
         Iterator operator++(int) { return Array<Arg, size_>::Iterator(target++); };
 
-        Iterator &operator--() {
+        Iterator &operator--() override {
             --target;
             return *this;
         };
@@ -289,12 +279,12 @@ namespace STD {
 
         Iterator operator-(Size size) const { return Array<Arg, size_>::Iterator(target - size); };
 
-        Iterator &operator+=(Size size) {
+        Iterator &operator+=(Size size) override {
             target += size;
             return *this;
         };
 
-        Iterator &operator-=(Size size) {
+        Iterator &operator-=(Size size) override {
             target -= size;
             return *this;
         };
@@ -324,7 +314,7 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg, Size size_>
-    class Array<Arg, size_>::cIterator : public cIter<Arg> {
+    class Array<Arg, size_>::cIterator : public cRandom_Iter<Arg> {
     protected:
         using cIter<Arg>::target;
 
@@ -333,7 +323,7 @@ namespace STD {
             return *this;
         };
 
-        explicit cIterator(Arg *ptr) : cIter<Arg>(ptr) {};
+        explicit cIterator(Arg *ptr) : cRandom_Iter<Arg>(ptr) {};
 
     public:
         friend class Array<Arg, size_>;
@@ -341,15 +331,6 @@ namespace STD {
         friend class Array<Arg, size_>::Iterator;
 
         Shared_ptr<cIter<Arg>> deep_copy() const override { return make_shared<Array<Arg, size_>::cIterator>(*this); };
-
-        cIterator(const cIterator &other) : cIter<Arg>(other.target) {};
-
-        ~cIterator() override = default;
-
-        cIterator &operator=(const cIterator &other) {
-            target = other.target;
-            return *this;
-        };
 
         using cIter<Arg>::operator*;
 
@@ -362,26 +343,26 @@ namespace STD {
 
         cIterator operator++(int) { return Array<Arg, size_>::cIterator(target++); };
 
-        cIterator operator+(Size size) const { return Array<Arg, size_>::cIterator(target + size); };
-
-        cIterator operator-(Size size) const { return Array<Arg, size_>::cIterator(target - size); };
-
-        cIterator &operator+=(Size size) {
-            target += size;
-            return *this;
-        };
-
-        cIterator &operator-=(Size size) {
-            target -= size;
-            return *this;
-        };
-
-        cIterator &operator--() {
+        cIterator &operator--() override {
             --target;
             return *this;
         };
 
         cIterator operator--(int) { return Array<Arg, size_>::cIterator(target--); };
+
+        cIterator operator+(Size size) const { return Array<Arg, size_>::cIterator(target + size); };
+
+        cIterator operator-(Size size) const { return Array<Arg, size_>::cIterator(target - size); };
+
+        cIterator &operator+=(Size size) override {
+            target += size;
+            return *this;
+        };
+
+        cIterator &operator-=(Size size) override {
+            target -= size;
+            return *this;
+        };
 
         friend bool
         operator==(const cIterator &left, const cIterator &right) { return left.target == right.target; };
@@ -408,7 +389,7 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg, Size size_>
-    class Array<Arg, size_>::rIterator : public Iter<Arg> {
+    class Array<Arg, size_>::rIterator : public Random_Iter<Arg> {
     protected:
         using Iter<Arg>::target;
 
@@ -417,7 +398,15 @@ namespace STD {
             return *this;
         }
 
-        explicit rIterator(Arg *ptr) : Iter<Arg>(ptr) {};
+        explicit rIterator(Arg *ptr) : Random_Iter<Arg>(ptr) {};
+
+        bool less(const Random_Iter<Arg> &other) const override {
+            return target > dynamic_cast<const rIterator &>(other).target;
+        }
+
+        bool not_greater_than(const Random_Iter<Arg> &other) const override {
+            return target >= dynamic_cast<const rIterator &>(other).target;
+        }
 
     public:
         friend class Array<Arg, size_>;
@@ -426,15 +415,6 @@ namespace STD {
 
         Shared_ptr<cIter<Arg>> to_const() const override {
             return make_shared<Array<Arg, size_>::crIterator>(Array<Arg, size_>::crIterator(target));
-        };
-
-        rIterator(const rIterator &other) : Iter<Arg>(other.target) {};
-
-        ~rIterator() = default;
-
-        rIterator &operator=(const rIterator &other) {
-            target = other.target;
-            return *this;
         };
 
         using Iter<Arg>::operator*;
@@ -459,12 +439,12 @@ namespace STD {
 
         rIterator operator-(Size size) const { return Array<Arg, size_>::rIterator(target + size); };
 
-        rIterator &operator+=(Size size) {
+        rIterator &operator+=(Size size) override {
             target -= size;
             return *this;
         };
 
-        rIterator &operator-=(Size size) {
+        rIterator &operator-=(Size size) override {
             target += size;
             return *this;
         };
@@ -494,7 +474,7 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg, Size size_>
-    class Array<Arg, size_>::crIterator : public cIter<Arg> {
+    class Array<Arg, size_>::crIterator : public cRandom_Iter<Arg> {
     protected:
         using cIter<Arg>::target;
 
@@ -503,7 +483,15 @@ namespace STD {
             return *this;
         };
 
-        explicit crIterator(Arg *ptr) : cIter<Arg>(ptr) {};
+        explicit crIterator(Arg *ptr) : cRandom_Iter<Arg>(ptr) {};
+
+        bool less(const cRandom_Iter<Arg> &other) const override {
+            return target > dynamic_cast<const crIterator &>(other).target;
+        }
+
+        bool not_greater_than(const cRandom_Iter<Arg> &other) const override {
+            return target >= dynamic_cast<const crIterator &>(other).target;
+        }
 
     public:
         friend class Array<Arg, size_>;
@@ -511,15 +499,6 @@ namespace STD {
         friend class Array<Arg, size_>::rIterator;
 
         Shared_ptr<cIter<Arg>> deep_copy() const override { return make_shared<Array<Arg, size_>::crIterator>(*this); };
-
-        crIterator(const crIterator &other) : cIter<Arg>(other.target) {};
-
-        ~crIterator() = default;
-
-        crIterator &operator=(const crIterator &other) {
-            target = other.target;
-            return *this;
-        };
 
         using cIter<Arg>::operator*;
 
@@ -532,7 +511,7 @@ namespace STD {
 
         crIterator operator++(int) { return Array<Arg, size_>::crIterator(target--); };
 
-        crIterator &operator--() {
+        crIterator &operator--() override {
             ++target;
             return *this;
         };
@@ -543,12 +522,12 @@ namespace STD {
 
         crIterator operator-(Size size) const { return Array<Arg, size_>::crIterator(target + size); };
 
-        crIterator &operator+=(Size size) {
+        crIterator &operator+=(Size size) override {
             target -= size;
             return *this;
         };
 
-        crIterator &operator-=(Size size) {
+        crIterator &operator-=(Size size) override {
             target += size;
             return *this;
         };
