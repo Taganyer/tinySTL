@@ -624,16 +624,6 @@ namespace STD {
             return make_shared<Forward_list<Arg>::cIterator>(cIterator(node));
         };
 
-        Iterator(const Iterator &other) : Iter<Arg>(other.target), node(other.node) {};
-
-        ~Iterator() = default;
-
-        Iterator &operator=(const Iterator &other) {
-            target = other.target;
-            node = other.node;
-            return *this;
-        };
-
         using Iter<Arg>::operator*;
 
         using Iter<Arg>::operator->;
@@ -678,16 +668,6 @@ namespace STD {
         friend class Forward_list<Arg>;
 
         Shared_ptr<cIter<Arg>> deep_copy() const override { return make_shared<Forward_list<Arg>::cIterator>(*this); };
-
-        cIterator(const cIterator &other) : cIter<Arg>(other.target), node(other.node) {};
-
-        ~cIterator() = default;
-
-        cIterator &operator=(const cIterator &other) {
-            target = other.target;
-            node = other.node;
-            return *this;
-        };
 
         using cIter<Arg>::operator*;
 

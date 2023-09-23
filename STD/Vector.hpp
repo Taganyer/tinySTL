@@ -842,6 +842,8 @@ namespace STD {
 
         using Iter<Arg>::operator->;
 
+        using Random_Iter<Arg>::operator[];
+
         Iterator &operator++() override {
             ++target;
             return *this;
@@ -916,6 +918,8 @@ namespace STD {
         using cIter<Arg>::operator*;
 
         using cIter<Arg>::operator->;
+
+        using cRandom_Iter<Arg>::operator[];
 
         cIterator &operator++() override {
             ++target;
@@ -1002,6 +1006,10 @@ namespace STD {
 
         using Iter<Arg>::operator->;
 
+        Arg &operator[](Size size) const override {
+            return *(target - size);
+        }
+
         rIterator &operator++() override {
             --target;
             return *this;
@@ -1084,6 +1092,10 @@ namespace STD {
         using cIter<Arg>::operator*;
 
         using cIter<Arg>::operator->;
+
+        Arg &operator[](Size size) const override {
+            return *(target - size);
+        }
 
         crIterator &operator++() override {
             --target;
