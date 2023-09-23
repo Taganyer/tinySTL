@@ -12,4 +12,5 @@ add_executable(tinySTL main.cpp
         STD/Stack.hpp
         STD/Function.hpp
         STD/Queue.hpp
+        STD/Initializer_list.hpp
 )

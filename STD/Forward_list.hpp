@@ -20,11 +20,11 @@ namespace STD {
 
             Node *next;
 
-            Node(const Arg &target, Node *next = nullptr) : value(Allocate(target)), next(next){};
+            Node(const Arg &target, Node *next = nullptr) : value(Allocate(target)), next(next) {};
 
-            Node(Arg &&target, Node *next = nullptr) : value(Allocate(move(target))), next(next){};
+            Node(Arg &&target, Node *next = nullptr) : value(Allocate(move(target))), next(next) {};
 
-            Node(Arg *target, Node *next = nullptr) : value(target), next(next){};
+            Node(Arg *target, Node *next = nullptr) : value(target), next(next) {};
 
             ~Node() { Deallocate(value); };
 
@@ -177,7 +177,7 @@ namespace STD {
 
     template<typename Arg>
     Forward_list<Arg>::Forward_list(const std::initializer_list<Arg> &list)
-        : size_(list.size()) {
+            : size_(list.size()) {
         auto last = val_begin, now = val_begin;
         for (auto &t: list) {
             now = Allocate<Node>(t);
@@ -189,7 +189,7 @@ namespace STD {
 
     template<typename Arg>
     Forward_list<Arg>::Forward_list(const Iter<Arg> &begin, const Iter<Arg> &end)
-        : Forward_list(*begin.to_const(), *end.to_const()) {}
+            : Forward_list(*begin.to_const(), *end.to_const()) {}
 
     template<typename Arg>
     Forward_list<Arg>::Forward_list(const cIter<Arg> &begin, const cIter<Arg> &end) {
@@ -357,50 +357,52 @@ namespace STD {
     template<typename Arg>
     template<typename... args>
     typename Forward_list<Arg>::Iterator
-    Forward_list<Arg>::emplace_after(const Forward_list::Iterator &pos, args &&...vals) {
-        if (!pos.node->next) throw outOfRange("You passed in an out-of-range iterator in the 'Forward_list::emplace_after' function");
+    Forward_list<Arg>::emplace_after(const Iterator &pos, args &&...vals) {
+        if (!pos.node->next)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Forward_list::emplace_after' function");
         auto temp = Allocate<Node>(Allocate<Arg>(forward<args>(vals)...), pos.node->next);
         pos.node->next = temp;
         ++size_;
-        return Forward_list::Iterator(temp);
+        return Iterator(temp);
     }
 
     template<typename Arg>
     template<typename... args>
     typename Forward_list<Arg>::cIterator
-    Forward_list<Arg>::emplace_after(const Forward_list::cIterator &pos, args &&...vals) {
-        if (!pos.node->next) throw outOfRange("You passed in an out-of-range iterator in the 'Forward_list::emplace_after' function");
+    Forward_list<Arg>::emplace_after(const cIterator &pos, args &&...vals) {
+        if (!pos.node->next)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Forward_list::emplace_after' function");
         auto temp = Allocate<Node>(Allocate<Arg>(forward<args>(vals)...), pos.node->next);
         pos.node->next = temp;
         ++size_;
-        return Forward_list::cIterator(temp);
+        return cIterator(temp);
     }
 
     template<typename Arg>
     typename Forward_list<Arg>::Iterator
-    Forward_list<Arg>::insert_after(const Forward_list::Iterator &pos, const Arg &target) {
+    Forward_list<Arg>::insert_after(const Iterator &pos, const Arg &target) {
         if (!pos.node->next)
             throw outOfRange("You passed in an out-of-range iterator in the 'Forward_list::insert_after' function");
         auto temp = Allocate<Node>(target, pos.node->next);
         pos.node->next = temp;
         ++size_;
-        return Forward_list::Iterator(temp);
+        return Iterator(temp);
     }
 
     template<typename Arg>
     typename Forward_list<Arg>::cIterator
-    Forward_list<Arg>::insert_after(const Forward_list::cIterator &pos, const Arg &target) {
+    Forward_list<Arg>::insert_after(const cIterator &pos, const Arg &target) {
         if (!pos.node->next)
             throw outOfRange("You passed in an out-of-range iterator in the 'Forward_list::insert_after' function");
         auto temp = Allocate<Node>(target, pos.node->next);
         pos.node->next = temp;
         ++size_;
-        return Forward_list::cIterator(temp);
+        return cIterator(temp);
     }
 
     template<typename Arg>
     typename Forward_list<Arg>::Iterator
-    Forward_list<Arg>::insert_after(const Forward_list::Iterator &pos, Size size, const Arg &target) {
+    Forward_list<Arg>::insert_after(const Iterator &pos, Size size, const Arg &target) {
         if (!pos.node->next)
             throw outOfRange("You passed in an out-of-range iterator in the 'Forward_list::insert_after' function");
         auto last = pos.node, now = pos.node, record = pos.node->next;
@@ -411,18 +413,18 @@ namespace STD {
         }
         now->next = record;
         size_ += size;
-        return Forward_list::Iterator(now);
+        return Iterator(now);
     }
 
     template<typename Arg>
     typename Forward_list<Arg>::cIterator
-    Forward_list<Arg>::insert_after(const Forward_list::cIterator &pos, Size size, const Arg &target) {
-        return Forward_list::cIterator(insert_after(Iterator(pos.node), size, target).node);
+    Forward_list<Arg>::insert_after(const cIterator &pos, Size size, const Arg &target) {
+        return cIterator(insert_after(Iterator(pos.node), size, target).node);
     }
 
     template<typename Arg>
     typename Forward_list<Arg>::Iterator
-    Forward_list<Arg>::insert_after(const Forward_list::Iterator &pos, const std::initializer_list<Arg> &list) {
+    Forward_list<Arg>::insert_after(const Iterator &pos, const std::initializer_list<Arg> &list) {
         if (!pos.node->next)
             throw outOfRange("You passed in an out-of-range iterator in the 'Forward_list::insert_after' function");
         auto last = pos.node, now = pos.node, record = pos.node->next;
@@ -433,36 +435,36 @@ namespace STD {
         }
         now->next = record;
         size_ += list.size();
-        return Forward_list::Iterator(now);
+        return Iterator(now);
     }
 
     template<typename Arg>
     typename Forward_list<Arg>::cIterator
-    Forward_list<Arg>::insert_after(const Forward_list::cIterator &pos, const std::initializer_list<Arg> &list) {
-        return Forward_list::cIterator(insert_after(Iterator(pos.node), list).node);
+    Forward_list<Arg>::insert_after(const cIterator &pos, const std::initializer_list<Arg> &list) {
+        return cIterator(insert_after(Iterator(pos.node), list).node);
     }
 
     template<typename Arg>
     typename Forward_list<Arg>::Iterator
-    Forward_list<Arg>::insert_after(const Forward_list::Iterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
-        return Forward_list::Iterator(insert_after(cIterator(pos.node), *begin.to_const(), *end.to_const()).node);
+    Forward_list<Arg>::insert_after(const Iterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
+        return Iterator(insert_after(cIterator(pos.node), *begin.to_const(), *end.to_const()).node);
     }
 
     template<typename Arg>
     typename Forward_list<Arg>::cIterator
-    Forward_list<Arg>::insert_after(const Forward_list::cIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
+    Forward_list<Arg>::insert_after(const cIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
         return insert_after(pos, *begin.to_const(), *end.to_const());
     }
 
     template<typename Arg>
     typename Forward_list<Arg>::Iterator
-    Forward_list<Arg>::insert_after(const Forward_list::Iterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
-        return Forward_list::Iterator(insert_after(cIterator(pos.node), begin, end).node);
+    Forward_list<Arg>::insert_after(const Iterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
+        return Iterator(insert_after(cIterator(pos.node), begin, end).node);
     }
 
     template<typename Arg>
     typename Forward_list<Arg>::cIterator
-    Forward_list<Arg>::insert_after(const Forward_list::cIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
+    Forward_list<Arg>::insert_after(const cIterator &pos, const cIter<Arg> &begin,const cIter<Arg> &end) {
         if (!pos.node->next)
             throw outOfRange("You passed in an out-of-range iterator in the 'Forward_list::insert_after' function");
         auto last = pos.node, now = pos.node, record = pos.node->next;
@@ -474,12 +476,12 @@ namespace STD {
             ++size_, ++(*temp);
         }
         now->next = record;
-        return Forward_list::cIterator(now);
+        return cIterator(now);
     }
 
     template<typename Arg>
     typename Forward_list<Arg>::Iterator
-    Forward_list<Arg>::erase_after(const Forward_list::Iterator &pos) {
+    Forward_list<Arg>::erase_after(const Iterator &pos) {
         if (!pos.node->next || !pos.node->next->value)
             throw outOfRange("You passed in an out-of-range iterator in the 'Forward_list::erase_after' function");
         auto temp = pos.node->next;
@@ -491,8 +493,7 @@ namespace STD {
 
     template<typename Arg>
     typename Forward_list<Arg>::Iterator
-    Forward_list<Arg>::erase_after(const Forward_list::Iterator &begin,
-                                   const Forward_list::Iterator &end) {
+    Forward_list<Arg>::erase_after(const Iterator &begin,const Iterator &end) {
         if (!begin.node->next || !begin.node->next->value)
             throw outOfRange("You passed in an out-of-range iterator in the 'Forward_list::erase_after' function");
         size_ -= release_after(begin.node, end.node);
@@ -501,7 +502,7 @@ namespace STD {
 
     template<typename Arg>
     typename Forward_list<Arg>::cIterator
-    Forward_list<Arg>::erase_after(const Forward_list::cIterator &pos) {
+    Forward_list<Arg>::erase_after(const cIterator &pos) {
         if (!pos.node->next || !pos.node->next->value)
             throw outOfRange("You passed in an out-of-range iterator in the 'Forward_list::erase_after' function");
         auto temp = pos.node->next;
@@ -513,8 +514,7 @@ namespace STD {
 
     template<typename Arg>
     typename Forward_list<Arg>::cIterator
-    Forward_list<Arg>::erase_after(const Forward_list::cIterator &begin,
-                                   const Forward_list::cIterator &end) {
+    Forward_list<Arg>::erase_after(const cIterator &begin,const cIterator &end) {
         if (!begin.node->next || !begin.node->next->value)
             throw outOfRange("You passed in an out-of-range iterator in the 'Forward_list::erase_after' function");
         size_ -= release_after(begin.node, end.node);
@@ -541,7 +541,8 @@ namespace STD {
     template<typename Arg>
     Forward_list<Arg> &
     Forward_list<Arg>::operator=(Forward_list<Arg> &&other) noexcept {
-        if (this == &other) return *this;
+        if (this == &other)
+            return *this;
         clear();
         val_begin->next = other.val_begin->next;
         size_ = other.size_;
@@ -555,12 +556,13 @@ namespace STD {
     }
 
     template<typename Type>
-    bool operator==(const Forward_list<Type> &left,
-                    const Forward_list<Type> &right) {
-        if (left.size_ != right.size_) return false;
+    bool operator==(const Forward_list<Type> &left, const Forward_list<Type> &right) {
+        if (left.size_ != right.size_)
+            return false;
         auto l = left.val_begin->next, r = right.val_begin->next;
         while (l != left.val_end) {
-            if (l->value != r->value) return false;
+            if (l->value != r->value)
+                return false;
             l = l->next, r = r->next;
         }
         return false;
@@ -575,7 +577,8 @@ namespace STD {
     bool operator<(const Forward_list<Type> &left, const Forward_list<Type> &right) {
         auto l = left.val_begin->next, r = right.val_begin->next;
         while (l != left.val_end && r != right.val_end) {
-            if (l->value != r->value) return l->value < r->value;
+            if (l->value != r->value)
+                return l->value < r->value;
             l = l->next, r = r->next;
         }
         return l == left.val_end && r != right.val_end;
@@ -590,7 +593,8 @@ namespace STD {
     bool operator>(const Forward_list<Type> &left, const Forward_list<Type> &right) {
         auto l = left.val_begin->next, r = right.val_begin->next;
         while (l != left.val_end && r != right.val_end) {
-            if (l->value != r->value) return l->value > r->value;
+            if (l->value != r->value)
+                return l->value > r->value;
             l = l->next, r = r->next;
         }
         return r == right.val_end && l != left.val_end;
@@ -607,26 +611,25 @@ namespace STD {
     class Forward_list<Arg>::Iterator : public Iter<Arg> {
         using Iter<Arg>::target;
 
-        Forward_list<Arg>::Node *node = nullptr;
+        Node *node = nullptr;
 
-        Iterator &operator=(Forward_list<Arg>::Node *ptr) {
+        Iterator &operator=(Node *ptr) {
             target = ptr->value;
             node = ptr;
             return *this;
         };
 
-        explicit Iterator(Forward_list<Arg>::Node *ptr)
-            : Iter<Arg>(ptr->value), node(ptr){};
+        explicit Iterator(Node *ptr) : Iter<Arg>(ptr->value), node(ptr) {};
 
     public:
         friend class Forward_list<Arg>;
 
         Shared_ptr<Iter<Arg>> deep_copy() const override {
-            return make_shared<Forward_list<Arg>::Iterator>(*this);
+            return make_shared<Iterator>(*this);
         };
 
         Shared_ptr<cIter<Arg>> to_const() const override {
-            return make_shared<Forward_list<Arg>::cIterator>(cIterator(node));
+            return make_shared<cIterator>(cIterator(node));
         };
 
         using Iter<Arg>::operator*;
@@ -647,7 +650,7 @@ namespace STD {
             auto temp = node;
             node = node->next;
             target = node->value;
-            return Forward_list<Arg>::Iterator(temp);
+            return Iterator(temp);
         };
 
         friend bool operator==(const Iterator &left, const Iterator &right) {
@@ -663,22 +666,21 @@ namespace STD {
     class Forward_list<Arg>::cIterator : public cIter<Arg> {
         using cIter<Arg>::target;
 
-        Forward_list<Arg>::Node *node = nullptr;
+        Node *node = nullptr;
 
-        cIterator &operator=(Forward_list<Arg>::Node *ptr) {
+        cIterator &operator=(Node *ptr) {
             target = ptr->value;
             node = ptr;
             return *this;
         };
 
-        explicit cIterator(Forward_list<Arg>::Node *ptr)
-            : cIter<Arg>(ptr->value), node(ptr){};
+        explicit cIterator(Node *ptr) : cIter<Arg>(ptr->value), node(ptr) {};
 
     public:
         friend class Forward_list<Arg>;
 
         Shared_ptr<cIter<Arg>> deep_copy() const override {
-            return make_shared<Forward_list<Arg>::cIterator>(*this);
+            return make_shared<cIterator>(*this);
         };
 
         using cIter<Arg>::operator*;
@@ -699,7 +701,7 @@ namespace STD {
             auto temp = node;
             node = node->next;
             target = node->value;
-            return Forward_list<Arg>::cIterator(temp);
+            return cIterator(temp);
         };
 
         friend bool operator==(const cIterator &left, const cIterator &right) {

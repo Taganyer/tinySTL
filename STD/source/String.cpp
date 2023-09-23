@@ -48,7 +48,7 @@ char *String::backward(Size pos_from, Size pos_to) {
         val_end = temp;
     } else {
         auto temp1 = val_end - 1, temp2 = val_end - 1 + pos_to - pos_from,
-             target_end = val_begin + pos_from;
+                target_end = val_begin + pos_from;
         val_end = temp2 + 1;
         while (temp1 >= target_end) {
             *temp2 = *temp1;
@@ -75,7 +75,7 @@ void String::fill_with(char *pos, const char *target, Size size) {
 }
 
 void String::fill_with(char *pos, const std::initializer_list<char> &list) {
-    for (auto &t : list) {
+    for (auto &t: list) {
         *pos = t;
         ++pos;
     }
@@ -99,7 +99,7 @@ void String::rfill_with(char *pos, const char *target, Size size) {
 
 void String::rfill_with(char *pos, const std::initializer_list<char> &list) {
     pos += list.size() - 1;
-    for (auto &t : list) {
+    for (auto &t: list) {
         *pos = t;
         --pos;
     }
@@ -114,14 +114,13 @@ void String::rfill_with(char *pos, const cIter<char> &begin, Size size) {
     }
 }
 
-String::String()
-    : val_begin(Allocate_n<char>(1)), val_end(val_begin),
-      store_end(val_begin + 1) {
+String::String() : val_begin(Allocate_n<char>(1)),
+                   val_end(val_begin), store_end(val_begin + 1) {
     *val_begin = '\0';
 }
 
 String::String(Size size, char target)
-    : size_(size), val_begin(Allocate_n<char>(size + 1)) {
+        : size_(size), val_begin(Allocate_n<char>(size + 1)) {
     val_end = val_begin + size;
     store_end = val_end + 1;
     fill_with(val_begin, target, size);
@@ -129,42 +128,39 @@ String::String(Size size, char target)
 }
 
 String::String(const char *target, Size len)
-    : size_(len), val_begin(Allocate_n<char>(len + 1)),
-      store_end(val_begin + len + 1) {
+        : size_(len), val_begin(Allocate_n<char>(len + 1)), store_end(val_begin + len + 1) {
     val_end = val_begin + len;
     fill_with(val_begin, target, len);
     *val_end = '\0';
 }
 
 String::String(const std::initializer_list<char> &list)
-    : size_(list.size()), val_begin(Allocate_n<char>(size_ + 1)),
-      val_end(val_begin + list.size()), store_end(val_begin + size_ + 1) {
+        : size_(list.size()), val_begin(Allocate_n<char>(size_ + 1)),
+          val_end(val_begin + list.size()), store_end(val_begin + size_ + 1) {
     fill_with(val_begin, list);
     *val_end = '\0';
 }
 
-String::String(const char *target)
-    : String(target, STD::calculateLength(target)) {}
+String::String(const char *target) : String(target, STD::calculateLength(target)) {}
 
 String::String(const String &other, Size pos) : String(other.c_str() + pos) {}
 
-String::String(const String &other, Size pos, Size len)
-    : String(other.c_str() + pos, len) {}
+String::String(const String &other, Size pos, Size len) : String(other.c_str() + pos, len) {}
 
 String::String(const String &other) : String(other.c_str(), other.size_) {}
 
 String::String(String &&other) noexcept
-    : size_(other.size_), val_begin(other.val_begin), val_end(other.val_end),
-      store_end(other.store_end) {
+        : size_(other.size_), val_begin(other.val_begin), val_end(other.val_end),
+          store_end(other.store_end) {
     other.size_ = 0;
     other.val_begin = other.val_end = other.store_end = nullptr;
 }
 
 String::String(const Iter<char> &begin, const Iter<char> &end)
-    : String(*begin.to_const(), *end.to_const()) {}
+        : String(*begin.to_const(), *end.to_const()) {}
 
 String::String(const cIter<char> &begin, const cIter<char> &end)
-    : size_(STD::calculateLength(begin, end)) {
+        : size_(STD::calculateLength(begin, end)) {
     val_begin = Allocate_n<char>(size_ + 1);
     store_end = val_begin + size_ + 1;
     val_end = val_begin + size_;
@@ -206,8 +202,7 @@ void String::clear(bool whether_to_release) {
 
 void String::append(char t, Size len) {
     if (capacity() <= size_ + len)
-        reallocate(size_ + len > size_ + size_ / 5 ? size_ + len + 1
-                                                   : size_ + size_ / 5 + 1);
+        reallocate(size_ + len > size_ + size_ / 5 ? size_ + len + 1 : size_ + size_ / 5 + 1);
     fill_with(val_end, t, len);
     size_ += len;
     val_end += len;
@@ -239,15 +234,13 @@ void String::append(const String &target) {
 
 void String::append(const String &target, Size pos) {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::append or String::push_back' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::append or String::push_back' function");
     append(target.c_str() + pos);
 }
 
 void String::append(const String &target, Size pos, Size len) {
     if (pos + len > size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::append or String::push_back' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::append or String::push_back' function");
     append(target.c_str() + pos, len);
 }
 
@@ -293,23 +286,20 @@ void String::push_back(const cIter<char> &begin, const cIter<char> &end) {
 
 String::Iterator String::insert(Size pos, char t, Size size) {
     if (!size)
-        return String::Iterator(val_begin + pos);
+        return Iterator(val_begin + pos);
     if (pos > size_)
-        throw outOfRange("You passed an out-of-range value in the "
-                         "'String::insert' function");
+        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
     fill_with(backward(pos, pos + size), t, size);
-    return String::Iterator(val_begin + pos);
+    return Iterator(val_begin + pos);
 }
 
-String::Iterator String::insert(Size pos,
-                                const std::initializer_list<char> &list) {
+String::Iterator String::insert(Size pos, const std::initializer_list<char> &list) {
     if (!list.size())
-        return String::Iterator(val_begin + pos);
+        return Iterator(val_begin + pos);
     if (pos > size_)
-        throw outOfRange("You passed an out-of-range value in the "
-                         "'String::insert' function");
+        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
     fill_with(backward(pos, pos + list.size()), list);
-    return String::Iterator(val_begin + pos);
+    return Iterator(val_begin + pos);
 }
 
 String::Iterator String::insert(Size pos, const char *target) {
@@ -318,272 +308,206 @@ String::Iterator String::insert(Size pos, const char *target) {
 
 String::Iterator String::insert(Size pos, const char *target, Size target_len) {
     if (!target_len)
-        return String::Iterator(val_begin + pos);
+        return Iterator(val_begin + pos);
     if (pos > size_)
-        throw outOfRange("You passed an out-of-range value in the "
-                         "'String::insert' function");
+        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
     fill_with(backward(pos, pos + target_len), target, target_len);
-    return String::Iterator(val_begin + pos);
+    return Iterator(val_begin + pos);
 }
 
-String::Iterator String::insert(Size pos, const char *target, Size target_pos,
-                                Size target_len) {
+String::Iterator String::insert(Size pos, const char *target, Size target_pos, Size target_len) {
     return insert(pos, target + target_pos, target_len);
 }
 
-String::Iterator String::insert(Size pos, const String &target, Size target_pos,
-                                Size target_len) {
+String::Iterator String::insert(Size pos, const String &target, Size target_pos, Size target_len) {
     return insert(pos, target.c_str() + target_pos, target_len);
 }
 
-String::Iterator String::insert(Size pos, const Iter<char> &begin,
-                                const Iter<char> &end) {
+String::Iterator String::insert(Size pos, const Iter<char> &begin, const Iter<char> &end) {
     return insert(pos, *begin.to_const(), *end.to_const());
 }
 
-String::Iterator String::insert(Size pos, const cIter<char> &begin,
-                                const cIter<char> &end) {
+String::Iterator String::insert(Size pos, const cIter<char> &begin, const cIter<char> &end) {
     if (begin == end)
-        return String::Iterator(val_begin + pos);
+        return Iterator(val_begin + pos);
     if (pos > size_)
-        throw outOfRange("You passed an out-of-range value in the "
-                         "'String::insert' function");
+        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
     Size target_len = STD::calculateLength(begin, end);
     fill_with(backward(pos, pos + target_len), begin, target_len);
-    return String::Iterator(val_begin + pos);
+    return Iterator(val_begin + pos);
 }
 
-String::Iterator String::insert(const String::Iterator &iter, char t,
-                                Size size) {
+String::Iterator String::insert(const Iterator &iter, char t, Size size) {
     return insert(iter.target - val_begin, t, size);
 }
 
-String::Iterator String::insert(const String::Iterator &iter,
-                                const std::initializer_list<char> &list) {
+String::Iterator String::insert(const Iterator &iter, const std::initializer_list<char> &list) {
     return insert(iter.target - val_begin, list);
 }
 
-String::Iterator String::insert(const String::Iterator &iter,
-                                const char *target) {
-    return insert(iter.target - val_begin, target,
-                  STD::calculateLength(target));
+String::Iterator String::insert(const Iterator &iter, const char *target) {
+    return insert(iter.target - val_begin, target, STD::calculateLength(target));
 }
 
-String::Iterator String::insert(const String::Iterator &iter,
-                                const char *target, Size target_len) {
+String::Iterator String::insert(const Iterator &iter, const char *target, Size target_len) {
     return insert(iter.target - val_begin, target, target_len);
 }
 
-String::Iterator String::insert(const String::Iterator &iter,
-                                const char *target, Size target_pos,
-                                Size target_len) {
+String::Iterator String::insert(const Iterator &iter, const char *target,
+                                Size target_pos, Size target_len) {
     return insert(iter.target - val_begin, target + target_pos, target_len);
 }
 
-String::Iterator String::insert(const String::Iterator &iter,
-                                const String &target, Size target_pos,
-                                Size target_len) {
-    return insert(iter.target - val_begin, target.c_str() + target_pos,
-                  target_len);
+String::Iterator String::insert(const Iterator &iter, const String &target,
+                                Size target_pos, Size target_len) {
+    return insert(iter.target - val_begin, target.c_str() + target_pos, target_len);
 }
 
-String::Iterator String::insert(const String::Iterator &iter,
-                                const Iter<char> &begin,
-                                const Iter<char> &end) {
+String::Iterator String::insert(const Iterator &iter, const Iter<char> &begin, const Iter<char> &end) {
     return insert(iter.target - val_begin, *begin.to_const(), *end.to_const());
 }
 
-String::Iterator String::insert(const String::Iterator &iter,
-                                const cIter<char> &begin,
-                                const cIter<char> &end) {
+String::Iterator String::insert(const Iterator &iter, const cIter<char> &begin, const cIter<char> &end) {
     return insert(iter.target - val_begin, begin, end);
 }
 
-String::cIterator String::insert(const String::cIterator &iter, char t,
-                                 Size size) {
-    return String::cIterator(insert(iter.target - val_begin, t, size).target);
+String::cIterator String::insert(const cIterator &iter, char t, Size size) {
+    return cIterator(insert(iter.target - val_begin, t, size).target);
 }
 
-String::cIterator String::insert(const String::cIterator &iter,
-                                 const std::initializer_list<char> &list) {
+String::cIterator String::insert(const cIterator &iter, const std::initializer_list<char> &list) {
     return cIterator(insert(iter.target - val_begin, list).target);
 }
 
-String::cIterator String::insert(const String::cIterator &iter,
-                                 const char *target) {
-    return String::cIterator(
-        insert(iter.target - val_begin, target, STD::calculateLength(target))
-            .target);
+String::cIterator String::insert(const cIterator &iter, const char *target) {
+    return cIterator(insert(iter.target - val_begin, target, STD::calculateLength(target)).target);
 }
 
-String::cIterator String::insert(const String::cIterator &iter,
-                                 const char *target, Size target_len) {
-    return String::cIterator(
-        insert(iter.target - val_begin, target, target_len).target);
+String::cIterator String::insert(const cIterator &iter, const char *target, Size target_len) {
+    return cIterator(insert(iter.target - val_begin, target, target_len).target);
 }
 
-String::cIterator String::insert(const String::cIterator &iter,
-                                 const char *target, Size target_pos,
-                                 Size target_len) {
-    return String::cIterator(
-        insert(iter.target - val_begin, target + target_pos, target_len)
-            .target);
+String::cIterator String::insert(const cIterator &iter, const char *target, Size target_pos, Size target_len) {
+    return cIterator(insert(iter.target - val_begin, target + target_pos, target_len).target);
 }
 
-String::cIterator String::insert(const String::cIterator &iter,
-                                 const String &target, Size target_pos,
-                                 Size target_len) {
-    return String::cIterator(
-        insert(iter.target - val_begin, target.c_str() + target_pos, target_len)
-            .target);
+String::cIterator String::insert(const cIterator &iter, const String &target, Size target_pos, Size target_len) {
+    return cIterator(insert(iter.target - val_begin, target.c_str() + target_pos, target_len).target);
 }
 
-String::cIterator String::insert(const String::cIterator &iter,
-                                 const Iter<char> &begin,
-                                 const Iter<char> &end) {
-    return String::cIterator(
-        insert(iter.target - val_begin, *begin.to_const(), *end.to_const())
-            .target);
+String::cIterator String::insert(const cIterator &iter, const Iter<char> &begin, const Iter<char> &end) {
+    return cIterator(insert(iter.target - val_begin, *begin.to_const(), *end.to_const()).target);
 }
 
-String::cIterator String::insert(const String::cIterator &iter,
-                                 const cIter<char> &begin,
-                                 const cIter<char> &end) {
-    return String::cIterator(
-        insert(iter.target - val_begin, begin, end).target);
+String::cIterator String::insert(const cIterator &iter, const cIter<char> &begin, const cIter<char> &end) {
+    return cIterator(insert(iter.target - val_begin, begin, end).target);
 }
 
-String::rIterator String::insert(const String::rIterator &iter, char t,
-                                 Size size) {
-    return String::rIterator(
-        insert(iter.target - val_begin + 1, t, size).target + size - 1);
+String::rIterator String::insert(const rIterator &iter, char t, Size size) {
+    return rIterator(insert(iter.target - val_begin + 1, t, size).target + size - 1);
 }
 
-String::rIterator String::insert(const String::rIterator &iter,
-                                 const std::initializer_list<char> &list) {
+String::rIterator String::insert(const rIterator &iter, const std::initializer_list<char> &list) {
     if (!list.size())
         return iter;
     if (iter.target < val_begin - 1 || iter.target >= val_end)
-        throw outOfRange("You passed an out-of-range value in the "
-                         "'String::insert' function");
+        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
     Size temp = iter.target - val_begin + 1;
     rfill_with(backward(temp, temp + list.size()), list);
-    return String::rIterator(val_begin + temp + list.size() - 1);
+    return rIterator(val_begin + temp + list.size() - 1);
 }
 
-String::rIterator String::insert(const String::rIterator &iter,
-                                 const char *target, Size target_len) {
+String::rIterator String::insert(const rIterator &iter, const char *target, Size target_len) {
     if (!target_len)
         return iter;
     if (iter.target >= val_end || iter.target < val_begin - 1)
-        throw outOfRange("You passed an out-of-range value in the "
-                         "'String::insert' function");
-    auto temp = backward(iter.target - val_begin + 1,
-                         iter.target - val_begin + 1 + target_len);
+        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+    auto temp = backward(iter.target - val_begin + 1, iter.target - val_begin + 1 + target_len);
     rfill_with(temp, target, target_len);
-    return String::rIterator(temp + target_len - 1);
+    return rIterator(temp + target_len - 1);
 }
 
-String::rIterator String::insert(const String::rIterator &iter,
-                                 const char *target) {
+String::rIterator String::insert(const rIterator &iter, const char *target) {
     return insert(iter, target, STD::calculateLength(target));
 }
 
-String::rIterator String::insert(const String::rIterator &iter,
-                                 const char *target, Size target_pos,
-                                 Size target_len) {
+String::rIterator String::insert(const rIterator &iter, const char *target,
+                                 Size target_pos, Size target_len) {
     return insert(iter, target + target_pos, target_len);
 }
 
-String::rIterator String::insert(const String::rIterator &iter,
-                                 const String &target, Size target_pos,
-                                 Size target_len) {
+String::rIterator String::insert(const rIterator &iter, const String &target,
+                                 Size target_pos, Size target_len) {
     if (target_len == Npos)
         target_len = target.size_;
     return insert(iter, target.c_str() + target_pos, target_len);
 }
 
-String::rIterator String::insert(const String::rIterator &iter,
-                                 const Iter<char> &begin,
-                                 const Iter<char> &end) {
+String::rIterator String::insert(const rIterator &iter, const Iter<char> &begin, const Iter<char> &end) {
     return insert(iter, *begin.to_const(), *end.to_const());
 }
 
-String::rIterator String::insert(const String::rIterator &iter,
-                                 const cIter<char> &begin,
-                                 const cIter<char> &end) {
+String::rIterator String::insert(const rIterator &iter, const cIter<char> &begin, const cIter<char> &end) {
     if (begin == end)
         return iter;
     if (iter.target >= val_end || iter.target < val_begin - 1)
-        throw outOfRange("You passed an out-of-range value in the "
-                         "'String::insert' function");
+        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
     Size target_len = STD::calculateLength(begin, end);
-    auto temp = backward(iter.target - val_begin + 1,
-                         iter.target - val_begin + 1 + target_len);
+    auto temp = backward(iter.target - val_begin + 1, iter.target - val_begin + 1 + target_len);
     rfill_with(temp, begin, target_len);
-    return String::rIterator(temp + target_len - 1);
+    return rIterator(temp + target_len - 1);
 }
 
-String::crIterator String::insert(const String::crIterator &iter, char t,
+String::crIterator String::insert(const crIterator &iter, char t,
                                   Size size) {
-    return String::crIterator(
-        insert(iter.target - val_begin + 1, t, size).target + size - 1);
+    return crIterator(insert(iter.target - val_begin + 1, t, size).target + size - 1);
 }
 
-String::crIterator String::insert(const String::crIterator &iter,
+String::crIterator String::insert(const crIterator &iter,
                                   const std::initializer_list<char> &list) {
-    return String::crIterator(insert(rIterator(iter.target), list).target);
+    return crIterator(insert(rIterator(iter.target), list).target);
 }
 
-String::crIterator String::insert(const String::crIterator &iter,
+String::crIterator String::insert(const crIterator &iter,
                                   const char *target) {
-    return String::crIterator(
-        insert(rIterator(iter.target), target, STD::calculateLength(target))
-            .target);
+    return crIterator(insert(
+            rIterator(iter.target), target, STD::calculateLength(target)).target);
 }
 
-String::crIterator String::insert(const String::crIterator &iter,
+String::crIterator String::insert(const crIterator &iter,
                                   const char *target, Size target_len) {
-    return String::crIterator(
-        insert(rIterator(iter.target), target, target_len).target);
+    return crIterator(
+            insert(rIterator(iter.target), target, target_len).target);
 }
 
-String::crIterator String::insert(const String::crIterator &iter,
-                                  const char *target, Size target_pos,
-                                  Size target_len) {
-    return String::crIterator(
-        insert(rIterator(iter.target), target + target_pos, target_len).target);
+String::crIterator String::insert(const crIterator &iter,
+                                  const char *target, Size target_pos, Size target_len) {
+    return crIterator(insert(
+            rIterator(iter.target), target + target_pos, target_len).target);
 }
 
-String::crIterator String::insert(const String::crIterator &iter,
-                                  const String &target, Size target_pos,
-                                  Size target_len) {
+String::crIterator String::insert(const crIterator &iter, const String &target,
+                                  Size target_pos, Size target_len) {
     if (target_len == Npos)
         target_len = target.size_;
-    return String::crIterator(
-        insert(rIterator(iter.target), target.c_str() + target_pos, target_len)
-            .target);
+    return crIterator(insert(
+            rIterator(iter.target), target.c_str() + target_pos, target_len).target);
 }
 
-String::crIterator String::insert(const String::crIterator &iter,
-                                  const Iter<char> &begin,
+String::crIterator String::insert(const crIterator &iter, const Iter<char> &begin,
                                   const Iter<char> &end) {
-    return String::crIterator(
-        insert(rIterator(iter.target), *begin.to_const(), *end.to_const())
-            .target);
+    return crIterator(insert(
+            rIterator(iter.target), *begin.to_const(), *end.to_const()).target);
 }
 
-String::crIterator String::insert(const String::crIterator &iter,
-                                  const cIter<char> &begin,
+String::crIterator String::insert(const crIterator &iter, const cIter<char> &begin,
                                   const cIter<char> &end) {
-    return String::crIterator(
-        insert(rIterator(iter.target), begin, end).target);
+    return crIterator(insert(rIterator(iter.target), begin, end).target);
 }
 
 String::Iterator String::erase(Size pos, Size size) {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::erase' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::erase' function");
     if (!size)
         return String::Iterator(val_begin + pos);
     size = pos + size > size_ ? size_ - pos : size;
@@ -595,72 +519,60 @@ String::Iterator String::erase(Size pos, Size size) {
     size_ -= size;
     val_end -= size;
     *val_end = '\0';
-    return String::Iterator(val_begin + pos);
+    return Iterator(val_begin + pos);
 }
 
-String::Iterator String::erase(const String::Iterator &iter) {
+String::Iterator String::erase(const Iterator &iter) {
     return erase(iter.target - val_begin, 1);
 }
 
-String::cIterator String::erase(const String::cIterator &iter) {
-    return String::cIterator(erase(iter.target - val_begin, 1).target);
+String::cIterator String::erase(const cIterator &iter) {
+    return cIterator(erase(iter.target - val_begin, 1).target);
 }
 
-String::Iterator String::erase(const String::Iterator &begin,
-                               const String::Iterator &end) {
+String::Iterator String::erase(const Iterator &begin, const String::Iterator &end) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin || end.target > val_end ||
         begin.target > end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::erase' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::erase' function");
     return erase(begin.target - val_begin, end - begin);
 }
 
-String::cIterator String::erase(const String::cIterator &begin,
-                                const String::cIterator &end) {
+String::cIterator String::erase(const cIterator &begin, const cIterator &end) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin || end.target > val_end ||
         begin.target > end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::erase' function");
-    return String::cIterator(
-        erase(begin.target - val_begin, end - begin).target);
+        throw outOfRange("You selected an out-of-range value in the 'String::erase' function");
+    return cIterator(erase(begin.target - val_begin, end - begin).target);
 }
 
-String::rIterator String::erase(const String::rIterator &iter) {
-    return String::rIterator(erase(iter.target - val_begin, 1).target);
+String::rIterator String::erase(const rIterator &iter) {
+    return rIterator(erase(iter.target - val_begin, 1).target);
 }
 
-String::crIterator String::erase(const String::crIterator &iter) {
-    return String::crIterator(erase(iter.target - val_begin, 1).target);
+String::crIterator String::erase(const crIterator &iter) {
+    return crIterator(erase(iter.target - val_begin, 1).target);
 }
 
-String::rIterator String::erase(const String::rIterator &begin,
-                                const String::rIterator &end) {
+String::rIterator String::erase(const String::rIterator &begin, const String::rIterator &end) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin - 1 || end.target >= val_end ||
         begin.target < end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::erase' function");
-    return String::rIterator(
-        erase(end.target - val_begin + 1, end - begin).target);
+        throw outOfRange("You selected an out-of-range value in the 'String::erase' function");
+    return rIterator(erase(end.target - val_begin + 1, end - begin).target);
 }
 
-String::crIterator String::erase(const String::crIterator &begin,
-                                 const String::crIterator &end) {
+String::crIterator String::erase(const crIterator &begin, const crIterator &end) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin - 1 || end.target >= val_end ||
         begin.target < end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::erase' function");
-    return String::crIterator(
-        erase(end.target - val_begin + 1, end - begin).target);
+        throw outOfRange("You selected an out-of-range value in the 'String::erase' function");
+    return crIterator(erase(end.target - val_begin + 1, end - begin).target);
 }
 
 String &String::replace(Size pos, Size len, Size n, char t) {
     if (pos + len > size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
     if (len < n)
         backward(pos + len, pos + n);
     else if (len > n)
@@ -669,11 +581,9 @@ String &String::replace(Size pos, Size len, Size n, char t) {
     return *this;
 }
 
-String &String::replace(Size pos, Size len,
-                        const std::initializer_list<char> &list) {
+String &String::replace(Size pos, Size len, const std::initializer_list<char> &list) {
     if (pos + len > size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
     if (len < list.size())
         backward(pos + len, pos + list.size());
     else if (len > list.size())
@@ -682,11 +592,9 @@ String &String::replace(Size pos, Size len,
     return *this;
 }
 
-String &String::replace(Size pos, Size len, const char *target,
-                        Size target_len) {
+String &String::replace(Size pos, Size len, const char *target, Size target_len) {
     if (pos + len > size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
     if (len < target_len)
         backward(pos + len, pos + target_len);
     else if (len > target_len)
@@ -706,8 +614,7 @@ String &String::replace(Size pos, Size len, const String &target) {
 String &String::replace(Size pos, Size len, const String &target,
                         Size target_pos, Size target_len) {
     if (target_pos + target_len > target.size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
     return replace(pos, len, target.c_str() + target_pos, target_len);
 }
 
@@ -716,11 +623,9 @@ String &String::replace(Size pos, Size len, const Iter<char> &begin,
     return replace(pos, len, *begin.to_const(), *end.to_const());
 }
 
-String &String::replace(Size pos, Size len, const cIter<char> &begin,
-                        const cIter<char> &end) {
+String &String::replace(Size pos, Size len, const cIter<char> &begin, const cIter<char> &end) {
     if (pos + len > size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
     Size target_len = calculateLength(begin, end);
     if (len < target_len)
         backward(pos + len, pos + target_len);
@@ -730,25 +635,83 @@ String &String::replace(Size pos, Size len, const cIter<char> &begin,
     return *this;
 }
 
-String &String::replace(const String::Iterator &begin,
-                        const String::Iterator &end, Size n, char t) {
+String &String::replace(const Iterator &begin, const Iterator &end, Size n, char t) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin || end.target > val_end ||
         begin.target > end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
     return replace(begin.target - val_begin, end.target - begin.target, n, t);
 }
 
-String &String::replace(const String::Iterator &begin,
-                        const String::Iterator &end,
+String &String::replace(const Iterator &begin, const Iterator &end,
                         const std::initializer_list<char> &list) {
     return replace(begin.target - val_begin, end - begin, list);
 }
 
-String &String::replace(const String::Iterator &begin,
-                        const String::Iterator &end, const char *target,
-                        Size target_len) {
+String &String::replace(const Iterator &begin, const Iterator &end,
+                        const char *target, Size target_len) {
+    if (begin.target >= val_end || begin.target < val_begin ||
+        end.target < val_begin || end.target > val_end ||
+        begin.target > end.target)
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
+    return replace(begin.target - val_begin, end.target - begin.target, target,
+                   target_len);
+}
+
+String &String::replace(const Iterator &begin, const Iterator &end, const char *target) {
+    if (begin.target >= val_end || begin.target < val_begin ||
+        end.target < val_begin || end.target > val_end ||
+        begin.target > end.target)
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
+    return replace(begin.target - val_begin, end.target - begin.target, target,
+                   STD::calculateLength(target));
+}
+
+String &String::replace(const Iterator &begin, const Iterator &end, const String &target) {
+    if (begin.target >= val_end || begin.target < val_begin ||
+        end.target < val_begin || end.target > val_end ||
+        begin.target > end.target)
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
+    return replace(begin.target - val_begin, end.target - begin.target, target);
+}
+
+String &String::replace(const Iterator &begin, const Iterator &end,
+                        const String &target, Size target_pos, Size target_len) {
+    if (begin.target >= val_end || begin.target < val_begin ||
+        end.target < val_begin || end.target > val_end ||
+        begin.target > end.target)
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
+    return replace(begin.target - val_begin, end.target - begin.target,
+                   target.c_str() + target_pos, target_len);
+}
+
+String &String::replace(const Iterator &begin, const Iterator &end,
+                        const Iter<char> &target_begin, const Iter<char> &target_end) {
+    return replace(begin.target - val_begin, end - begin,
+                   *target_begin.to_const(), *target_end.to_const());
+}
+
+String &String::replace(const Iterator &begin, const Iterator &end,
+                        const cIter<char> &target_begin, const cIter<char> &target_end) {
+    return replace(begin.target - val_begin, end - begin, target_begin,
+                   target_end);
+}
+
+String &String::replace(const cIterator &begin, const cIterator &end, Size n, char t) {
+    if (begin.target >= val_end || begin.target < val_begin ||
+        end.target < val_begin || end.target > val_end ||
+        begin.target > end.target)
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
+    return replace(begin.target - val_begin, end.target - begin.target, n, t);
+}
+
+String &String::replace(const cIterator &begin, const cIterator &end,
+                        const std::initializer_list<char> &list) {
+    return replace(begin.target - val_begin, end - begin, list);
+}
+
+String &String::replace(const cIterator &begin, const cIterator &end,
+                        const char *target, Size target_len) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin || end.target > val_end ||
         begin.target > end.target)
@@ -758,295 +721,174 @@ String &String::replace(const String::Iterator &begin,
                    target_len);
 }
 
-String &String::replace(const String::Iterator &begin,
-                        const String::Iterator &end, const char *target) {
+String &String::replace(const cIterator &begin, const cIterator &end, const char *target) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin || end.target > val_end ||
         begin.target > end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
     return replace(begin.target - val_begin, end.target - begin.target, target,
                    STD::calculateLength(target));
 }
 
-String &String::replace(const String::Iterator &begin,
-                        const String::Iterator &end, const String &target) {
+String &String::replace(const cIterator &begin, const cIterator &end, const String &target) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin || end.target > val_end ||
         begin.target > end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
     return replace(begin.target - val_begin, end.target - begin.target, target);
 }
 
-String &String::replace(const String::Iterator &begin,
-                        const String::Iterator &end, const String &target,
-                        Size target_pos, Size target_len) {
+String &String::replace(const cIterator &begin, const cIterator &end,
+                        const String &target, Size target_pos, Size target_len) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin || end.target > val_end ||
         begin.target > end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
     return replace(begin.target - val_begin, end.target - begin.target,
                    target.c_str() + target_pos, target_len);
 }
 
-String &String::replace(const String::Iterator &begin,
-                        const String::Iterator &end,
-                        const Iter<char> &target_begin,
-                        const Iter<char> &target_end) {
+String &String::replace(const cIterator &begin, const cIterator &end,
+                        const Iter<char> &target_begin, const Iter<char> &target_end) {
     return replace(begin.target - val_begin, end - begin,
                    *target_begin.to_const(), *target_end.to_const());
 }
 
-String &String::replace(const String::Iterator &begin,
-                        const String::Iterator &end,
-                        const cIter<char> &target_begin,
-                        const cIter<char> &target_end) {
+String &String::replace(const cIterator &begin, const cIterator &end,
+                        const cIter<char> &target_begin, const cIter<char> &target_end) {
     return replace(begin.target - val_begin, end - begin, target_begin,
                    target_end);
 }
 
-String &String::replace(const String::cIterator &begin,
-                        const String::cIterator &end, Size n, char t) {
-    if (begin.target >= val_end || begin.target < val_begin ||
-        end.target < val_begin || end.target > val_end ||
-        begin.target > end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
-    return replace(begin.target - val_begin, end.target - begin.target, n, t);
-}
-
-String &String::replace(const String::cIterator &begin,
-                        const String::cIterator &end,
-                        const std::initializer_list<char> &list) {
-    return replace(begin.target - val_begin, end - begin, list);
-}
-
-String &String::replace(const String::cIterator &begin,
-                        const String::cIterator &end, const char *target,
-                        Size target_len) {
-    if (begin.target >= val_end || begin.target < val_begin ||
-        end.target < val_begin || end.target > val_end ||
-        begin.target > end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
-    return replace(begin.target - val_begin, end.target - begin.target, target,
-                   target_len);
-}
-
-String &String::replace(const String::cIterator &begin,
-                        const String::cIterator &end, const char *target) {
-    if (begin.target >= val_end || begin.target < val_begin ||
-        end.target < val_begin || end.target > val_end ||
-        begin.target > end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
-    return replace(begin.target - val_begin, end.target - begin.target, target,
-                   STD::calculateLength(target));
-}
-
-String &String::replace(const String::cIterator &begin,
-                        const String::cIterator &end, const String &target) {
-    if (begin.target >= val_end || begin.target < val_begin ||
-        end.target < val_begin || end.target > val_end ||
-        begin.target > end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
-    return replace(begin.target - val_begin, end.target - begin.target, target);
-}
-
-String &String::replace(const String::cIterator &begin,
-                        const String::cIterator &end, const String &target,
-                        Size target_pos, Size target_len) {
-    if (begin.target >= val_end || begin.target < val_begin ||
-        end.target < val_begin || end.target > val_end ||
-        begin.target > end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
-    return replace(begin.target - val_begin, end.target - begin.target,
-                   target.c_str() + target_pos, target_len);
-}
-
-String &String::replace(const String::cIterator &begin,
-                        const String::cIterator &end,
-                        const Iter<char> &target_begin,
-                        const Iter<char> &target_end) {
-    return replace(begin.target - val_begin, end - begin,
-                   *target_begin.to_const(), *target_end.to_const());
-}
-
-String &String::replace(const String::cIterator &begin,
-                        const String::cIterator &end,
-                        const cIter<char> &target_begin,
-                        const cIter<char> &target_end) {
-    return replace(begin.target - val_begin, end - begin, target_begin,
-                   target_end);
-}
-
-String &String::replace(const String::rIterator &begin,
-                        const String::rIterator &end, Size n, char t) {
+String &String::replace(const rIterator &begin, const rIterator &end, Size n, char t) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin - 1 || end.target >= val_end ||
         begin.target < end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
     return replace(begin.target - val_begin + 1, begin - end, n, t);
 }
 
-String &String::replace(const String::rIterator &begin,
-                        const String::rIterator &end,
+String &String::replace(const rIterator &begin, const rIterator &end,
                         const std::initializer_list<char> &list) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin - 1 || end.target >= val_end ||
         begin.target < end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
     Size len = end - begin;
     if (len < list.size()) {
         auto temp = end.target - val_begin + 1;
-        backward(begin.target - val_begin + 1,
-                 begin.target - val_begin + 1 + list.size() - len);
+        backward(begin.target - val_begin + 1, begin.target - val_begin + 1 + list.size() - len);
         rfill_with(val_begin + temp, list);
     } else if (len > list.size()) {
-        forward(begin.target - val_begin + 1,
-                begin.target - val_begin + 1 + list.size() - len);
+        forward(begin.target - val_begin + 1, begin.target - val_begin + 1 + list.size() - len);
         rfill_with(end.target + 1, list);
     } else
         rfill_with(end.target + 1, list);
     return *this;
 }
 
-String &String::replace(const String::rIterator &begin,
-                        const String::rIterator &end, const char *target,
-                        Size target_len) {
+String &String::replace(const rIterator &begin, const rIterator &end, const char *target, Size target_len) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin - 1 || end.target >= val_end ||
         begin.target < end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
     Size len = end - begin;
     if (len < target_len) {
         auto temp = end.target - val_begin + 1;
-        backward(begin.target - val_begin + 1,
-                 begin.target - val_begin + 1 + target_len - len);
+        backward(begin.target - val_begin + 1, begin.target - val_begin + 1 + target_len - len);
         rfill_with(val_begin + temp, target, target_len);
     } else if (len > target_len) {
-        forward(begin.target - val_begin + 1,
-                begin.target - val_begin + 1 + target_len - len);
+        forward(begin.target - val_begin + 1, begin.target - val_begin + 1 + target_len - len);
         rfill_with(end.target + 1, target, target_len);
     } else
         rfill_with(end.target + 1, target, target_len);
     return *this;
 }
 
-String &String::replace(const String::rIterator &begin,
-                        const String::rIterator &end, const char *target) {
+String &String::replace(const rIterator &begin, const rIterator &end, const char *target) {
     return replace(begin, end, target, STD::calculateLength(target));
 }
 
-String &String::replace(const String::rIterator &begin,
-                        const String::rIterator &end, const String &target) {
+String &String::replace(const rIterator &begin, const rIterator &end, const String &target) {
     return replace(begin, end, target.c_str(), target.size_);
 }
 
-String &String::replace(const String::rIterator &begin,
-                        const String::rIterator &end, const String &target,
-                        Size target_pos, Size target_len) {
+String &String::replace(const rIterator &begin, const rIterator &end,
+                        const String &target, Size target_pos, Size target_len) {
     return replace(begin, end, target.c_str() + target_pos, target_len);
 }
 
-String &String::replace(const String::rIterator &begin,
-                        const String::rIterator &end,
-                        const Iter<char> &target_begin,
-                        const Iter<char> &target_end) {
+String &String::replace(const rIterator &begin, const rIterator &end,
+                        const Iter<char> &target_begin, const Iter<char> &target_end) {
     return replace(begin, end, *target_begin.to_const(),
                    *target_end.to_const());
 }
 
-String &String::replace(const String::rIterator &begin,
-                        const String::rIterator &end,
-                        const cIter<char> &target_begin,
-                        const cIter<char> &target_end) {
+String &String::replace(const rIterator &begin, const rIterator &end,
+                        const cIter<char> &target_begin, const cIter<char> &target_end) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin - 1 || end.target >= val_end ||
         begin.target < end.target)
         throw outOfRange("You selected an out-of-range value in the "
                          "'String::replace' function");
     Size len = end - begin,
-         target_len = calculateLength(target_begin, target_end);
+            target_len = calculateLength(target_begin, target_end);
     if (len < target_len) {
         auto temp = end.target - val_begin + 1;
-        backward(begin.target - val_begin + 1,
-                 begin.target - val_begin + 1 + target_len - len);
+        backward(begin.target - val_begin + 1, begin.target - val_begin + 1 + target_len - len);
         rfill_with(val_begin + temp, target_begin, target_len);
     } else if (len > target_len) {
-        forward(begin.target - val_begin + 1,
-                begin.target - val_begin + 1 + target_len - len);
+        forward(begin.target - val_begin + 1, begin.target - val_begin + 1 + target_len - len);
         rfill_with(end.target + 1, target_begin, target_len);
     } else
         rfill_with(end.target + 1, target_begin, target_len);
     return *this;
 }
 
-String &String::replace(const String::crIterator &begin,
-                        const String::crIterator &end, Size n, char t) {
+String &String::replace(const crIterator &begin, const crIterator &end, Size n, char t) {
     if (begin.target >= val_end || begin.target < val_begin ||
         end.target < val_begin - 1 || end.target >= val_end ||
         begin.target < end.target)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::replace' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
     return replace(begin.target - val_begin + 1, begin - end, n, t);
 }
 
-String &String::replace(const String::crIterator &begin,
-                        const String::crIterator &end,
-                        const std::initializer_list<char> &list) {
+String &String::replace(const crIterator &begin,
+                        const crIterator &end, const std::initializer_list<char> &list) {
     return replace(rIterator(begin.target), rIterator(end.target), list);
 }
 
-String &String::replace(const String::crIterator &begin,
-                        const String::crIterator &end, const char *target,
-                        Size target_len) {
+String &String::replace(const crIterator &begin, const crIterator &end,
+                        const char *target, Size target_len) {
     return replace(String::rIterator(begin.target),
                    String::rIterator(end.target), target, target_len);
 }
 
-String &String::replace(const String::crIterator &begin,
-                        const String::crIterator &end, const char *target) {
-    return replace(String::rIterator(begin.target),
-                   String::rIterator(end.target), target,
-                   STD::calculateLength(target));
+String &String::replace(const crIterator &begin, const crIterator &end, const char *target) {
+    return replace(rIterator(begin.target),
+                   rIterator(end.target), target, STD::calculateLength(target));
 }
 
-String &String::replace(const String::crIterator &begin,
-                        const String::crIterator &end, const String &target) {
-    return replace(String::rIterator(begin.target),
-                   String::rIterator(end.target), target.c_str(), target.size_);
+String &String::replace(const crIterator &begin, const crIterator &end, const String &target) {
+    return replace(rIterator(begin.target),
+                   rIterator(end.target), target.c_str(), target.size_);
 }
 
-String &String::replace(const String::crIterator &begin,
-                        const String::crIterator &end, const String &target,
-                        Size target_pos, Size target_len) {
-    return replace(String::rIterator(begin.target),
-                   String::rIterator(end.target), target.c_str() + target_pos,
-                   target_len);
+String &String::replace(const crIterator &begin, const crIterator &end,
+                        const String &target, Size target_pos, Size target_len) {
+    return replace(rIterator(begin.target), rIterator(end.target),
+                   target.c_str() + target_pos, target_len);
 }
 
-String &String::replace(const String::crIterator &begin,
-                        const String::crIterator &end,
-                        const Iter<char> &target_begin,
-                        const Iter<char> &target_end) {
-    return replace(String::rIterator(begin.target),
-                   String::rIterator(end.target), target_begin, target_end);
+String &String::replace(const crIterator &begin, const crIterator &end,
+                        const Iter<char> &target_begin, const Iter<char> &target_end) {
+    return replace(rIterator(begin.target),
+                   rIterator(end.target), target_begin, target_end);
 }
 
-String &String::replace(const String::crIterator &begin,
-                        const String::crIterator &end,
-                        const cIter<char> &target_begin,
-                        const cIter<char> &target_end) {
-    return replace(String::rIterator(begin.target),
-                   String::rIterator(end.target), target_begin, target_end);
+String &String::replace(const crIterator &begin, const crIterator &end,
+                        const cIter<char> &target_begin, const cIter<char> &target_end) {
+    return replace(rIterator(begin.target), rIterator(end.target), target_begin, target_end);
 }
 
 String &String::operator=(const String &other) {
@@ -1082,8 +924,7 @@ String &STD::String::operator+=(const String &other) {
 
 String &String::operator*=(int size) {
     if (size < 0)
-        throw logicError(
-            "You passed an illegal value in the function 'String::operator*'.");
+        throw logicError("You passed an illegal value in the function 'String::operator*'.");
     Size new_size = size_ * size;
     auto ptr = Allocate_n<char>(new_size + 1), temp = ptr;
     for (int i = 0; i < size; ++i) {
@@ -1114,8 +955,7 @@ String STD::operator+(const String &left, const String &right) {
 
 String STD::operator*(const String &target, int size) {
     if (size < 0)
-        throw logicError(
-            "You passed an illegal value in the function 'String::operator*'.");
+        throw logicError("You passed an illegal value in the function 'String::operator*'.");
     String target_;
     target_.size_ = size * target.size_;
     auto ptr = Allocate_n<char>(target_.size_ + 1), temp = ptr;
@@ -1196,29 +1036,26 @@ Size String::find(char t, Size pos) const {
             return temp - val_begin;
         ++temp;
     }
-    return String::Npos;
+    return Npos;
 }
 
 Size String::find(const char *target, Size pos) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::find' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::find' function");
     auto temp = Boyer_Moore(target, val_begin + pos, size_ - pos);
     return temp ? temp - val_begin : Npos;
 }
 
 Size String::find(const char *target, Size pos, Size size) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::find' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::find' function");
     auto temp = Boyer_Moore(target, size, val_begin + pos, size_ - pos);
     return temp ? temp - val_begin : Npos;
 }
 
 Size String::find(const String &target, Size pos) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::find' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::find' function");
     auto temp = Boyer_Moore(target.val_begin, target.size_, val_begin + pos,
                             size_ - pos);
     return temp ? temp - val_begin : Npos;
@@ -1226,17 +1063,15 @@ Size String::find(const String &target, Size pos) const {
 
 Size String::find(const String &target, Size pos, Size size) const {
     if (pos >= size_ || size > target.size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::find' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::find' function");
     auto temp =
-        Boyer_Moore(target.val_begin, size, val_begin + pos, size_ - pos);
+            Boyer_Moore(target.val_begin, size, val_begin + pos, size_ - pos);
     return temp ? temp - val_begin : Npos;
 }
 
 Size String::rfind(char t, Size pos) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::rfind' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
     auto temp = val_end - 1;
     while (temp >= val_begin) {
         if (*temp == t)
@@ -1248,24 +1083,21 @@ Size String::rfind(char t, Size pos) const {
 
 Size String::rfind(const char *target, Size pos) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::rfind' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
     auto temp = rBoyer_Moore(target, val_begin + pos, size_ - pos);
     return temp ? temp - val_begin : Npos;
 }
 
 Size String::rfind(const char *target, Size pos, Size size) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::rfind' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
     auto temp = rBoyer_Moore(target, size, val_begin + pos, size_ - pos);
     return temp ? temp - val_begin : Npos;
 }
 
 Size String::rfind(const String &target, Size pos) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::rfind' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
     auto temp = rBoyer_Moore(target.val_begin, target.size_, val_begin + pos,
                              size_ - pos);
     return temp ? temp - val_begin : Npos;
@@ -1273,17 +1105,15 @@ Size String::rfind(const String &target, Size pos) const {
 
 Size String::rfind(const String &target, Size pos, Size size) const {
     if (pos >= size_ || size > target.size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::rfind' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
     auto temp =
-        rBoyer_Moore(target.val_begin, size, val_begin + pos, size_ - pos);
+            rBoyer_Moore(target.val_begin, size, val_begin + pos, size_ - pos);
     return temp ? temp - val_begin : Npos;
 }
 
 Size String::find_first_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::find_first_of' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::find_first_of' function");
     bool store[256];
     Memset(store, false, 256);
     for (int i = 0; i < size; ++i)
@@ -1307,15 +1137,13 @@ Size String::find_first_of(const String &target, Size pos) const {
 
 Size String::find_first_of(const String &target, Size pos, Size size) const {
     if (size > target.size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::find_first_of' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::find_first_of' function");
     return find_first_of(target.val_begin, pos, size);
 }
 
 Size String::find_last_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::find_last_of' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::find_last_of' function");
     bool store[256];
     Memset(store, false, 256);
     for (int i = 0; i < size; ++i)
@@ -1339,15 +1167,13 @@ Size String::find_last_of(const String &target, Size pos) const {
 
 Size String::find_last_of(const String &target, Size pos, Size size) const {
     if (size > target.size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::find_last_of' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::find_last_of' function");
     return find_first_of(target.val_begin, pos, size);
 }
 
 Size String::find_first_not_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::find_first_not_of' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::find_first_not_of' function");
     bool store[256];
     Memset(store, true, 256);
     for (int i = 0; i < size; ++i)
@@ -1369,18 +1195,15 @@ Size String::find_first_not_of(const String &target, Size pos) const {
     return find_first_not_of(target.val_begin, pos, target.size_);
 }
 
-Size String::find_first_not_of(const String &target, Size pos,
-                               Size size) const {
+Size String::find_first_not_of(const String &target, Size pos, Size size) const {
     if (size > target.size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::find_first_not_of' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::find_first_not_of' function");
     return find_first_not_of(target.val_begin, pos, size);
 }
 
 Size String::find_last_not_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::find_last_not_of' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::find_last_not_of' function");
     bool store[256];
     Memset(store, true, 256);
     for (int i = 0; i < size; ++i)
@@ -1404,15 +1227,13 @@ Size String::find_last_not_of(const String &target, Size pos) const {
 
 Size String::find_last_not_of(const String &target, Size pos, Size size) const {
     if (size > target.size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::find_last_not_of' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::find_last_not_of' function");
     return find_last_not_of(target.val_begin, pos, size);
 }
 
 int String::compare(Size pos1, Size n1, const char *target, Size n2) const {
     if (pos1 + n1 > size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::compare' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::compare' function");
     const char *temp = val_begin + pos1, *end1 = temp + n1, *end2 = target + n2;
     while (temp != end1 && target != end2) {
         if (*temp != *target)
@@ -1435,8 +1256,7 @@ int String::compare(const char *target) const {
 int String::compare(Size pos1, Size n1, const String &target, Size pos2,
                     Size n2) const {
     if (pos2 + n2 > target.size_)
-        throw outOfRange("You selected an out-of-range value in the "
-                         "'String::compare' function");
+        throw outOfRange("You selected an out-of-range value in the 'String::compare' function");
     return compare(pos1, n1, target.val_begin + pos2, n2);
 }
 

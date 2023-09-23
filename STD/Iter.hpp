@@ -36,6 +36,15 @@ namespace STD {
         return count;
     }
 
+    template<typename Arg>
+    Size calculateLength(const cIter<Arg> &begin, const cIter<Arg> &end) {
+        auto temp = begin.deep_copy();
+        Size count = 0;
+        while (*temp != end)
+            ++(*temp), ++count;
+        return count;
+    }
+
     //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Type>
@@ -43,7 +52,7 @@ namespace STD {
     protected:
         Type *target = nullptr;
 
-        explicit Iter(Type *ptr) : target(ptr){};
+        explicit Iter(Type *ptr) : target(ptr) {};
 
     public:
         //这个函数是为了使迭代器能够在用户代码中保持多态性而设立。
@@ -84,7 +93,7 @@ namespace STD {
     protected:
         Type *target = nullptr;
 
-        explicit cIter(Type *ptr) : target(ptr){};
+        explicit cIter(Type *ptr) : target(ptr) {};
 
     public:
         friend class Iter<Type>;
@@ -113,15 +122,6 @@ namespace STD {
         }
     };
 
-    template<typename Arg>
-    Size calculateLength(const cIter<Arg> &begin, const cIter<Arg> &end) {
-        auto temp = begin.deep_copy();
-        Size count = 0;
-        while (*temp != end)
-            ++(*temp), ++count;
-        return count;
-    }
-
     //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Type>
@@ -129,7 +129,7 @@ namespace STD {
     protected:
         using Iter<Type>::target;
 
-        explicit Bidirectional_Iter(Type *ptr) : Iter<Type>(ptr){};
+        explicit Bidirectional_Iter(Type *ptr) : Iter<Type>(ptr) {};
 
     public:
         Shared_ptr<Iter<Type>> deep_copy() const override {
@@ -171,7 +171,7 @@ namespace STD {
     protected:
         using cIter<Type>::target;
 
-        explicit cBidirectional_Iter(Type *ptr) : cIter<Type>(ptr){};
+        explicit cBidirectional_Iter(Type *ptr) : cIter<Type>(ptr) {};
 
     public:
         friend class Bidirectional_Iter<Type>;
@@ -210,7 +210,7 @@ namespace STD {
     protected:
         using Iter<Type>::target;
 
-        explicit Random_Iter(Type *ptr) : Bidirectional_Iter<Type>(ptr){};
+        explicit Random_Iter(Type *ptr) : Bidirectional_Iter<Type>(ptr) {};
 
     public:
         Shared_ptr<Iter<Type>> deep_copy() const override {
@@ -220,6 +220,14 @@ namespace STD {
         Shared_ptr<cIter<Type>> to_const() const override {
             return make_shared<cRandom_Iter<Type>>(cRandom_Iter<Type>(target));
         };
+
+        virtual Shared_ptr<Random_Iter<Type>> new_to_add(Size size) const {
+            return make_shared<Random_Iter<Type>>(Random_Iter<Type>(target + size));
+        }
+
+        virtual Shared_ptr<Random_Iter<Type>> new_to_subtract(Size size) const {
+            return make_shared<Random_Iter<Type>>(Random_Iter<Type>(target - size));
+        }
 
         using Iter<Type>::operator*;
 
@@ -289,7 +297,7 @@ namespace STD {
     protected:
         using cIter<Type>::target;
 
-        explicit cRandom_Iter(Type *ptr) : cBidirectional_Iter<Type>(ptr){};
+        explicit cRandom_Iter(Type *ptr) : cBidirectional_Iter<Type>(ptr) {};
 
     public:
         friend class Random_Iter<Type>;
@@ -297,6 +305,14 @@ namespace STD {
         Shared_ptr<cIter<Type>> deep_copy() const override {
             return make_shared<cRandom_Iter<Type>>(*this);
         };
+
+        virtual Shared_ptr<cRandom_Iter<Type>> new_to_add(Size size) const {
+            return make_shared<cRandom_Iter<Type>>(cRandom_Iter<Type>(target + size));
+        }
+
+        virtual Shared_ptr<cRandom_Iter<Type>> new_to_subtract(Size size) const {
+            return make_shared<cRandom_Iter<Type>>(cRandom_Iter<Type>(target - size));
+        }
 
         using cIter<Type>::operator*;
 

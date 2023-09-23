@@ -27,6 +27,7 @@ namespace STD {
     template<typename Arg>
     void sort(const Random_Iter<Arg> &begin, const Random_Iter<Arg> &right);
 
-}// namespace STD
+
+} // namespace STD
 
 #endif

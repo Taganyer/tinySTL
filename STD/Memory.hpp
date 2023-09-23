@@ -25,7 +25,7 @@ namespace STD {
 
         virtual Size *get_count_ptr() { return nullptr; };
 
-        virtual void release(){};
+        virtual void release() {};
 
         virtual ~basic_Value() = default;
     };
@@ -42,9 +42,10 @@ namespace STD {
 
         Size *count = Allocate<Size>(1);
 
-        Value(Type *target, void (*const_deleter)(const Type *)) : target(target), const_deleter(const_deleter ? const_deleter : constDeallocate<Type>){};
+        Value(Type *target, void (*const_deleter)(const Type *)) : target(target), const_deleter(
+                const_deleter ? const_deleter : constDeallocate<Type>) {};
 
-        Value(Type *target, void (*deleter)(Type *)) : target(target), deleter(deleter ? deleter : Deallocate<Type>){};
+        Value(Type *target, void (*deleter)(Type *)) : target(target), deleter(deleter ? deleter : Deallocate<Type>) {};
 
         long long *get_weak_ptr_count() override { return weak_ptr_count; };
 
@@ -81,12 +82,14 @@ namespace STD {
             }
         }
 
-        Shared_ptr(basic_Value *value, Arg *target) : value(value), target(target){};
+        Shared_ptr(basic_Value *value, Arg *target) : value(value), target(target) {};
 
     public:
-        explicit Shared_ptr(Arg *target, void (*del)(const Arg *) = nullptr) : value(Allocate<Value<Arg>>(target, del)), target(target){};
+        explicit Shared_ptr(Arg *target, void (*del)(const Arg *) = nullptr) : value(Allocate<Value<Arg>>(target, del)),
+                                                                               target(target) {};
 
-        explicit Shared_ptr(Arg *target, void (*del)(Arg *)) : value(Allocate<Value<Arg>>(target, del)), target(target){};
+        explicit Shared_ptr(Arg *target, void (*del)(Arg *)) : value(Allocate<Value<Arg>>(target, del)),
+                                                               target(target) {};
 
         Shared_ptr(const Shared_ptr<Arg> &other);
 
@@ -141,7 +144,8 @@ namespace STD {
 
 
     template<typename Arg>
-    Shared_ptr<Arg>::Shared_ptr(const Shared_ptr<Arg> &other) : value(other.value), target(other.target) { ++(*(other.value->get_count_ptr())); }
+    Shared_ptr<Arg>::Shared_ptr(const Shared_ptr<Arg> &other) : value(other.value),
+                                                                target(other.target) { ++(*(other.value->get_count_ptr())); }
 
     template<typename Arg>
     void Shared_ptr<Arg>::reset(Arg *ptr, void (*del)(Arg *arg)) {
@@ -239,7 +243,7 @@ namespace STD {
         Deleter deleter;
 
     public:
-        unique_ptr(Arg *target, Deleter deleter = Deallocate<Arg>) : target(target), deleter(deleter){};
+        unique_ptr(Arg *target, Deleter deleter = Deallocate<Arg>) : target(target), deleter(deleter) {};
 
         ~unique_ptr() { deleter(target); };
 
@@ -286,10 +290,11 @@ namespace STD {
             if (*counts == 0) Deallocate(counts);
         }
 
-        Weak_ptr(basic_Value *basic, long long *counts, Arg *target) : basic(basic), counts(counts), target(target){};
+        Weak_ptr(basic_Value *basic, long long *counts, Arg *target) : basic(basic), counts(counts), target(target) {};
 
     public:
-        Weak_ptr(const Shared_ptr<Arg> &ptr) : target(ptr.target), counts(ptr.value->get_weak_ptr_count()), basic(ptr.value) { ++(*counts); };
+        Weak_ptr(const Shared_ptr<Arg> &ptr) : target(ptr.target), counts(ptr.value->get_weak_ptr_count()),
+                                               basic(ptr.value) { ++(*counts); };
 
         Weak_ptr(const Weak_ptr<Arg> &ptr) : target(ptr.target), counts(ptr.counts), basic(ptr.basic) {
             if (*counts > 0) ++(*counts);

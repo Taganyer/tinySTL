@@ -232,7 +232,7 @@ namespace STD {
 
 
     template<typename Arg>
-    Size List<Arg>::release(List<Arg>::Node *begin, List<Arg>::Node *end) {
+    Size List<Arg>::release(Node *begin, Node *end) {
         Size count = 0;
         Node *prv = begin->last, *temp;
         while (begin != end) {
@@ -265,7 +265,7 @@ namespace STD {
             auto temp = const_cast<Arg *>(list.begin());
             Node *last = val_begin, *now = val_begin;
             for (int i = 0; i < size_; ++i) {
-                now = Allocate<List<Arg>::Node>(*temp, last, nullptr);
+                now = Allocate<Node>(*temp, last, nullptr);
                 last->next = now;
                 last = now;
                 ++temp;
@@ -522,107 +522,107 @@ namespace STD {
 
     template<typename Arg>
     template<typename... args>
-    typename List<Arg>::Iterator List<Arg>::emplace(const List::Iterator &pos, args &&... vals) {
-        return List<Arg>::Iterator(emplace(List<Arg>::cIterator(pos.node), forward<args>(vals)...).node);
+    typename List<Arg>::Iterator List<Arg>::emplace(const Iterator &pos, args &&... vals) {
+        return Iterator(emplace(cIterator(pos.node), forward<args>(vals)...).node);
     }
 
     template<typename Arg>
     template<typename... args>
-    typename List<Arg>::cIterator List<Arg>::emplace(const List::cIterator &pos, args &&... vals) {
+    typename List<Arg>::cIterator List<Arg>::emplace(const cIterator &pos, args &&... vals) {
         if (!pos.target && pos.node != val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'List::emplace' function");
         auto temp = Allocate<Node>(Arg(forward<args>(vals)...), pos.node->last, pos.node);
         pos.node->last->next = temp;
         pos.node->last = temp;
         ++size_;
-        return List<Arg>::cIterator(temp);
+        return cIterator(temp);
     }
 
     template<typename Arg>
     template<typename... args>
-    typename List<Arg>::rIterator List<Arg>::emplace(const List::rIterator &pos, args &&... vals) {
-        return List<Arg>::rIterator(emplace(List<Arg>::crIterator(pos.node), forward<args>(vals)...).node);
+    typename List<Arg>::rIterator List<Arg>::emplace(const rIterator &pos, args &&... vals) {
+        return rIterator(emplace(crIterator(pos.node), forward<args>(vals)...).node);
     }
 
     template<typename Arg>
     template<typename... args>
-    typename List<Arg>::crIterator List<Arg>::emplace(const List::crIterator &pos, args &&... vals) {
+    typename List<Arg>::crIterator List<Arg>::emplace(const crIterator &pos, args &&... vals) {
         if (!pos.target && pos.node != val_begin)
             throw outOfRange("You passed in an out-of-range iterator in the 'List::emplace' function");
-        auto temp = Allocate<Node>(Arg(forward<args>(vals)...), pos.node, pos.node->next);
+        auto temp = Allocate<List<Arg>::Node>(Arg(forward<args>(vals)...), pos.node, pos.node->next);
         pos.node->next->last = temp;
         pos.node->next = temp;
         ++size_;
-        return List<Arg>::crIterator(temp);
+        return crIterator(temp);
     }
 
     template<typename Arg>
-    typename List<Arg>::Iterator List<Arg>::insert(const List::Iterator &pos, const Arg &target) {
-        return List<Arg>::Iterator(insert(List<Arg>::cIterator(pos.node), target).node);
+    typename List<Arg>::Iterator List<Arg>::insert(const Iterator &pos, const Arg &target) {
+        return Iterator(insert(cIterator(pos.node), target).node);
     }
 
     template<typename Arg>
-    typename List<Arg>::cIterator List<Arg>::insert(const List<Arg>::cIterator &pos, const Arg &target) {
+    typename List<Arg>::cIterator List<Arg>::insert(const cIterator &pos, const Arg &target) {
         if (!pos.target && pos.node != val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'List::emplace' function");
-        auto temp = Allocate<Node>(target, pos.node->last, pos.node);
+        auto temp = Allocate<List<Arg>::Node>(target, pos.node->last, pos.node);
         pos.node->last->next = temp;
         pos.node->last = temp;
         ++size_;
-        return List<Arg>::cIterator(temp);
+        return cIterator(temp);
     }
 
     template<typename Arg>
     typename List<Arg>::Iterator
-    List<Arg>::insert(const List<Arg>::Iterator &pos, const std::initializer_list<Arg> &list) {
+    List<Arg>::insert(const Iterator &pos, const std::initializer_list<Arg> &list) {
         if (!pos.node->last) throw outOfRange("You passed in an out-of-range iterator in the 'List::insert' function");
         size_ += list.size();
         auto last = pos.node->last, now = pos.node->last, head = nullptr;
         for (auto &t: list) {
-            now = Allocate<List<Arg>::Node>(t, last, nullptr);
+            now = Allocate<Node>(t, last, nullptr);
             if (!head) head = now;
             last->next = now;
             last = now;
         }
         pos.node->last = now;
         now->next = pos.node;
-        return List::Iterator(head);
+        return Iterator(head);
     }
 
     template<typename Arg>
     typename List<Arg>::cIterator
-    List<Arg>::insert(const List<Arg>::cIterator &pos, const std::initializer_list<Arg> &list) {
-        return List<Arg>::cIterator(insert(Iterator(pos.node), list).node);
+    List<Arg>::insert(const cIterator &pos, const std::initializer_list<Arg> &list) {
+        return cIterator(insert(Iterator(pos.node), list).node);
     }
 
     template<typename Arg>
     typename List<Arg>::Iterator
-    List<Arg>::insert(const List<Arg>::Iterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
-        return List<Arg>::Iterator(insert(List<Arg>::cIterator(pos.node), *begin.to_const(), *end.to_const()).node);
+    List<Arg>::insert(const Iterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
+        return Iterator(insert(cIterator(pos.node), *begin.to_const(), *end.to_const()).node);
     }
 
     template<typename Arg>
     typename List<Arg>::cIterator
-    List<Arg>::insert(const List<Arg>::cIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
+    List<Arg>::insert(const cIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
         return insert(pos, *begin.to_const(), *end.to_const());
     }
 
     template<typename Arg>
     typename List<Arg>::Iterator
-    List<Arg>::insert(const List<Arg>::Iterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
-        return List<Arg>::Iterator(insert(List<Arg>::cIterator(pos.node), begin, end).node);
+    List<Arg>::insert(const Iterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
+        return Iterator(insert(cIterator(pos.node), begin, end).node);
     }
 
     template<typename Arg>
     typename List<Arg>::cIterator
-    List<Arg>::insert(const List<Arg>::cIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
+    List<Arg>::insert(const cIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
         if (begin == end) return pos;
         if (!pos.target && pos.node != val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'List::emplace' function");
         Node *last = pos.node->last, *now = pos.node->last, *head = nullptr;
         auto temp = begin.deep_copy();
         while (*temp != end) {
-            now = Allocate<List<Arg>::Node>(**temp, last, nullptr);
+            now = Allocate<Node>(**temp, last, nullptr);
             if (!head) head = now;
             last->next = now;
             last = now;
@@ -630,76 +630,76 @@ namespace STD {
         }
         pos.node->last = now;
         now->next = pos.node;
-        return List<Arg>::cIterator(head);
+        return cIterator(head);
     }
 
     template<typename Arg>
-    typename List<Arg>::rIterator List<Arg>::insert(const List::rIterator &pos, const Arg &target) {
-        return List<Arg>::rIterator(insert(List<Arg>::crIterator(pos.node), target).node);
+    typename List<Arg>::rIterator List<Arg>::insert(const rIterator &pos, const Arg &target) {
+        return rIterator(insert(crIterator(pos.node), target).node);
     }
 
     template<typename Arg>
-    typename List<Arg>::crIterator List<Arg>::insert(const List<Arg>::crIterator &pos, const Arg &target) {
+    typename List<Arg>::crIterator List<Arg>::insert(const crIterator &pos, const Arg &target) {
         if (!pos.target && pos.node != val_begin)
             throw outOfRange("You passed in an out-of-range iterator in the 'List::emplace' function");
         auto temp = Allocate<Node>(target, pos.node, pos.node->next);
         pos.node->next->last = temp;
         pos.node->next = temp;
         ++size_;
-        return List<Arg>::crIterator(temp);
+        return crIterator(temp);
     }
 
     template<typename Arg>
     typename List<Arg>::rIterator
-    List<Arg>::insert(const List<Arg>::rIterator &pos, const std::initializer_list<Arg> &list) {
+    List<Arg>::insert(const rIterator &pos, const std::initializer_list<Arg> &list) {
         if (!pos.node->next) throw outOfRange("You passed in an out-of-range iterator in the 'List::insert' function");
         size_ += list.size();
         auto next = pos.node->next, now = pos.node->next, tail = nullptr;
         for (auto &t: list) {
-            now = Allocate<List<Arg>::Node>(t, nullptr, next);
+            now = Allocate<Node>(t, nullptr, next);
             if (!tail) tail = now;
             next->last = now;
             next = now;
         }
         pos.node->next = now;
         now->last = pos.node;
-        return List::Iterator(tail);
+        return Iterator(tail);
     }
 
     template<typename Arg>
     typename List<Arg>::crIterator
-    List<Arg>::insert(const List<Arg>::crIterator &pos, const std::initializer_list<Arg> &list) {
-        return List<Arg>::crIterator(insert(rIterator(pos.node), list).node);
+    List<Arg>::insert(const crIterator &pos, const std::initializer_list<Arg> &list) {
+        return crIterator(insert(rIterator(pos.node), list).node);
     }
 
     template<typename Arg>
     typename List<Arg>::rIterator
-    List<Arg>::insert(const List<Arg>::rIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
-        return List<Arg>::rIterator(insert(List<Arg>::crIterator(pos.node), *begin.to_const(), *end.to_const()).node);
+    List<Arg>::insert(const rIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
+        return rIterator(insert(crIterator(pos.node), *begin.to_const(), *end.to_const()).node);
     }
 
     template<typename Arg>
     typename List<Arg>::crIterator
-    List<Arg>::insert(const List<Arg>::crIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
+    List<Arg>::insert(const crIterator &pos, const Iter<Arg> &begin, const Iter<Arg> &end) {
         return insert(pos, *begin.to_const(), *end.to_const());
     }
 
     template<typename Arg>
     typename List<Arg>::rIterator
-    List<Arg>::insert(const List<Arg>::rIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
-        return List<Arg>::rIterator(insert(List<Arg>::crIterator(pos.node), begin, end).node);
+    List<Arg>::insert(const rIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
+        return rIterator(insert(crIterator(pos.node), begin, end).node);
     }
 
     template<typename Arg>
     typename List<Arg>::crIterator
-    List<Arg>::insert(const List<Arg>::crIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
+    List<Arg>::insert(const crIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
         if (begin == end) return pos;
         if (!pos.target && pos.node != val_begin)
             throw outOfRange("You passed in an out-of-range iterator in the 'List::emplace' function");
         Node *next = pos.node->next, *now = pos.node->next, *tail = nullptr;
         auto temp = begin.deep_copy();
         while (*temp != end) {
-            now = Allocate<List<Arg>::Node>(**temp, nullptr, next);
+            now = Allocate<Node>(**temp, nullptr, next);
             if (!tail) tail = now;
             next->last = now;
             next = now;
@@ -711,60 +711,60 @@ namespace STD {
     }
 
     template<typename Arg>
-    typename List<Arg>::Iterator List<Arg>::erase(const List<Arg>::Iterator &iter) {
-        return List<Arg>::Iterator(erase(List<Arg>::cIterator(iter.node)).node);
+    typename List<Arg>::Iterator List<Arg>::erase(const Iterator &iter) {
+        return Iterator(erase(cIterator(iter.node)).node);
     }
 
     template<typename Arg>
-    typename List<Arg>::cIterator List<Arg>::erase(const List<Arg>::cIterator &iter) {
+    typename List<Arg>::cIterator List<Arg>::erase(const cIterator &iter) {
         if (!iter.target) throw outOfRange("You passed in an out-of-range iterator in the 'List::erase' function");
         auto record = iter.node->next;
         iter.node->last->next = record;
         record->last = iter.node->last;
         Deallocate(iter.node);
         --size_;
-        return List<Arg>::cIterator(record);
+        return cIterator(record);
     }
 
     template<typename Arg>
-    typename List<Arg>::Iterator List<Arg>::erase(const List<Arg>::Iterator &begin, const List<Arg>::Iterator &end) {
-        return List<Arg>::Iterator(erase(List<Arg>::cIterator(begin.node), List<Arg>::cIterator(end.node)).node);
+    typename List<Arg>::Iterator List<Arg>::erase(const Iterator &begin, const Iterator &end) {
+        returnIterator(erase(cIterator(begin.node), cIterator(end.node)).node);
     }
 
     template<typename Arg>
-    typename List<Arg>::cIterator List<Arg>::erase(const List<Arg>::cIterator &begin, const List<Arg>::cIterator &end) {
+    typename List<Arg>::cIterator List<Arg>::erase(const cIterator &begin, const cIterator &end) {
         if (!begin.target) throw outOfRange("You passed in an out-of-range iterator in the 'List::erase' function");
         size_ -= release(begin.node, end.node);
-        return List<Arg>::cIterator(end.node);
+        return cIterator(end.node);
     }
 
     template<typename Arg>
-    typename List<Arg>::rIterator List<Arg>::erase(const List<Arg>::rIterator &iter) {
-        return List<Arg>::rIterator(erase(List<Arg>::crIterator(iter.node)).node);
+    typename List<Arg>::rIterator List<Arg>::erase(const rIterator &iter) {
+        return rIterator(erase(crIterator(iter.node)).node);
     }
 
     template<typename Arg>
-    typename List<Arg>::crIterator List<Arg>::erase(const List<Arg>::crIterator &iter) {
+    typename List<Arg>::crIterator List<Arg>::erase(const crIterator &iter) {
         if (!iter.target) throw outOfRange("You passed in an out-of-range iterator in the 'List::erase' function");
         auto record = iter.node->next;
         iter.node->last->next = record;
         record->last = iter.node->last;
         Deallocate(iter.node);
         --size_;
-        return List<Arg>::crIterator(record);
+        return crIterator(record);
     }
 
     template<typename Arg>
-    typename List<Arg>::rIterator List<Arg>::erase(const List<Arg>::rIterator &begin, const List<Arg>::rIterator &end) {
-        return List<Arg>::rIterator(erase(List<Arg>::crIterator(begin.node), List<Arg>::crIterator(end.node)).node);
+    typename List<Arg>::rIterator List<Arg>::erase(const rIterator &begin, const rIterator &end) {
+        return rIterator(erase(crIterator(begin.node), crIterator(end.node)).node);
     }
 
     template<typename Arg>
     typename List<Arg>::crIterator
-    List<Arg>::erase(const List<Arg>::crIterator &begin, const List<Arg>::crIterator &end) {
+    List<Arg>::erase(const crIterator &begin, const crIterator &end) {
         if (!begin.target) throw outOfRange("You passed in an out-of-range iterator in the 'List::erase' function");
         size_ -= release(end.node->next, begin.node->next);
-        return List<Arg>::crIterator(end.node->next);
+        return crIterator(end.node->next);
     }
 
     template<typename Arg>
@@ -857,22 +857,24 @@ namespace STD {
     protected:
         using Iter<Arg>::target;
 
-        List<Arg>::Node *node = nullptr;
+        Node *node = nullptr;
 
-        Iterator &operator=(List<Arg>::Node *ptr) {
+        Iterator &operator=(Node *ptr) {
             target = ptr->value;
             node = ptr;
             return *this;
         };
 
-        explicit Iterator(List<Arg>::Node *ptr) : Bidirectional_Iter<Arg>(ptr->value), node(ptr) {};
+        explicit Iterator(Node *ptr) : Bidirectional_Iter<Arg>(ptr->value), node(ptr) {};
 
     public:
         friend class List<Arg>;
 
-        Shared_ptr<Iter<Arg>> deep_copy() const override { return make_shared<List<Arg>::Iterator>(*this); };
+        Shared_ptr<Iter<Arg>> deep_copy() const override {
+            return make_shared<Iterator>(*this); };
 
-        Shared_ptr<cIter<Arg>> to_const() const override { return make_shared<List<Arg>::cIterator>(cIterator(node)); };
+        Shared_ptr<cIter<Arg>> to_const() const override {
+            return make_shared<cIterator>(cIterator(node)); };
 
         using Iter<Arg>::operator*;
 
@@ -890,7 +892,7 @@ namespace STD {
             auto temp = node;
             node = node->next;
             target = node->value;
-            return List<Arg>::Iterator(temp);
+            return Iterator(temp);
         };
 
         Iterator &operator--() override {
@@ -905,7 +907,7 @@ namespace STD {
             auto temp = node;
             node = node->last;
             target = node->value;
-            return List<Arg>::Iterator(temp);
+            return Iterator(temp);
         };
 
         friend bool
@@ -923,22 +925,24 @@ namespace STD {
     protected:
         using cIter<Arg>::target;
 
-        List<Arg>::Node *node = nullptr;
+        Node *node = nullptr;
 
-        cIterator &operator=(List<Arg>::Node *ptr) {
+        cIterator &operator=(Node *ptr) {
             target = ptr->value;
             node = ptr;
             return *this;
         };
 
-        explicit cIterator(List<Arg>::Node *ptr) : cBidirectional_Iter<Arg>(ptr->value), node(ptr) {};
+        explicit cIterator(Node *ptr) : cBidirectional_Iter<Arg>(ptr->value), node(ptr) {};
 
     public:
         friend class List<Arg>;
 
         friend class List<Arg>::Iterator;
 
-        Shared_ptr<cIter<Arg>> deep_copy() const override { return make_shared<List<Arg>::cIterator>(*this); };
+        Shared_ptr<cIter<Arg>> deep_copy() const override {
+            return make_shared<cIterator>(*this);
+        };
 
         using cIter<Arg>::operator*;
 
@@ -956,7 +960,7 @@ namespace STD {
             auto temp = node;
             node = node->next;
             target = node->value;
-            return List<Arg>::cIterator(temp);
+            return cIterator(temp);
         };
 
         cIterator &operator--() override {
@@ -971,7 +975,7 @@ namespace STD {
             auto temp = node;
             node = node->last;
             target = node->value;
-            return List<Arg>::cIterator(temp);
+            return cIterator(temp);
         };
 
         friend bool
@@ -988,23 +992,25 @@ namespace STD {
     protected:
         using Iter<Arg>::target;
 
-        List<Arg>::Node *node;
+        Node *node;
 
-        rIterator &operator=(List<Arg>::Node *ptr) {
+        rIterator &operator=(Node *ptr) {
             target = ptr->value;
             node = ptr;
             return *this;
         };
 
-        explicit rIterator(List<Arg>::Node *ptr) : Bidirectional_Iter<Arg>(ptr->value), node(ptr) {};
+        explicit rIterator(Node *ptr) : Bidirectional_Iter<Arg>(ptr->value), node(ptr) {};
 
     public:
         friend class List<Arg>;
 
-        Shared_ptr<Iter<Arg>> deep_copy() const override { return make_shared<List<Arg>::rIterator>(*this); };
+        Shared_ptr<Iter<Arg>> deep_copy() const override {
+            return make_shared<rIterator>(*this);
+        };
 
         Shared_ptr<cIter<Arg>> to_const() const override {
-            return make_shared<List<Arg>::crIterator>(crIterator(node));
+            return make_shared<crIterator>(crIterator(node));
         };
 
         using Iter<Arg>::operator*;
@@ -1023,7 +1029,7 @@ namespace STD {
             auto temp = node;
             node = node->last;
             target = node->value;
-            return List<Arg>::rIterator(temp);
+            return rIterator(temp);
         };
 
         rIterator &operator--() override {
@@ -1038,7 +1044,7 @@ namespace STD {
             auto temp = node;
             node = node->next;
             target = node->value;
-            return List<Arg>::rIterator(temp);
+            return rIterator(temp);
         };
 
         friend bool
@@ -1055,22 +1061,24 @@ namespace STD {
     protected:
         using cIter<Arg>::target;
 
-        List<Arg>::Node *node;
+        Node *node;
 
-        crIterator &operator=(List<Arg>::Node *ptr) {
+        crIterator &operator=(Node *ptr) {
             target = ptr->value;
             node = ptr;
             return *this;
         };
 
-        explicit crIterator(List<Arg>::Node *ptr) : cBidirectional_Iter<Arg>(ptr->value), node(ptr) {};
+        explicit crIterator(Node *ptr) : cBidirectional_Iter<Arg>(ptr->value), node(ptr) {};
 
     public:
         friend class List<Arg>;
 
         friend class List<Arg>::rIterator;
 
-        Shared_ptr<cIter<Arg>> deep_copy() const override { return make_shared<List<Arg>::crIterator>(*this); };
+        Shared_ptr<cIter<Arg>> deep_copy() const override {
+            return make_shared<crIterator>(*this);
+        };
 
         using cIter<Arg>::operator*;
 
@@ -1088,7 +1096,7 @@ namespace STD {
             auto temp = node;
             node = node->last;
             target = node->value;
-            return List<Arg>::crIterator(temp);
+            return crIterator(temp);
         };
 
         crIterator &operator--() override {
@@ -1103,7 +1111,7 @@ namespace STD {
             auto temp = node;
             node = node->next;
             target = node->value;
-            return List<Arg>::crIterator(temp);
+            return crIterator(temp);
         };
 
         friend bool

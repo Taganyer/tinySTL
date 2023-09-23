@@ -16,7 +16,7 @@ namespace STD {
 
         explicit Exception(const char *note) : message(note) {};
 
-        const char* what() const noexcept override { return message;};
+        const char *what() const noexcept override { return message; };
 
         ~Exception() override = default;
     };
