@@ -25,7 +25,7 @@ namespace STD {
 
         virtual Size *get_count_ptr() { return nullptr; };
 
-        virtual void release() {};
+        virtual void release(){};
 
         virtual ~basic_Value() = default;
     };
@@ -42,11 +42,9 @@ namespace STD {
 
         Size *count = Allocate<Size>(1);
 
-        Value(Type *target, void (*const_deleter)(const Type *)) :
-                target(target), const_deleter(const_deleter ? const_deleter : constDeallocate<Type>) {};
+        Value(Type *target, void (*const_deleter)(const Type *)) : target(target), const_deleter(const_deleter ? const_deleter : constDeallocate<Type>){};
 
-        Value(Type *target, void (*deleter)(Type *)) :
-                target(target), deleter(deleter ? deleter : Deallocate<Type>) {};
+        Value(Type *target, void (*deleter)(Type *)) : target(target), deleter(deleter ? deleter : Deallocate<Type>){};
 
         long long *get_weak_ptr_count() override { return weak_ptr_count; };
 
@@ -63,10 +61,10 @@ namespace STD {
     };
 
 
-//----------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------
 
 
-    //目前不保证多线程安全
+    //不保证多线程安全
     template<typename Arg>
     class Shared_ptr {
     private:
@@ -83,15 +81,12 @@ namespace STD {
             }
         }
 
-        Shared_ptr(basic_Value *value, Arg *target) : value(value), target(target) {};
+        Shared_ptr(basic_Value *value, Arg *target) : value(value), target(target){};
 
     public:
+        explicit Shared_ptr(Arg *target, void (*del)(const Arg *) = nullptr) : value(Allocate<Value<Arg>>(target, del)), target(target){};
 
-        explicit Shared_ptr(Arg *target, void (*del)(const Arg *) = nullptr) :
-                value(Allocate<Value<Arg>>(target, del)), target(target) {};
-
-        explicit Shared_ptr(Arg *target, void (*del)(Arg *)) :
-                value(Allocate<Value<Arg>>(target, del)), target(target) {};
+        explicit Shared_ptr(Arg *target, void (*del)(Arg *)) : value(Allocate<Value<Arg>>(target, del)), target(target){};
 
         Shared_ptr(const Shared_ptr<Arg> &other);
 
@@ -139,16 +134,14 @@ namespace STD {
         operator Shared_ptr<Other>();
 
         friend class Weak_ptr<Arg>;
-
     };
 
 
-//----------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------
 
 
     template<typename Arg>
-    Shared_ptr<Arg>::Shared_ptr(const Shared_ptr<Arg> &other) :
-            value(other.value), target(other.target) { ++(*(other.value->get_count_ptr())); }
+    Shared_ptr<Arg>::Shared_ptr(const Shared_ptr<Arg> &other) : value(other.value), target(other.target) { ++(*(other.value->get_count_ptr())); }
 
     template<typename Arg>
     void Shared_ptr<Arg>::reset(Arg *ptr, void (*del)(Arg *arg)) {
@@ -228,27 +221,25 @@ namespace STD {
         return Shared_ptr<Arg>(ptr);
     }
 
-    template<typename Arg, typename ...Args>
+    template<typename Arg, typename... Args>
     Shared_ptr<Arg> make_shared(Args &&...args) {
         auto ptr = new Arg(forward<Args>(args)...);
         return Shared_ptr<Arg>(ptr);
     }
 
 
-//----------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------
 
 
     template<typename Arg, typename Deleter = decltype(Deallocate<Arg>) *>
     class unique_ptr {
     private:
-
         Arg *target;
 
         Deleter deleter;
 
     public:
-
-        unique_ptr(Arg *target, Deleter deleter = Deallocate<Arg>) : target(target), deleter(deleter) {};
+        unique_ptr(Arg *target, Deleter deleter = Deallocate<Arg>) : target(target), deleter(deleter){};
 
         ~unique_ptr() { deleter(target); };
 
@@ -276,13 +267,12 @@ namespace STD {
     };
 
 
-//----------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------
 
 
     template<typename Arg>
     class Weak_ptr {
     private:
-
         basic_Value *basic;
 
         long long *counts;
@@ -291,20 +281,20 @@ namespace STD {
 
         void release_test() {
             if (*counts > 0) --(*counts);
-            else ++(*counts);
+            else
+                ++(*counts);
             if (*counts == 0) Deallocate(counts);
         }
 
-        Weak_ptr(basic_Value *basic, long long *counts, Arg *target) : basic(basic), counts(counts), target(target) {};
+        Weak_ptr(basic_Value *basic, long long *counts, Arg *target) : basic(basic), counts(counts), target(target){};
 
     public:
-
-        Weak_ptr(const Shared_ptr<Arg> &ptr) :
-                target(ptr.target), counts(ptr.value->get_weak_ptr_count()), basic(ptr.value) { ++(*counts); };
+        Weak_ptr(const Shared_ptr<Arg> &ptr) : target(ptr.target), counts(ptr.value->get_weak_ptr_count()), basic(ptr.value) { ++(*counts); };
 
         Weak_ptr(const Weak_ptr<Arg> &ptr) : target(ptr.target), counts(ptr.counts), basic(ptr.basic) {
             if (*counts > 0) ++(*counts);
-            else --(*counts);
+            else
+                --(*counts);
         };
 
         ~Weak_ptr() { release_test(); };
@@ -316,7 +306,8 @@ namespace STD {
             counts = other.counts;
             target = other.target;
             if (*counts > 0) ++(*counts);
-            else --(*counts);
+            else
+                --(*counts);
             return *this;
         };
 
@@ -332,7 +323,8 @@ namespace STD {
 
         Shared_ptr<Arg> lock() const {
             if (expired() != target) return Shared_ptr<Arg>(nullptr);
-            else return Shared_ptr<Arg>(basic, target);
+            else
+                return Shared_ptr<Arg>(basic, target);
         };
 
         void reset() {
@@ -356,18 +348,18 @@ namespace STD {
         //编译器会自动调用该类型转换（默认使用static_pointer_cast实现），可能会有意外的结果。
         template<typename Other>
         operator Weak_ptr<Other>();
-
     };
 
 
-//----------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------
 
 
     template<typename Target, typename Object>
     Weak_ptr<Target> static_pointer_cast(const Weak_ptr<Object> &object) noexcept {
         auto ptr = static_cast<Target *>(object.target);
         if (*object.counts > 0) ++(*object.counts);
-        else --(*object.counts);
+        else
+            --(*object.counts);
         return Weak_ptr<Target>(object.basic, object.counts, ptr);
     }
 
@@ -375,7 +367,8 @@ namespace STD {
     Weak_ptr<Target> dynamic_pointer_cast(const Weak_ptr<Object> &object) noexcept {
         auto ptr = dynamic_cast<Target *>(object.target);
         if (*object.counts > 0) ++(*object.counts);
-        else --(*object.counts);
+        else
+            --(*object.counts);
         return Weak_ptr<Target>(object.basic, object.counts, ptr);
     }
 
@@ -383,7 +376,8 @@ namespace STD {
     Weak_ptr<Target> const_pointer_cast(const Weak_ptr<Object> &object) noexcept {
         auto ptr = const_cast<Target *>(object.target);
         if (*object.counts > 0) ++(*object.counts);
-        else --(*object.counts);
+        else
+            --(*object.counts);
         return Weak_ptr<Target>(object.basic, object.counts, ptr);
     }
 
@@ -391,7 +385,8 @@ namespace STD {
     Weak_ptr<Target> reinterpret_pointer_cast(const Weak_ptr<Object> &object) noexcept {
         auto ptr = reinterpret_cast<Target *>(object.target);
         if (*object.counts > 0) ++(*object.counts);
-        else --(*object.counts);
+        else
+            --(*object.counts);
         return Weak_ptr<Target>(object.basic, object.counts, ptr);
     }
 
@@ -400,6 +395,6 @@ namespace STD {
     Weak_ptr<Arg>::operator Weak_ptr<Other>() {
         return STD::static_pointer_cast<Other, Arg>(*this);
     }
-}
+}// namespace STD
 
-#endif //TINYSTL_MEMORY_HPP
+#endif//TINYSTL_MEMORY_HPP

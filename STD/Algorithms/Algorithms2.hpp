@@ -9,29 +9,24 @@
 
 namespace STD {
 
-template <typename Arg>
-void sort(const cIter<Arg> &begin, const cIter<Arg> &right);
+    template<typename Arg>
+    void sort(const cIter<Arg> &begin, const cIter<Arg> &right);
 
-template <typename Arg>
-void sort(const Iter<Arg> &begin, const Iter<Arg> &right);
+    template<typename Arg>
+    void sort(const Iter<Arg> &begin, const Iter<Arg> &right);
 
-template <typename Arg>
-void sort(const cBidirectional_Iter<Arg> &begin,
-          const cBidirectional_Iter<Arg> &right);
+    template<typename Arg>
+    void sort(const cBidirectional_Iter<Arg> &begin, const cBidirectional_Iter<Arg> &right);
 
-template <typename Arg>
-void sort(const Bidirectional_Iter<Arg> &begin,
-          const Bidirectional_Iter<Arg> &right);
+    template<typename Arg>
+    void sort(const Bidirectional_Iter<Arg> &begin, const Bidirectional_Iter<Arg> &right);
 
-template <typename Arg>
-void sort(const cRandom_Iter<Arg> &begin, const cRandom_Iter<Arg> &right);
+    template<typename Arg>
+    void sort(const cRandom_Iter<Arg> &begin, const cRandom_Iter<Arg> &right);
 
-template <typename Arg>
-void sort(const Random_Iter<Arg> &begin, const Random_Iter<Arg> &right);
+    template<typename Arg>
+    void sort(const Random_Iter<Arg> &begin, const Random_Iter<Arg> &right);
 
-
-
-
-} // namespace STD
+}// namespace STD
 
 #endif
