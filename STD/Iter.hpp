@@ -2,8 +2,8 @@
 // Created by 86152 on 2023/8/19.
 //
 
-#ifndef TINYSTL_ITER_HPP
-#define TINYSTL_ITER_HPP
+#ifndef TINYSTL__ITER_HPP
+#define TINYSTL__ITER_HPP
 
 #include "Memory.hpp"
 
@@ -60,6 +60,7 @@ namespace STD {
             return make_shared<Iter<Type>>(*this);
         };
 
+        //这个函数能够返回一个与传入的Iter迭代器相同位置并保持多态性的cIter迭代器。
         virtual Shared_ptr<cIter<Type>> to_const() const {
             return make_shared<cIter<Type>>(cIter<Type>(target));
         };
@@ -212,6 +213,14 @@ namespace STD {
 
         explicit Random_Iter(Type *ptr) : Bidirectional_Iter<Type>(ptr) {};
 
+        virtual bool less(const Random_Iter<Type> &other) const {
+            return target<other.target;
+        }
+
+        virtual bool not_greater_than(const Random_Iter<Type> &other) const {
+            return target <= other.target;
+        }
+
     public:
         Shared_ptr<Iter<Type>> deep_copy() const override {
             return make_shared<Random_Iter<Type>>(*this);
@@ -221,10 +230,12 @@ namespace STD {
             return make_shared<cRandom_Iter<Type>>(cRandom_Iter<Type>(target));
         };
 
+        //这个函数返回一个保持多态性的迭代器，该迭代器相对于传入的迭代器向前移动了size个位置。
         virtual Shared_ptr<Random_Iter<Type>> new_to_add(Size size) const {
             return make_shared<Random_Iter<Type>>(Random_Iter<Type>(target + size));
         }
 
+        //这个函数返回一个保持多态性的迭代器，该迭代器相对于传入的迭代器向后移动了size个位置。
         virtual Shared_ptr<Random_Iter<Type>> new_to_subtract(Size size) const {
             return make_shared<Random_Iter<Type>>(Random_Iter<Type>(target - size));
         }
@@ -255,14 +266,6 @@ namespace STD {
         virtual Random_Iter<Type> &operator-=(Size size) {
             target -= size;
             return *this;
-        }
-
-        virtual bool less(const Random_Iter<Type> &other) const {
-            return target < other.target;
-        }
-
-        virtual bool not_greater_than(const Random_Iter<Type> &other) const {
-            return target <= other.target;
         }
 
         inline friend bool operator==(const Random_Iter<Type> &left, const Random_Iter<Type> &right) {
@@ -298,6 +301,14 @@ namespace STD {
         using cIter<Type>::target;
 
         explicit cRandom_Iter(Type *ptr) : cBidirectional_Iter<Type>(ptr) {};
+
+        virtual bool less(const cRandom_Iter<Type> &other) const {
+            return target < other.target;
+        }
+
+        virtual bool not_greater_than(const cRandom_Iter<Type> &other) const {
+            return target <= other.target;
+        }
 
     public:
         friend class Random_Iter<Type>;
@@ -340,14 +351,6 @@ namespace STD {
         virtual cRandom_Iter<Type> &operator-=(Size size) {
             target -= size;
             return *this;
-        }
-
-        virtual bool less(const cRandom_Iter<Type> &other) const {
-            return target < other.target;
-        }
-
-        virtual bool not_greater_than(const cRandom_Iter<Type> &other) const {
-            return target <= other.target;
         }
 
         inline friend bool operator==(const cRandom_Iter<Type> &left, const cRandom_Iter<Type> &right) {

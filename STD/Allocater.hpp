@@ -5,23 +5,10 @@
 #ifndef TINYSTL_ALLOCATER_HPP
 #define TINYSTL_ALLOCATER_HPP
 
-#include "Warning.hpp"
 #include "Move.hpp"
+#include "Warning.hpp"
 
 namespace STD {
-    using Size = unsigned long long;
-
-    constexpr const int MAX_INT = 2147483647;
-
-    constexpr const int MIN_INT = -2147483648;
-
-    constexpr const unsigned int MAX_UINT_INT = 4294967295;
-
-    constexpr const long long MAX_LLONG = 9223372036854775807;
-
-    constexpr const long long MIN_LLONG = -9223372036854775808;
-
-    constexpr const unsigned long long MAX_UINT_LLONG = -1;
 
     template<typename Arg>
     Arg *Allocate(const Arg &arg) {

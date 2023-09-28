@@ -5,12 +5,14 @@ set(CMAKE_CXX_STANDARD 11)
 
 add_executable(tinySTL main.cpp
         STD/source/String.cpp
-        STD/Algorithms/source/Algorithms1.cpp
-        STD/List.hpp
         STD/Array.hpp
-        STD/Deque.hpp
-        STD/Stack.hpp
-        STD/Function.hpp
-        STD/Queue.hpp
-        STD/Initializer_list.hpp
+        STD/Vector.hpp
+        STD/Algorithms/source/Container_algorithms.hpp
+        STD/Algorithms/source/Algorithms1.cpp
+        test.hpp
+        STD/Detail/cIter.hpp
+        STD/Detail/crIter.hpp
+        STD/Iterator.hpp
+        STD/List.hpp
+        STD/Forward_list.hpp
 )

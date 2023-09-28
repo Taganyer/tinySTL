@@ -5,35 +5,144 @@
 #ifndef TINYSTL_ARRAY_HPP
 #define TINYSTL_ARRAY_HPP
 
-#include "Iter.hpp"
-#include "Move.hpp"
+#include "Detail/rIter.hpp"
+#include "Detail/cIter.hpp"
+#include "Detail/crIter.hpp"
 #include "Allocater.hpp"
-#include "Memory.hpp"
+#include <initializer_list>
+
 
 namespace STD {
+
+    template<typename Arg, Size size_>
+    class Array;
+
+    namespace Detail {
+
+        template<typename Arg, Size size_>
+        class Array_Iterator : public Iterator<Random_iterator_tag, Arg> {
+        public:
+            using Basic = Iterator<Random_iterator_tag, Arg>;
+
+            using Self = Array_Iterator<Arg, size_>;
+
+            using Reference = typename Basic::Reference;
+
+            using Pointer = typename Basic::Pointer;
+
+            friend class Array<Arg, size_>;
+
+            friend class rIterator<Self, Random_iterator_tag>;
+
+            friend class cIterator<Self, Random_iterator_tag>;
+
+            friend class crIterator<Self, Random_iterator_tag>;
+
+        private:
+            Arg *target;
+
+            explicit Array_Iterator(Arg *target) : target(target) {};
+
+        public:
+            Reference operator*() const {
+                return *target;
+            };
+
+            Pointer operator->() const {
+                return target;
+            };
+
+            Reference operator[](Step size) const {
+                return target[size];
+            }
+
+            Self &operator++() {
+                ++target;
+                return *this;
+            }
+
+            Self operator++(int) {
+                Self temp = Self(target++);
+                return temp;
+            };
+
+            Self &operator--() {
+                --target;
+                return *this;
+            };
+
+            Self operator--(int) {
+                Self temp = Self(target--);
+                return temp;
+            };
+
+            Self &operator+=(Step size) {
+                target += size;
+                return *this;
+            };
+
+            Self &operator-=(Step size) {
+                target -= size;
+                return *this;
+            };
+
+            friend Self operator+(const Self &Iterator, Step size) {
+                return Self(Iterator.target + size);
+            };
+
+            friend Self operator-(const Self &Iterator, Step size) {
+                return Self(Iterator.target - size);
+            };
+
+            friend bool operator==(const Self &left, const Self &right) {
+                return left.target == right.target;
+            };
+
+            friend bool operator!=(const Self &left, const Self &right) {
+                return left.target != right.target;
+            };
+
+            friend bool operator<(const Self &left, const Self &right) {
+                return left.target < right.target;
+            };
+
+            friend bool operator<=(const Self &left, const Self &right) {
+                return left.target <= right.target;
+            };
+
+            friend bool operator>(const Self &left, const Self &right) {
+                return left.target > right.target;
+            };
+
+            friend bool operator>=(const Self &left, const Self &right) {
+                return left.target >= right.target;
+            };
+        };
+
+    }
+
+//----------------------------------------------------------------------------------------------------------------------
+
     template<typename Arg, Size size_>
     class Array {
     private:
-
-        Arg *val_begin;
+        Arg *val_begin = Allocate_n<Arg>(size_);
 
     public:
+        using Iterator = Detail::Array_Iterator<Arg, size_>;
 
-        class Iterator;
+        using cIterator = STD::cIterator<Iterator, Random_iterator_tag>;
 
-        class cIterator;
+        using rIterator = STD::rIterator<Iterator, Random_iterator_tag>;
 
-        class rIterator;
-
-        class crIterator;
+        using crIterator = STD::crIterator<Iterator, Random_iterator_tag>;
 
         Array();
 
         Array(const std::initializer_list<Arg> &list);
 
-        Array(const Iter<Arg> &begin, const Iter<Arg> &end);
-
-        Array(const cIter<Arg> &begin, const cIter<Arg> &end);
+        template<typename Input_iterator>
+        Array(const Input_iterator &begin, const Input_iterator &end);
 
         Array(const Array<Arg, size_> &other);
 
@@ -41,23 +150,27 @@ namespace STD {
 
         ~Array<Arg, size_>();
 
-        void fill(const Arg &target);
-
-        Arg &operator[](Size pos) const { return *(val_begin + pos); };
+        Arg &operator[](Size pos) const { return val_begin[pos]; };
 
         Arg &at(Size pos) const {
             if (pos >= size_)
                 throw outOfRange("You provided an out-of-range subscript int the 'Array::at' function");
-            return *(val_begin + pos);
+            return val_begin[pos];
         };
 
-        Arg &front() const { return *val_begin; };
+        Arg &front() const { return val_begin[0]; };
 
-        Arg &back() const { return *(val_begin + size_ - 1); };
+        Arg &back() const { return val_begin[size_ - 1]; };
 
         bool empty() const { return !size_; };
 
         const Arg *data() { return val_begin; };
+
+        void swap(Array<Arg, size_> &other) noexcept {
+            Arg *temp = val_begin;
+            val_begin = other.val_begin;
+            other.val_begin = temp;
+        };
 
         Array<Arg, size_> &operator=(const Array<Arg, size_> &other);
 
@@ -81,25 +194,30 @@ namespace STD {
         template<typename Type>
         friend bool operator>=(const Array<Arg, size_> &left, const Array<Arg, size_> &right);
 
-        Iterator begin() const { return Array<Arg, size_>::Iterator(val_begin); };
+        template<typename Type>
+        friend void swap(Array<Arg, size_> &left, Array<Arg, size_> &right) noexcept {
+            left.swap(right);
+        };
 
-        Iterator end() const { return Array<Arg, size_>::Iterator(val_begin + size_); };
+        Iterator begin() const { return Iterator(val_begin); };
 
-        cIterator cbegin() const { return Array<Arg, size_>::cIterator(val_begin); };
+        Iterator end() const { return Iterator(val_begin + size_); };
 
-        cIterator cend() const { return Array<Arg, size_>::cIterator(val_begin + size_); };
+        cIterator cbegin() const { return cIterator(Iterator(val_begin)); };
 
-        rIterator rbegin() const { return Array<Arg, size_>::rIterator(val_begin + size_ - 1); };
+        cIterator cend() const { return cIterator(Iterator(val_begin + size_)); };
 
-        rIterator rend() const { return Array<Arg, size_>::rIterator(val_begin - 1); };
+        rIterator rbegin() const { return rIterator(Iterator(val_begin + size_ - 1)); };
 
-        crIterator crbegin() const { return Array<Arg, size_>::crIterator(val_begin + size_ - 1); };
+        rIterator rend() const { return rIterator(Iterator(val_begin - 1)); };
 
-        crIterator crend() const { return Array<Arg, size_>::crIterator(val_begin - 1); };
+        crIterator crbegin() const { return crIterator(Iterator(val_begin + size_ - 1)); };
+
+        crIterator crend() const { return crIterator(Iterator(val_begin - 1)); };
     };
 
     template<typename Arg, Size size_>
-    Array<Arg, size_>::Array() : val_begin(Allocate_n<Arg>(size_)) {
+    Array<Arg, size_>::Array() {
         auto temp = val_begin;
         for (int i = 0; i < size_; ++i) {
             *temp = Arg();
@@ -108,7 +226,7 @@ namespace STD {
     }
 
     template<typename Arg, Size size_>
-    Array<Arg, size_>::Array(const std::initializer_list<Arg> &list) : val_begin(Allocate_n<Arg>(size_)) {
+    Array<Arg, size_>::Array(const std::initializer_list<Arg> &list) {
         auto temp = val_begin;
         auto index = list.begin();
         Size i, size = list.size() > size_ ? size_ : list.size();
@@ -123,22 +241,14 @@ namespace STD {
     }
 
     template<typename Arg, Size size_>
-    Array<Arg, size_>::Array(const Iter<Arg> &begin, const Iter<Arg> &end) : val_begin(Allocate_n<Arg>(size_)) {
-        auto temp = val_begin;
-        auto iter = begin.deep_copy();
-        for (int i = 0; i < size_; ++i) {
-            *temp = **iter;
-            ++temp, ++(*iter);
-        }
-    }
-
-    template<typename Arg, Size size_>
-    Array<Arg, size_>::Array(const cIter<Arg> &begin, const cIter<Arg> &end) {
-        auto temp = val_begin;
-        auto iter = begin.deep_copy();
-        for (int i = 0; i < size_; ++i) {
-            *temp = **iter;
-            ++temp, ++(*iter);
+    template<typename Input_iterator>
+    Array<Arg, size_>::Array(const Input_iterator &begin, const Input_iterator &end)
+            : val_begin(Allocate_n<Arg>(size_)) {
+        Input_iterator temp = begin;
+        Size count = 0;
+        while (count < size_ && temp != end) {
+            val_begin[count] = *temp;
+            ++count, ++temp;
         }
     }
 
@@ -153,7 +263,9 @@ namespace STD {
     }
 
     template<typename Arg, Size size_>
-    Array<Arg, size_>::Array(Array<Arg, size_> &&other) noexcept : val_begin(other.val_begin) {
+    Array<Arg, size_>::Array(Array<Arg, size_> &&other) noexcept {
+        Deallocate_n(val_begin);
+        val_begin = other.val_begin;
         other.val_begin = Allocate_n<Arg>(size_);
     }
 
@@ -226,386 +338,7 @@ namespace STD {
         return !(left < right);
     }
 
-    template<typename Arg, Size size_>
-    void Array<Arg, size_>::fill(const Arg &target) {
-        auto temp = val_begin;
-        for (int i = 0; i < size_; ++i) {
-            *temp = target;
-            ++temp;
-        }
-    }
-
 //----------------------------------------------------------------------------------------------------------------------
-
-    template<typename Arg, Size size_>
-    class Array<Arg, size_>::Iterator : public Random_Iter<Arg> {
-    protected:
-        using Iter<Arg>::target;
-
-        Iterator &operator=(Arg *ptr) {
-            target = ptr;
-            return *this;
-        };
-
-        explicit Iterator(Arg *ptr) : Random_Iter<Arg>(ptr) {};
-
-    public:
-        friend class Array<Arg, size_>;
-
-        Shared_ptr<Iter<Arg>> deep_copy() const override {
-            return make_shared<Iterator>(*this);
-        };
-
-        Shared_ptr<cIter<Arg>> to_const() const override {
-            return make_shared<cIterator>(cIterator(target));
-        };
-
-        Shared_ptr<Random_Iter<Arg>> new_to_add(Size size) const override {
-            return make_shared<Iterator>(Iterator(target - size));
-        }
-
-        Shared_ptr<Random_Iter<Arg>> new_to_subtract(Size size) const override {
-            return make_shared<Iterator>(Iterator(target + size));
-        }
-
-        using Iter<Arg>::operator*;
-
-        using Iter<Arg>::operator->;
-
-        using Random_Iter<Arg>::operator[];
-
-        Iterator &operator++() override {
-            ++target;
-            return *this;
-        };
-
-        Iterator operator++(int) { return Iterator(target++); };
-
-        Iterator &operator--() override {
-            --target;
-            return *this;
-        };
-
-        Iterator operator--(int) { return Iterator(target--); };
-
-        Iterator operator+(Size size) const { return Iterator(target + size); };
-
-        Iterator operator-(Size size) const { return Iterator(target - size); };
-
-        Iterator &operator+=(Size size) override {
-            target += size;
-            return *this;
-        };
-
-        Iterator &operator-=(Size size) override {
-            target -= size;
-            return *this;
-        };
-
-        friend bool
-        operator==(const Iterator &left, const Iterator &right) { return left.target == right.target; };
-
-        friend bool
-        operator!=(const Iterator &left, const Iterator &right) { return left.target != right.target; };
-
-        friend bool
-        operator>(const Iterator &left, const Iterator &right) { return left.target > right.target; };
-
-        friend bool
-        operator<(const Iterator &left, const Iterator &right) { return left.target < right.target; };
-
-        friend bool
-        operator>=(const Iterator &left, const Iterator &right) { return left.target >= right.target; };
-
-        friend bool
-        operator<=(const Iterator &left, const Iterator &right) { return left.target <= right.target; };
-
-        friend long long
-        operator-(const Iterator &left, const Iterator &right) { return left.target - right.target; };
-    };
-
-//----------------------------------------------------------------------------------------------------------------------
-
-    template<typename Arg, Size size_>
-    class Array<Arg, size_>::cIterator : public cRandom_Iter<Arg> {
-    protected:
-        using cIter<Arg>::target;
-
-        cIterator &operator=(Arg *ptr) {
-            target = ptr;
-            return *this;
-        };
-
-        explicit cIterator(Arg *ptr) : cRandom_Iter<Arg>(ptr) {};
-
-    public:
-        friend class Array<Arg, size_>;
-
-        friend class Array<Arg, size_>::Iterator;
-
-        Shared_ptr<cIter<Arg>> deep_copy() const override {
-            return make_shared<cIterator>(*this);
-        };
-
-        Shared_ptr<cRandom_Iter<Arg>> new_to_add(Size size) const override {
-            return make_shared<cIterator>(cIterator(target - size));
-        }
-
-        Shared_ptr<cRandom_Iter<Arg>> new_to_subtract(Size size) const override {
-            return make_shared<cIterator>(cIterator(target + size));
-        }
-
-        using cIter<Arg>::operator*;
-
-        using cIter<Arg>::operator->;
-
-        using cRandom_Iter<Arg>::operator[];
-
-        cIterator &operator++() override {
-            ++target;
-            return *this;
-        };
-
-        cIterator operator++(int) { return cIterator(target++); };
-
-        cIterator &operator--() override {
-            --target;
-            return *this;
-        };
-
-        cIterator operator--(int) { return cIterator(target--); };
-
-        cIterator operator+(Size size) const { return cIterator(target + size); };
-
-        cIterator operator-(Size size) const { return cIterator(target - size); };
-
-        cIterator &operator+=(Size size) override {
-            target += size;
-            return *this;
-        };
-
-        cIterator &operator-=(Size size) override {
-            target -= size;
-            return *this;
-        };
-
-        friend bool
-        operator==(const cIterator &left, const cIterator &right) { return left.target == right.target; };
-
-        friend bool
-        operator!=(const cIterator &left, const cIterator &right) { return left.target != right.target; };
-
-        friend bool
-        operator>(const cIterator &left, const cIterator &right) { return left.target > right.target; };
-
-        friend bool
-        operator<(const cIterator &left, const cIterator &right) { return left.target < right.target; };
-
-        friend bool
-        operator>=(const cIterator &left, const cIterator &right) { return left.target >= right.target; };
-
-        friend bool
-        operator<=(const cIterator &left, const cIterator &right) { return left.target <= right.target; };
-
-        friend long long
-        operator-(const cIterator &left, const cIterator &right) { return left.target - right.target; };
-    };
-
-//----------------------------------------------------------------------------------------------------------------------
-
-    template<typename Arg, Size size_>
-    class Array<Arg, size_>::rIterator : public Random_Iter<Arg> {
-    protected:
-        using Iter<Arg>::target;
-
-        rIterator &operator=(Arg *ptr) {
-            target = ptr;
-            return *this;
-        }
-
-        explicit rIterator(Arg *ptr) : Random_Iter<Arg>(ptr) {};
-
-        bool less(const Random_Iter<Arg> &other) const override {
-            return target > dynamic_cast<const rIterator &>(other).target;
-        }
-
-        bool not_greater_than(const Random_Iter<Arg> &other) const override {
-            return target >= dynamic_cast<const rIterator &>(other).target;
-        }
-
-    public:
-        friend class Array<Arg, size_>;
-
-        Shared_ptr<Iter<Arg>> deep_copy() const override {
-            return make_shared<rIterator>(*this);
-        };
-
-        Shared_ptr<cIter<Arg>> to_const() const override {
-            return make_shared<crIterator>(crIterator(target));
-        };
-
-        Shared_ptr<Random_Iter<Arg>> new_to_add(Size size) const override {
-            return make_shared<rIterator>(rIterator(target - size));
-        }
-
-        Shared_ptr<Random_Iter<Arg>> new_to_subtract(Size size) const override {
-            return make_shared<rIterator>(rIterator(target + size));
-        }
-
-        using Iter<Arg>::operator*;
-
-        using Iter<Arg>::operator->;
-
-        Arg &operator[](Size size) const override {
-            return *(target - size);
-        }
-
-        rIterator &operator++() override {
-            --target;
-            return *this;
-        };
-
-        rIterator operator++(int) { return rIterator(target--); };
-
-        rIterator &operator--() {
-            ++target;
-            return *this;
-        };
-
-        rIterator operator--(int) { return rIterator(target++); };
-
-        rIterator operator+(Size size) const { return rIterator(target - size); };
-
-        rIterator operator-(Size size) const { return rIterator(target + size); };
-
-        rIterator &operator+=(Size size) override {
-            target -= size;
-            return *this;
-        };
-
-        rIterator &operator-=(Size size) override {
-            target += size;
-            return *this;
-        };
-
-        friend bool
-        operator==(const rIterator &left, const rIterator &right) { return left.target == right.target; };
-
-        friend bool
-        operator!=(const rIterator &left, const rIterator &right) { return left.target != right.target; };
-
-        friend bool
-        operator>(const rIterator &left, const rIterator &right) { return left.target < right.target; };
-
-        friend bool
-        operator<(const rIterator &left, const rIterator &right) { return left.target > right.target; };
-
-        friend bool
-        operator>=(const rIterator &left, const rIterator &right) { return left.target <= right.target; };
-
-        friend bool
-        operator<=(const rIterator &left, const rIterator &right) { return left.target >= right.target; };
-
-        friend long long
-        operator-(const rIterator &left, const rIterator &right) { return right.target - left.target; };
-    };
-
-//----------------------------------------------------------------------------------------------------------------------
-
-    template<typename Arg, Size size_>
-    class Array<Arg, size_>::crIterator : public cRandom_Iter<Arg> {
-    protected:
-        using cIter<Arg>::target;
-
-        crIterator &operator=(Arg *ptr) {
-            target = ptr;
-            return *this;
-        };
-
-        explicit crIterator(Arg *ptr) : cRandom_Iter<Arg>(ptr) {};
-
-        bool less(const cRandom_Iter<Arg> &other) const override {
-            return target > dynamic_cast<const crIterator &>(other).target;
-        }
-
-        bool not_greater_than(const cRandom_Iter<Arg> &other) const override {
-            return target >= dynamic_cast<const crIterator &>(other).target;
-        }
-
-    public:
-        friend class Array<Arg, size_>;
-
-        friend class Array<Arg, size_>::rIterator;
-
-        Shared_ptr<cIter<Arg>> deep_copy() const override {
-            return make_shared<crIterator>(*this);
-        };
-
-        Shared_ptr<cRandom_Iter<Arg>> new_to_add(Size size) const override {
-            return make_shared<crIterator>(crIterator(target - size));
-        }
-
-        Shared_ptr<cRandom_Iter<Arg>> new_to_subtract(Size size) const override {
-            return make_shared<crIterator>(crIterator(target + size));
-        }
-
-        using cIter<Arg>::operator*;
-
-        using cIter<Arg>::operator->;
-
-        Arg &operator[](Size size) const override {
-            return *(target - size);
-        }
-
-        crIterator &operator++() override {
-            --target;
-            return *this;
-        };
-
-        crIterator operator++(int) { return crIterator(target--); };
-
-        crIterator &operator--() override {
-            ++target;
-            return *this;
-        };
-
-        crIterator operator--(int) { return crIterator(target++); };
-
-        crIterator operator+(Size size) const { return crIterator(target - size); };
-
-        crIterator operator-(Size size) const { return crIterator(target + size); };
-
-        crIterator &operator+=(Size size) override {
-            target -= size;
-            return *this;
-        };
-
-        crIterator &operator-=(Size size) override {
-            target += size;
-            return *this;
-        };
-
-        friend bool
-        operator==(const crIterator &left, const crIterator &right) { return left.target == right.target; };
-
-        friend bool
-        operator!=(const crIterator &left, const crIterator &right) { return left.target != right.target; };
-
-        friend bool
-        operator>(const crIterator &left, const crIterator &right) { return left.target < right.target; };
-
-        friend bool
-        operator<(const crIterator &left, const crIterator &right) { return left.target > right.target; };
-
-        friend bool
-        operator>=(const crIterator &left, const crIterator &right) { return left.target <= right.target; };
-
-        friend bool
-        operator<=(const crIterator &left, const crIterator &right) { return left.target >= right.target; };
-
-        friend long long
-        operator-(const crIterator &left, const crIterator &right) { return right.target - left.target; };
-    };
 
 }
 

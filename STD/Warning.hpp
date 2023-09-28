@@ -5,7 +5,7 @@
 #ifndef TINYSTL_WARNING_HPP
 #define TINYSTL_WARNING_HPP
 
-#include <iostream>
+#include <exception>
 
 namespace STD {
     class Exception : public std::exception {

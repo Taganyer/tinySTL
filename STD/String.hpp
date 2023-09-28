@@ -5,11 +5,9 @@
 #ifndef TINYSTL_STRING_HPP
 #define TINYSTL_STRING_HPP
 
-#include "Algorithms/Algorithms1.hpp"
-#include "Allocater.hpp"
 #include "Iter.hpp"
-#include "Memory.hpp"
-#include "Warning.hpp"
+#include <iostream>
+#include "Algorithms/Algorithms1.hpp"
 
 namespace STD {
 
@@ -753,6 +751,19 @@ namespace STD {
 
         bool empty() const { return !size_; };
 
+        void swap(String &other) noexcept {
+            Size temp1 = size_;
+            char *temp2 = val_begin, *temp3 = val_end, *temp4 = store_end;
+            size_ = other.size_;
+            val_begin = other.val_begin;
+            val_end = other.val_end;
+            store_end = other.store_end;
+            other.size_ = temp1;
+            other.val_begin = temp2;
+            other.val_end = temp3;
+            other.store_end = temp4;
+        };
+
         Size find(char t, Size pos = 0) const;
 
         Size find(const char *target, Size pos = 0) const;
@@ -845,6 +856,10 @@ namespace STD {
         friend bool operator>(const String &left, const String &right);
 
         friend bool operator>=(const String &left, const String &right);
+
+        friend void swap(String &left, String &right) noexcept {
+            left.swap(right);
+        };
 
         Iterator begin() const { return Iterator(val_begin); };
 

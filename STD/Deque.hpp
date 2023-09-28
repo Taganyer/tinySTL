@@ -5,11 +5,8 @@
 #ifndef TINYSTL_DEQUE_HPP
 #define TINYSTL_DEQUE_HPP
 
-#include "Allocater.hpp"
 #include "Iter.hpp"
-#include "Memory.hpp"
-#include "Move.hpp"
-
+#include <initializer_list>
 
 namespace STD {
 
@@ -308,6 +305,24 @@ namespace STD {
 
         bool empty() const { return !size_; };
 
+        void swap(Deque<Arg> &other) noexcept {
+            Size temp1 = size_;
+            int temp2 = val_begin, temp3 = val_end, temp4 = map_begin, temp5 = map_end;
+            Arg **temp6 = map;
+            size_ = other.size_;
+            val_begin = other.val_begin;
+            val_end = other.val_end;
+            map_begin = other.map_begin;
+            map_end = other.map_end;
+            map = other.map;
+            other.size_ = temp1;
+            other.val_begin = temp2;
+            other.val_end = temp3;
+            other.map_begin = temp4;
+            other.map_end = temp5;
+            other.map = temp6;
+        };
+
         Deque<Arg> &operator=(const Deque<Arg> &other);
 
         Deque<Arg> &operator=(Deque<Arg> &&other) noexcept;
@@ -329,6 +344,11 @@ namespace STD {
 
         template<typename Type>
         friend bool operator>=(const Deque<Type> &left, const Deque<Type> &right);
+
+        template<typename Type>
+        friend void swap(Deque<Type> &left, Deque<Type> &right) noexcept {
+            left.swap(right);
+        };
 
         Iterator begin() const {
             return Iterator(*(map + map_begin) + val_begin, map + map_begin, val_begin);

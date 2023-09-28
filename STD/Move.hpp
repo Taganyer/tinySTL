@@ -5,39 +5,33 @@
 #ifndef TINYSTL_MOVE_HPP
 #define TINYSTL_MOVE_HPP
 
-#include <type_traits>
+#include "Config.hpp"
+#include "Type_traits.hpp"
 
 namespace STD {
-    template<typename Arg>
-    struct remove_reference {
-        using type = Arg;
-    };
 
     template<typename Arg>
-    struct remove_reference<Arg &> {
-        using type = Arg;
-    };
-
-    template<typename Arg>
-    struct remove_reference<Arg &&> {
-        using type = Arg;
-    };
-
-    template<typename Arg>
-    constexpr typename remove_reference<Arg>::type &&move(Arg &&arg) noexcept {
-        return static_cast<typename remove_reference<Arg>::type &&>(arg);
+    constexpr typename Remove_reference<Arg>::Type &&move(Arg &&arg) noexcept {
+        return static_cast<typename Remove_reference<Arg>::Type &&>(arg);
     }
 
     template<typename Arg>
-    constexpr Arg &&forward(typename remove_reference<Arg>::type &arg) noexcept {
+    constexpr Arg &&forward(typename Remove_reference<Arg>::Type &arg) noexcept {
         return static_cast<Arg &&>(arg);
     }
 
     template<typename Arg>
     void swap(Arg &left, Arg &right) noexcept {
-        Arg temp = move(left);
-        left = move(right);
-        right = move(temp);
+        Arg temp = STD::move(left);
+        left = STD::move(right);
+        right = STD::move(temp);
+    }
+
+    template<typename Arg, Size size_>
+    void swap(Arg (&left)[size_], Arg (&right)[size_]) noexcept {
+        for (Size i = 0; i < size_; ++i) {
+            STD::swap(left[i], right[i]);
+        }
     }
 }
 

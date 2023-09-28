@@ -5,7 +5,7 @@
 
 namespace STD {
 
-Size STD::calculateLength(const char *target) {
+Size calculateLength(const char *target) {
     const char *temp = target;
     Size len = 0;
     while (*temp != '\0')
@@ -13,7 +13,7 @@ Size STD::calculateLength(const char *target) {
     return len;
 }
 
-const char *STD::Boyer_Moore(const char *pattern, Size pattern_len,
+const char *Boyer_Moore(const char *pattern, Size pattern_len,
                              const char *target, Size target_length) {
     if (*pattern == '\0' || *target == '\0')
         return nullptr;
@@ -38,17 +38,17 @@ const char *STD::Boyer_Moore(const char *pattern, Size pattern_len,
     return nullptr;
 }
 
-const char *STD::Boyer_Moore(const char *pattern, const char *target,
+const char *Boyer_Moore(const char *pattern, const char *target,
                              Size target_length) {
     return Boyer_Moore(pattern, calculateLength(pattern), target,
                        target_length);
 }
 
-const char *STD::Boyer_Moore(const char *pattern, const char *target) {
+const char *Boyer_Moore(const char *pattern, const char *target) {
     return Boyer_Moore(pattern, target, calculateLength(target));
 }
 
-const char *STD::rBoyer_Moore(const char *pattern, Size pattern_len,
+const char *rBoyer_Moore(const char *pattern, Size pattern_len,
                               const char *target, Size target_length) {
     if (*pattern == '\0' || *target == '\0')
         return nullptr;
@@ -73,13 +73,13 @@ const char *STD::rBoyer_Moore(const char *pattern, Size pattern_len,
     return nullptr;
 }
 
-const char *STD::rBoyer_Moore(const char *pattern, const char *target,
+const char *rBoyer_Moore(const char *pattern, const char *target,
                               Size target_length) {
     return rBoyer_Moore(pattern, calculateLength(pattern), target,
                         target_length);
 }
 
-const char *STD::rBoyer_Moore(const char *pattern, const char *target) {
+const char *rBoyer_Moore(const char *pattern, const char *target) {
     return rBoyer_Moore(pattern, target, calculateLength(target));
 }
 

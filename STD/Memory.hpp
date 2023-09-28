@@ -6,8 +6,6 @@
 #define TINYSTL_MEMORY_HPP
 
 #include "Allocater.hpp"
-#include "Move.hpp"
-#include "Warning.hpp"
 
 namespace STD {
 
@@ -42,10 +40,11 @@ namespace STD {
 
         Size *count = Allocate<Size>(1);
 
-        Value(Type *target, void (*const_deleter)(const Type *)) : target(target), const_deleter(
-                const_deleter ? const_deleter : constDeallocate<Type>) {};
+        Value(Type *target, void (*const_deleter)(const Type *)) :
+                target(target), const_deleter(const_deleter ? const_deleter : constDeallocate<Type>) {};
 
-        Value(Type *target, void (*deleter)(Type *)) : target(target), deleter(deleter ? deleter : Deallocate<Type>) {};
+        Value(Type *target, void (*deleter)(Type *)) :
+                target(target), deleter(deleter ? deleter : Deallocate<Type>) {};
 
         long long *get_weak_ptr_count() override { return weak_ptr_count; };
 
@@ -65,7 +64,6 @@ namespace STD {
     //----------------------------------------------------------------------------------------------------------------------
 
 
-    //不保证多线程安全
     template<typename Arg>
     class Shared_ptr {
     private:
@@ -85,11 +83,11 @@ namespace STD {
         Shared_ptr(basic_Value *value, Arg *target) : value(value), target(target) {};
 
     public:
-        explicit Shared_ptr(Arg *target, void (*del)(const Arg *) = nullptr) : value(Allocate<Value<Arg>>(target, del)),
-                                                                               target(target) {};
+        explicit Shared_ptr(Arg *target, void (*del)(const Arg *) = nullptr) :
+                value(Allocate<Value<Arg>>(target, del)), target(target) {};
 
-        explicit Shared_ptr(Arg *target, void (*del)(Arg *)) : value(Allocate<Value<Arg>>(target, del)),
-                                                               target(target) {};
+        explicit Shared_ptr(Arg *target, void (*del)(Arg *)) :
+                value(Allocate<Value<Arg>>(target, del)), target(target) {};
 
         Shared_ptr(const Shared_ptr<Arg> &other);
 
@@ -104,12 +102,14 @@ namespace STD {
         Shared_ptr<Arg> &operator=(const Shared_ptr<Arg> &other);
 
         Arg &operator*() const {
-            if (!target) throw runtimeError("You have access to the null pointer\n");
+            if (!target)
+                throw runtimeError("You have access to the null pointer\n");
             return *target;
         };
 
         Arg *operator->() const {
-            if (!target) throw runtimeError("You have access to the null pointer\n");
+            if (!target)
+                throw runtimeError("You have access to the null pointer\n");
             return target;
         }
 
@@ -144,8 +144,8 @@ namespace STD {
 
 
     template<typename Arg>
-    Shared_ptr<Arg>::Shared_ptr(const Shared_ptr<Arg> &other) : value(other.value),
-                                                                target(other.target) { ++(*(other.value->get_count_ptr())); }
+    Shared_ptr<Arg>::Shared_ptr(const Shared_ptr<Arg> &other) :
+            value(other.value), target(other.target) { ++(*(other.value->get_count_ptr())); }
 
     template<typename Arg>
     void Shared_ptr<Arg>::reset(Arg *ptr, void (*del)(Arg *arg)) {
@@ -248,12 +248,14 @@ namespace STD {
         ~unique_ptr() { deleter(target); };
 
         Arg &operator*() const {
-            if (!target) throw runtimeError("You have access to the null pointer\n");
+            if (!target)
+                throw runtimeError("You have access to the null pointer\n");
             return *target;
         }
 
         Arg *operator->() const {
-            if (!target) throw runtimeError("You have access to the null pointer\n");
+            if (!target)
+                throw runtimeError("You have access to the null pointer\n");
             return target;
         }
 
@@ -284,20 +286,24 @@ namespace STD {
         Arg *target;
 
         void release_test() {
-            if (*counts > 0) --(*counts);
+            if (*counts > 0)
+                --(*counts);
             else
                 ++(*counts);
-            if (*counts == 0) Deallocate(counts);
+            if (*counts == 0)
+                Deallocate(counts);
         }
 
-        Weak_ptr(basic_Value *basic, long long *counts, Arg *target) : basic(basic), counts(counts), target(target) {};
+        Weak_ptr(basic_Value *basic, long long *counts, Arg *target) :
+                basic(basic), counts(counts), target(target) {};
 
     public:
         Weak_ptr(const Shared_ptr<Arg> &ptr) : target(ptr.target), counts(ptr.value->get_weak_ptr_count()),
                                                basic(ptr.value) { ++(*counts); };
 
         Weak_ptr(const Weak_ptr<Arg> &ptr) : target(ptr.target), counts(ptr.counts), basic(ptr.basic) {
-            if (*counts > 0) ++(*counts);
+            if (*counts > 0)
+                ++(*counts);
             else
                 --(*counts);
         };
@@ -310,24 +316,28 @@ namespace STD {
             release_test();
             counts = other.counts;
             target = other.target;
-            if (*counts > 0) ++(*counts);
+            if (*counts > 0)
+                ++(*counts);
             else
                 --(*counts);
             return *this;
         };
 
         Arg &operator*() const {
-            if (expired() || !target) throw runtimeError("You have access to the null pointer\n");
+            if (expired() || !target)
+                throw runtimeError("You have access to the null pointer\n");
             return *target;
         };
 
         Arg *operator->() const {
-            if (expired() || !target) throw runtimeError("You have access to the null pointer\n");
+            if (expired() || !target)
+                throw runtimeError("You have access to the null pointer\n");
             return target;
         };
 
         Shared_ptr<Arg> lock() const {
-            if (expired() != target) return Shared_ptr<Arg>(nullptr);
+            if (expired() != target)
+                return Shared_ptr<Arg>(nullptr);
             else
                 return Shared_ptr<Arg>(basic, target);
         };
@@ -362,7 +372,8 @@ namespace STD {
     template<typename Target, typename Object>
     Weak_ptr<Target> static_pointer_cast(const Weak_ptr<Object> &object) noexcept {
         auto ptr = static_cast<Target *>(object.target);
-        if (*object.counts > 0) ++(*object.counts);
+        if (*object.counts > 0)
+            ++(*object.counts);
         else
             --(*object.counts);
         return Weak_ptr<Target>(object.basic, object.counts, ptr);
@@ -371,7 +382,8 @@ namespace STD {
     template<typename Target, typename Object>
     Weak_ptr<Target> dynamic_pointer_cast(const Weak_ptr<Object> &object) noexcept {
         auto ptr = dynamic_cast<Target *>(object.target);
-        if (*object.counts > 0) ++(*object.counts);
+        if (*object.counts > 0)
+            ++(*object.counts);
         else
             --(*object.counts);
         return Weak_ptr<Target>(object.basic, object.counts, ptr);
@@ -380,7 +392,8 @@ namespace STD {
     template<typename Target, typename Object>
     Weak_ptr<Target> const_pointer_cast(const Weak_ptr<Object> &object) noexcept {
         auto ptr = const_cast<Target *>(object.target);
-        if (*object.counts > 0) ++(*object.counts);
+        if (*object.counts > 0)
+            ++(*object.counts);
         else
             --(*object.counts);
         return Weak_ptr<Target>(object.basic, object.counts, ptr);
@@ -389,7 +402,8 @@ namespace STD {
     template<typename Target, typename Object>
     Weak_ptr<Target> reinterpret_pointer_cast(const Weak_ptr<Object> &object) noexcept {
         auto ptr = reinterpret_cast<Target *>(object.target);
-        if (*object.counts > 0) ++(*object.counts);
+        if (*object.counts > 0)
+            ++(*object.counts);
         else
             --(*object.counts);
         return Weak_ptr<Target>(object.basic, object.counts, ptr);
