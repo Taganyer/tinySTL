@@ -244,12 +244,7 @@ namespace STD {
     template<typename Input_iterator>
     Array<Arg, size_>::Array(const Input_iterator &begin, const Input_iterator &end)
             : val_begin(Allocate_n<Arg>(size_)) {
-        Input_iterator temp = begin;
-        Size count = 0;
-        while (count < size_ && temp != end) {
-            val_begin[count] = *temp;
-            ++count, ++temp;
-        }
+        fill_with(val_begin, begin, end);
     }
 
     template<typename Arg, Size size_>

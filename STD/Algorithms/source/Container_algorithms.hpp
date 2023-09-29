@@ -81,8 +81,23 @@ namespace STD {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+    template<typename Input_iterator>
+    inline Size get_size_Helper(Size size, const Input_iterator &target, True_type) {
+        return size;
+    }
+
+    template<typename Input_iterator>
+    inline Size get_size_Helper(Input_iterator begin, const Input_iterator &end, False_type) {
+        return calculate_Length(begin, end);
+    }
+
+    template<typename Input_iterator>
+    inline Size get_size(Input_iterator begin, const Input_iterator &end) {
+        return get_size_Helper(begin, end, Is_integral<Input_iterator>());
+    }
+
     template<typename Output_iterator, typename Arg>
-    void fill_with(Output_iterator pos, Arg target, Size size) {
+    void fill_with(Output_iterator pos, Size size, Arg target) {
         for (int i = 0; i < size; ++i) {
             *pos = target;
             ++pos;
@@ -98,8 +113,8 @@ namespace STD {
     }
 
     template<typename Output_iterator, typename Input_iterator>
-    void fill_with_helper(Output_iterator pos, const Input_iterator &target,
-                          const Input_iterator &size, True_type) {
+    void fill_with_helper(Output_iterator pos, const Input_iterator &size,
+                          const Input_iterator &target, True_type) {
         for (int i = 0; i < size; ++i) {
             *pos = target;
             ++pos;
@@ -122,6 +137,32 @@ namespace STD {
     }
 
     template<typename Output_iterator, typename Arg>
+    void rfill_with(Output_iterator pos, Size size, Arg target) {
+        for (int i = 0; i < size; ++i) {
+            *pos = target;
+            --pos;
+        }
+    }
+
+    template<typename Output_iterator, typename Input_iterator>
+    void rfill_with_helper(Output_iterator pos, const Input_iterator &size,
+                          const Input_iterator &target, True_type) {
+        for (int i = 0; i < size; ++i) {
+            *pos = target;
+            --pos;
+        }
+    }
+
+    template<typename Output_iterator, typename Input_iterator>
+    void rfill_with_helper(Output_iterator pos, Input_iterator begin,
+                          const Input_iterator &end, False_type) {
+        while (begin != end) {
+            *pos = *begin;
+            --pos, ++begin;
+        }
+    }
+
+    template<typename Output_iterator, typename Arg>
     void rfill_with(Output_iterator pos, const std::initializer_list<Arg> &list) {
         for (auto &t: list) {
             *pos = t;
@@ -132,10 +173,7 @@ namespace STD {
     template<typename Output_iterator, typename Input_iterator>
     void rfill_with(Output_iterator pos, Input_iterator begin,
                     const Input_iterator &end) {
-        while (begin != end) {
-            *pos = *begin;
-            --pos, ++begin;
-        }
+        rfill_with_helper(pos, begin, end, Is_integral<Input_iterator>());
     }
 
 //----------------------------------------------------------------------------------------------------------------------

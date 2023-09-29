@@ -133,7 +133,7 @@ namespace STD {
 
         void push_front(Arg &&val);
 
-        void push_front(const Arg &val, Size size);
+        void push_front(Size size, const Arg &val);
 
         template<typename Input_iterator>
         void push_front(Input_iterator begin, const Input_iterator &end);
@@ -147,7 +147,7 @@ namespace STD {
 
         void push_back(Arg &&val);
 
-        void push_back(const Arg &val, Size size);
+        void push_back(Size size, const Arg &val);
 
         template<typename Input_iterator>
         void push_back(Input_iterator begin, const Input_iterator &end);
@@ -170,6 +170,10 @@ namespace STD {
 
         cIterator insert(const cIterator &pos, const Arg &target);
 
+        Iterator insert(const Iterator &pos, Size size, const Arg &target);
+
+        cIterator insert(const cIterator &pos, Size size, const Arg &target);
+
         Iterator insert(const Iterator &pos, const std::initializer_list<Arg> &list);
 
         cIterator insert(const cIterator &pos, const std::initializer_list<Arg> &list);
@@ -183,6 +187,10 @@ namespace STD {
         rIterator insert(const rIterator &pos, const Arg &target);
 
         crIterator insert(const crIterator &pos, const Arg &target);
+
+        rIterator insert(const rIterator &pos, Size size, const Arg &target);
+
+        crIterator insert(const crIterator &pos, Size size, const Arg &target);
 
         rIterator insert(const rIterator &pos, const std::initializer_list<Arg> &list);
 
@@ -233,7 +241,7 @@ namespace STD {
             other.size_ = temp1;
             other.val_begin = temp2;
             other.val_end = temp3;
-        }
+        };
 
         List<Arg> &operator=(const List<Arg> &other);
 
@@ -292,7 +300,7 @@ namespace STD {
 
             ~Node() { Deallocate(value); };
 
-            Node *copy() { return Allocate<Node>(*value); }
+            Node *copy() { return Allocate<Node>(*value); };
 
         };
 
@@ -540,7 +548,7 @@ namespace STD {
     }
 
     template<typename Arg>
-    void List<Arg>::push_front(const Arg &val, Size size) {
+    void List<Arg>::push_front(Size size, const Arg &val) {
         insert_Helper(val_begin->next, size, val, false);
     }
 
@@ -587,7 +595,7 @@ namespace STD {
     }
 
     template<typename Arg>
-    void List<Arg>::push_back(const Arg &val, Size size) {
+    void List<Arg>::push_back(Size size, const Arg &val) {
         insert_Helper(val_end, size, val, false);
     }
 
@@ -694,6 +702,38 @@ namespace STD {
     template<typename Arg>
     typename List<Arg>::crIterator List<Arg>::insert(const crIterator &pos, const Arg &target) {
         return crIterator(insert((--pos).target, target));
+    }
+
+    template<typename Arg>
+    typename List<Arg>::rIterator
+    List<Arg>::insert(const rIterator &pos, Size size, const Arg &target) {
+        if (!pos.target.target || !pos.target.target->next)
+            throw outOfRange("You passed in an out-of-range iterator in the 'List::insert' function");
+        return rIterator(insert_Helper(pos.target.target), size, target, true);
+    }
+
+    template<typename Arg>
+    typename List<Arg>::crIterator
+    List<Arg>::insert(const crIterator &pos, Size size, const Arg &target) {
+        if (!pos.target.target || !pos.target.target->next)
+            throw outOfRange("You passed in an out-of-range iterator in the 'List::insert' function");
+        return crIterator(insert_Helper(pos.target.target), size, target, true);
+    }
+
+    template<typename Arg>
+    typename List<Arg>::Iterator
+    List<Arg>::insert(const Iterator &pos, Size size, const Arg &target) {
+        if (!pos.target.target || !pos.target.target->last)
+            throw outOfRange("You passed in an out-of-range iterator in the 'List::insert' function");
+        return Iterator(insert_Helper(pos.target), size, target, false);
+    }
+
+    template<typename Arg>
+    typename List<Arg>::cIterator
+    List<Arg>::insert(const cIterator &pos, Size size, const Arg &target) {
+        if (!pos.target.target || !pos.target.target->last)
+            throw outOfRange("You passed in an out-of-range iterator in the 'List::insert' function");
+        return cIterator(insert_Helper(pos.target.target), size, target, false);
     }
 
     template<typename Arg>

@@ -196,7 +196,17 @@ namespace STD {
         template<typename ...args>
         crIterator emplace(const crIterator &pos, args &&...vals);
 
-        Iterator insert(Size pos, const Arg &val, Size size = 1);
+        Iterator insert(Size pos, const Arg &val);
+
+        Iterator insert(const Iterator &pos, const Arg &val);
+
+        cIterator insert(const cIterator &pos, const Arg &val);
+
+        rIterator insert(const rIterator &pos, const Arg &val);
+
+        crIterator insert(const crIterator &pos, const Arg &val);
+
+        Iterator insert(Size pos, Size size, const Arg &val);
 
         Iterator insert(Size pos, const std::initializer_list<Arg> &list);
 
@@ -337,76 +347,16 @@ namespace STD {
 
         Arg *backward(Size pos_from, Size pos_to);
 
-        rIterator to_rIterator(const crIterator &val) {
-            return rIterator(Iterator(const_cast<Arg *>(val.target.target)));
-        };
-
-        template<typename Input_iterator>
-        Vector(const Input_iterator &begin, const Input_iterator &end, False_type);
-
-        template<typename Input_iterator>
-        Vector(const Input_iterator &size, const Input_iterator &target, True_type);
-
-        template<typename Input_iterator>
-        Vector<Arg> &assign_Helper(const Input_iterator &begin,
-                               const Input_iterator &end, False_type);
-
-        template<typename Input_iterator>
-        Vector<Arg> &assign_Helper(const Input_iterator &size,
-                               const Input_iterator &val, True_type);
-
-        template<typename Input_iterator>
-        void push_back_Helper(const Input_iterator &begin,
-                                   const Input_iterator &end, False_type);
-
-        template<typename Input_iterator>
-        void push_back_Helper(const Input_iterator &size,
-                                   const Input_iterator &val, True_type);
-
-        template<typename Input_iterator>
-        Iterator insert_Helper(Size pos, const Input_iterator &begin,
-                               const Input_iterator &end, False_type);
-
-        template<typename Input_iterator>
-        Iterator insert_Helper(Size pos, const Input_iterator &size,
-                               const Input_iterator &val, True_type);
-
-        template<typename Input_iterator>
-        rIterator reserve_insert_Helper(const rIterator &pos, const Input_iterator &begin,
-                                       const Input_iterator &end, False_type);
-
-        template<typename Input_iterator>
-        rIterator reserve_insert_Helper(const rIterator &pos, const Input_iterator &size,
-                               const Input_iterator &val, True_type);
-
     };
 
 //----------------------------------------------------------------------------------------------------------------------
-
-    template<typename Arg>
-    template<typename Input_iterator>
-    Vector<Arg>::Vector(const Input_iterator &begin, const Input_iterator &end, False_type) :
-            size_(calculate_Length(begin, end)) {
-        val_begin = Allocate_n<Arg>(size_);
-        store_end = val_end = val_begin + size_;
-        fill_with(val_begin, begin, end);
-    }
-
-    template<typename Arg>
-    template<typename Input_iterator>
-    Vector<Arg>::Vector(const Input_iterator &size, const Input_iterator &target, True_type)
-            : val_begin(Allocate_n<Arg>(size + size / 5)), size_(size) {
-        val_end = val_begin + size;
-        store_end = val_begin + size + size / 5;
-        fill_with(val_begin, target, size);
-    }
 
     template<typename Arg>
     Vector<Arg>::Vector(Size size, Arg target) :
             val_begin(Allocate_n<Arg>(size + size / 5)), size_(size) {
         val_end = val_begin + size;
         store_end = val_begin + size + size / 5;
-        fill_with(val_begin, target, size);
+        fill_with(val_begin, size, target);
     }
 
     template<typename Arg>
@@ -420,7 +370,11 @@ namespace STD {
     template<typename Arg>
     template<typename Input_iterator>
     Vector<Arg>::Vector(const Input_iterator &begin, const Input_iterator &end) :
-            Vector(begin, end, Is_integral<Input_iterator>()) {}
+            size_(get_size(begin, end)) {
+        val_begin = Allocate_n<Arg>(size_);
+        store_end = val_end = val_begin + size_;
+        fill_with(val_begin, begin, end);
+    }
 
     template<typename Arg>
     Vector<Arg>::Vector(const Vector<Arg> &other) :
@@ -499,7 +453,7 @@ namespace STD {
             return;
         }
         auto temp = Allocate_n<Arg>(size_);
-        fill_with(temp, val_begin, size_);
+        fill_with(temp, val_begin, val_end);
         Deallocate_n(val_begin);
         val_begin = temp;
         store_end = val_end = temp + size_;
@@ -509,33 +463,7 @@ namespace STD {
     Vector<Arg> &Vector<Arg>::assign(Size size, const Arg &val) {
         Deallocate_n(val_begin);
         val_begin = Allocate_n<Arg>(size);
-        fill_with(val_begin, val, size);
-        store_end = val_end = val_begin + size;
-        size_ = size;
-        return *this;
-    }
-
-    template<typename Arg>
-    template<typename Input_iterator>
-    Vector<Arg> &
-    Vector<Arg>::assign_Helper(const Input_iterator &begin,
-                               const Input_iterator &end, False_type) {
-        Deallocate_n(val_begin);
-        size_ = calculate_Length(begin, end);
-        val_begin = Allocate_n<Arg>(size_);
-        fill_with(val_begin, begin, size_);
-        store_end = val_end = val_begin + size_;
-        return *this;
-    }
-
-    template<typename Arg>
-    template<typename Input_iterator>
-    Vector<Arg> &
-    Vector<Arg>::assign_Helper(const Input_iterator &size,
-                               const Input_iterator &val, True_type) {
-        Deallocate_n(val_begin);
-        val_begin = Allocate_n<Arg>(size);
-        fill_with(val_begin, val, size);
+        fill_with(val_begin, size, val);
         store_end = val_end = val_begin + size;
         size_ = size;
         return *this;
@@ -544,7 +472,12 @@ namespace STD {
     template<typename Arg>
     template<typename Input_iterator>
     Vector<Arg> &Vector<Arg>::assign(const Input_iterator &begin, const Input_iterator &end) {
-        return assign_Helper(begin, end, Is_integral<Input_iterator>());
+        Deallocate_n(val_begin);
+        size_ = get_size(begin, end);
+        val_begin = Allocate_n<Arg>(size_);
+        fill_with(val_begin, begin, end);
+        store_end = val_end = val_begin + size_;
+        return *this;
     }
 
     template<typename Arg>
@@ -579,30 +512,7 @@ namespace STD {
     void Vector<Arg>::push_back(Size size, const Arg &val) {
         if (capacity() - size_ < size)
             reallocate(capacity() + size);
-        fill_with(val_end, val, size);
-        size_ += size;
-        val_end += size;
-    }
-
-    template<typename Arg>
-    template<typename Input_iterator>
-    void Vector<Arg>::push_back_Helper(const Input_iterator &begin,
-                               const Input_iterator &end, False_type) {
-        Size count = calculate_Length(begin, end);
-        if (capacity() - size_ < count)
-            reallocate(capacity() + count);
-        fill_with(val_end, begin, end);
-        size_ += count;
-        val_end += count;
-    }
-
-    template<typename Arg>
-    template<typename Input_iterator>
-    void Vector<Arg>::push_back_Helper(const Input_iterator &size,
-                               const Input_iterator &val, True_type) {
-        if (capacity() - size_ < size)
-            reallocate(capacity() + size);
-        fill_with(val_end, val, size);
+        fill_with(val_end, size, val);
         size_ += size;
         val_end += size;
     }
@@ -610,7 +520,12 @@ namespace STD {
     template<typename Arg>
     template<typename Input_iterator>
     void Vector<Arg>::push_back(const Input_iterator &begin, const Input_iterator &end) {
-        push_back_Helper(begin, end, Is_integral<Input_iterator>());
+        Size count = get_size(begin, end);
+        if (capacity() - size_ < count)
+            reallocate(capacity() + count);
+        fill_with(val_end, begin, end);
+        size_ += count;
+        val_end += count;
     }
 
     template<typename Arg>
@@ -642,26 +557,56 @@ namespace STD {
     template<typename... args>
     typename Vector<Arg>::cIterator
     Vector<Arg>::emplace(const cIterator &pos, args &&... vals) {
-        return cIterator(emplace(pos.target - val_begin, forward<args>(vals)...));
+        return cIterator(emplace(pos.target.target - val_begin, forward<args>(vals)...));
     }
 
     template<typename Arg>
     template<typename... args>
     typename Vector<Arg>::rIterator
     Vector<Arg>::emplace(const rIterator &pos, args &&... vals) {
-        return rIterator(--emplace(pos.target.target - val_begin + 1, forward<args>(vals)...));
+        return rIterator(emplace(pos.target.target - val_begin + 1, forward<args>(vals)...));
     }
 
     template<typename Arg>
     template<typename... args>
     typename Vector<Arg>::crIterator
     Vector<Arg>::emplace(const crIterator &pos, args &&... vals) {
-        return crIterator(--emplace(pos.target.target - val_begin + 1, forward<args>(vals)...));
+        return crIterator(emplace(pos.target.target - val_begin + 1, forward<args>(vals)...));
     }
 
     template<typename Arg>
     typename Vector<Arg>::Iterator
-    Vector<Arg>::insert(Size pos, const Arg &val, Size size) {
+    Vector<Arg>::insert(Size pos, const Arg &val) {
+        return insert(pos, 1, val);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::Iterator
+    Vector<Arg>::insert(const Iterator &pos, const Arg &val) {
+        return insert(pos, 1, val);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::cIterator
+    Vector<Arg>::insert(const cIterator &pos, const Arg &val) {
+        return insert(pos, 1, val);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::rIterator
+    Vector<Arg>::insert(const rIterator &pos, const Arg &val) {
+        return insert(pos, 1, val);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::crIterator
+    Vector<Arg>::insert(const crIterator &pos, const Arg &val) {
+        return insert(pos, 1, val);
+    }
+
+    template<typename Arg>
+    typename Vector<Arg>::Iterator
+    Vector<Arg>::insert(Size pos, Size size, const Arg &val) {
         if (pos > size_)
             throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
         if (!size) return Iterator(val_begin + pos);
@@ -682,28 +627,13 @@ namespace STD {
     template<typename Arg>
     template<typename Input_iterator>
     typename Vector<Arg>::Iterator
-    Vector<Arg>::insert_Helper(Size pos, const Input_iterator &begin, const Input_iterator &end, False_type) {
-        Size size = calculate_Length(begin, end);
-        fill_with(backward(pos, pos + size), begin, end);
-        return Iterator(val_begin + pos);
-    }
-
-    template<typename Arg>
-    template<typename Input_iterator>
-    typename Vector<Arg>::Iterator
-    Vector<Arg>::insert_Helper(Size pos, const Input_iterator &size, const Input_iterator &val, True_type) {
-        if (!size) return Iterator(val_begin + pos);
-        fill_with(backward(pos, pos + size), val, size);
-        return Iterator(val_begin + pos);
-    }
-
-    template<typename Arg>
-    template<typename Input_iterator>
-    typename Vector<Arg>::Iterator
     Vector<Arg>::insert(Size pos, const Input_iterator &begin, const Input_iterator &end) {
         if (pos > size_)
             throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
-        return insert_Helper(pos, begin, end, Is_integral<Input_iterator>());
+        Size size = get_size(begin, end);
+        if (!size) return Iterator(val_begin + pos);
+        fill_with(backward(pos, pos + size), begin, end);
+        return Iterator(val_begin + pos);
     }
 
     template<typename Arg>
@@ -741,7 +671,7 @@ namespace STD {
     template<typename Input_iterator>
     typename Vector<Arg>::cIterator
     Vector<Arg>::insert(const cIterator &pos, const Input_iterator &begin, const Input_iterator &end) {
-        return cIterator(insert(pos.target - val_begin, begin, end));
+        return cIterator(insert(pos.target, begin, end));
     }
 
     template<typename Arg>
@@ -773,35 +703,15 @@ namespace STD {
     template<typename Arg>
     template<typename Input_iterator>
     typename Vector<Arg>::rIterator
-    Vector<Arg>::reserve_insert_Helper(const rIterator &pos, const Input_iterator &begin,
-                                       const Input_iterator &end, False_type) {
-        Size target_len = calculate_Length(begin, end);
+    Vector<Arg>::insert(const rIterator &pos, const Input_iterator &begin, const Input_iterator &end) {
+        if (pos.target.target < val_begin - 1 || pos.target.target >= val_end)
+            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
+        Size target_len = get_size(begin, end);
         Size pos_from = pos.target.target - val_begin + 1;
         Size pos_to = pos_from + target_len;
         auto ptr = backward(pos_from, pos_to) + target_len - 1;
         rfill_with(ptr, begin, end);
         return rIterator(Iterator(ptr));
-    }
-
-    template<typename Arg>
-    template<typename Input_iterator>
-    typename Vector<Arg>::rIterator
-    Vector<Arg>::reserve_insert_Helper(const rIterator &pos, const Input_iterator &size,
-                                       const Input_iterator &val, True_type) {
-        Size pos_from = pos.target.target - val_begin + 1;
-        Size pos_to = pos_from + size;
-        auto ptr = backward(pos_from, pos_to);
-        fill_with(ptr, val, size);
-        return rIterator(Iterator(ptr + size - 1));
-    }
-
-    template<typename Arg>
-    template<typename Input_iterator>
-    typename Vector<Arg>::rIterator
-    Vector<Arg>::insert(const rIterator &pos, const Input_iterator &begin, const Input_iterator &end) {
-        if (pos.target.target < val_begin - 1 || pos.target.target >= val_end)
-            throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
-        return reserve_insert_Helper(pos, begin, end, Is_integral<Input_iterator>());
     }
 
     template<typename Arg>
@@ -860,12 +770,12 @@ namespace STD {
 
     template<typename Arg>
     typename Vector<Arg>::rIterator Vector<Arg>::erase(const rIterator &iter) {
-        return rIterator(--erase(iter.target.target - val_begin + 1, 1));
+        return rIterator(--erase(iter.target.target - val_begin, 1));
     }
 
     template<typename Arg>
     typename Vector<Arg>::crIterator Vector<Arg>::erase(const crIterator &iter) {
-        return crIterator(--erase(iter.target.target - val_begin + 1, 1));
+        return crIterator(--erase(iter.target.target - val_begin, 1));
     }
 
     template<typename Arg>
@@ -877,7 +787,7 @@ namespace STD {
     template<typename Arg>
     typename Vector<Arg>::cIterator
     Vector<Arg>::erase(const cIterator &begin, const cIterator &end) {
-        return erase(begin.target.target - val_begin, end - begin).to_const();
+        return cIterator(erase(begin.target.target - val_begin, end - begin));
     }
 
     template<typename Arg>

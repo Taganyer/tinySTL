@@ -15,4 +15,5 @@ add_executable(tinySTL main.cpp
         STD/Iterator.hpp
         STD/List.hpp
         STD/Forward_list.hpp
+        STD/Deque.hpp
 )

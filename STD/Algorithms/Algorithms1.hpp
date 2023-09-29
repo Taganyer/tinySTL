@@ -5,7 +5,7 @@
 
 namespace STD {
 
-    Size calculateLength(const char *target);
+    Size calculate_Length(const char *target);
 
     const char *Boyer_Moore(const char *pattern, Size pattern_len, const char *target, Size target_length);
 

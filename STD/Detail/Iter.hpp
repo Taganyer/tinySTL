@@ -78,7 +78,7 @@ namespace STD {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-    // 继承该类可以保证规范，免去了代码遗漏定义所需的各种类型的风险。
+    // 继承该类可以保证规范，免去了代码遗漏定义萃取器所需的各种类型的风险。
     template<typename Category, typename T, typename Distance = Ptrdiff,
             typename Ptr = T *, typename Ref = T &>
     struct Iterator {
@@ -134,13 +134,13 @@ namespace STD {
     template<class Iterator>
     inline typename Iterator_traits<Iterator>::Value_type *
     Value_type(const Iterator &) {
-        return static_cast<typename Iterator_traits<Iterator>::Value_type *>(nullptr); //返回一个的Value_type空指针
+        return static_cast<typename Iterator_traits<Iterator>::Value_type *>(nullptr); //返回一个Value_type空指针
     }
 
     template<class Iterator>
     inline typename Iterator_traits<Iterator>::Difference_type *
     Difference_type(const Iterator &) {
-        return static_cast<typename Iterator_traits<Iterator>::Difference_type *>(nullptr); //返回一个的Value_type的const空指针
+        return static_cast<typename Iterator_traits<Iterator>::Difference_type *>(nullptr); //返回一个Value_type的const空指针
     }
 
 //----------------------------------------------------------------------------------------------------------------------

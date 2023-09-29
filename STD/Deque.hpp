@@ -5,7 +5,9 @@
 #ifndef TINYSTL_DEQUE_HPP
 #define TINYSTL_DEQUE_HPP
 
-#include "Iter.hpp"
+#include "Iterator.hpp"
+#include "Allocater.hpp"
+#include "Algorithms/source/Container_algorithms.hpp"
 #include <initializer_list>
 
 namespace STD {
@@ -13,7 +15,399 @@ namespace STD {
     const int BLOCK_SIZE = 128;
 
     template<typename Arg>
+    class Deque;
+
+    namespace Detail {
+
+        template<typename Arg>
+        struct Deque_Iterator : public Iterator<Random_iterator_tag, Arg> {
+        public:
+            using Basic = Iterator<Random_iterator_tag, Arg>;
+
+            using Self = Deque_Iterator<Arg>;
+
+            using Reference = typename Basic::Reference;
+
+            using Pointer = typename Basic::Pointer;
+
+            using Container = Deque<Arg>;
+
+            friend class Deque<Arg>;
+
+            friend class rIterator<Self, Random_iterator_tag>;
+
+            friend class cIterator<Self, Random_iterator_tag>;
+
+            friend class crIterator<Self, Random_iterator_tag>;
+
+        private:
+            Arg **map = nullptr;
+
+            int pos = 0;
+
+            Arg *target = nullptr;
+
+            explicit Deque_Iterator(Arg **map, int pos, Arg *target) :
+                    map(map), pos(pos), target(target) {};
+
+        public:
+            Reference operator*() const {
+                return *target;
+            };
+
+            Pointer operator->() const {
+                return target;
+            };
+
+            Reference operator[](Step size) const {
+                return Container::find_value(map, pos, target, size);
+            }
+
+            Self &operator++() {
+                Container::add(map, pos, target);
+                return *this;
+            }
+
+            Self operator++(int) {
+                Self temp = Self(*this);
+                Container::add(map, pos, target);
+                return temp;
+            };
+
+            Self &operator--() {
+                Container::subtract(map, pos, target);
+                return *this;
+            };
+
+            Self operator--(int) {
+                Self temp = Self(*this);
+                Container::subtract(map, pos, target);
+                return temp;
+            };
+
+            Self &operator+=(Step size) {
+                Container::add(map, pos, target, size);
+                return *this;
+            };
+
+            Self &operator-=(Step size) {
+                Container::subtract(map, pos, target, size);
+                return *this;
+            };
+
+            friend Self operator+(const Self &Iterator, Step size) {
+                auto map_ = Iterator.map;
+                auto pos_ = Iterator.pos;
+                auto target_ = Iterator.target;
+                Container::add(map_, pos_, target_, size);
+                return Self(map_, pos_, target_);
+            };
+
+            friend Self operator-(const Self &Iterator, Step size) {
+                auto map_ = Iterator.map;
+                auto pos_ = Iterator.pos;
+                auto target_ = Iterator.target;
+                Container::subtract(map_, pos_, target_, size);
+                return Self(map_, pos_, target_);
+            };
+
+            friend Difference operator-(const Self &left, const Self &right) {
+                return (left.map - right.map) * BLOCK_SIZE + (left.pos - right.pos);
+            };
+
+            friend bool operator==(const Self &left, const Self &right) {
+                return left.target == right.target;
+            };
+
+            friend bool operator!=(const Self &left, const Self &right) {
+                return left.target != right.target;
+            };
+
+            friend bool operator<(const Self &left, const Self &right) {
+                if (left.map != right.map)
+                    return left.map < right.map;
+                return left.pos < right.pos;
+            };
+
+            friend bool operator<=(const Self &left, const Self &right) {
+                return !(left > right);
+            };
+
+            friend bool operator>(const Self &left, const Self &right) {
+                if (left.map != right.map)
+                    return left.map > right.map;
+                return left.pos > right.pos;
+            };
+
+            friend bool operator>=(const Self &left, const Self &right) {
+                return !(left < right);
+            };
+        };
+    }
+
+    template<typename Arg>
     class Deque {
+    public:
+        friend class Detail::Deque_Iterator<Arg>;
+
+        using Iterator = Detail::Deque_Iterator<Arg>;
+
+        using cIterator = STD::cIterator<Iterator, Random_iterator_tag>;
+
+        using rIterator = STD::rIterator<Iterator, Random_iterator_tag>;
+
+        using crIterator = STD::crIterator<Iterator, Random_iterator_tag>;
+
+        Deque();
+
+        Deque(Size size, const Arg &target = Arg());
+
+        Deque(const std::initializer_list<Arg> &list);
+
+        template<typename Input_iterator>
+        Deque(const Input_iterator &begin, const Input_iterator &end);
+
+        Deque(const Deque<Arg> &other);
+
+        Deque(Deque<Arg> &&other) noexcept;
+
+        ~Deque<Arg>();
+
+        void clear();
+
+        void shirk_to_fit();
+
+        Deque<Arg> &assign(Size size, const Arg &target);
+
+        Deque<Arg> &assign(const std::initializer_list<Arg> &list);
+
+        template<typename Input_iterator>
+        Deque<Arg> &assign(const Input_iterator &begin, const Input_iterator &end);
+
+        template<typename... args>
+        void emplace_front(args &&...vals);
+
+        void push_front(const Arg &val);
+
+        void push_front(Arg &&val);
+
+        void push_front(Size size, const Arg &val);
+
+        template<typename Input_iterator>
+        void push_front(const Input_iterator &begin, const Input_iterator &end);
+
+        void pop_front();
+
+        template<typename... args>
+        void emplace_back(args &&...vals);
+
+        void push_back(const Arg &val);
+
+        void push_back(Arg &&val);
+
+        void push_back(Size size, const Arg &val);;
+
+        template<typename Input_iterator>
+        void push_back(const Input_iterator &begin, const Input_iterator &end);
+
+        void pop_back();
+
+        template<typename... args>
+        Iterator emplace(Size pos, args &&...vals);
+
+        template<typename... args>
+        Iterator emplace(const Iterator &pos, args &&...vals);
+
+        template<typename... args>
+        cIterator emplace(const cIterator &pos, args &&...vals);
+
+        template<typename... args>
+        rIterator emplace(const rIterator &pos, args &&...vals);
+
+        template<typename... args>
+        crIterator emplace(const crIterator &pos, args &&...vals);
+
+        Iterator insert(Size pos, const Arg &val);
+
+        Iterator insert(const Iterator &pos, const Arg &val);
+
+        cIterator insert(const cIterator &pos, const Arg &val);
+
+        rIterator insert(const rIterator &pos, const Arg &val);
+
+        crIterator insert(const crIterator &pos, const Arg &val);
+
+        Iterator insert(Size pos, Size size, const Arg &val);
+
+        Iterator insert(Size pos, const std::initializer_list<Arg> &list);
+
+        template<typename Input_iterator>
+        Iterator insert(Size pos, const Input_iterator &begin, const Input_iterator &end);
+
+        Iterator insert(const Iterator &pos, Size size, const Arg &val);
+
+        Iterator insert(const Iterator &pos, const std::initializer_list<Arg> &list);
+
+        template<typename Input_iterator>
+        Iterator insert(const Iterator &pos, const Input_iterator &begin, const Input_iterator &end);
+
+        cIterator insert(const cIterator &pos, Size size, const Arg &val);
+
+        cIterator insert(const cIterator &pos, const std::initializer_list<Arg> &list);
+
+        template<typename Input_iterator>
+        cIterator insert(const cIterator &pos, const Input_iterator &begin, const Input_iterator &end);
+
+        rIterator insert(const rIterator &pos, Size size, const Arg &val);
+
+        rIterator insert(const rIterator &pos, const std::initializer_list<Arg> &list);
+
+        template<typename Input_iterator>
+        rIterator insert(const rIterator &pos,
+                         const Input_iterator &begin, const Input_iterator &end);
+
+        crIterator insert(const crIterator &pos, Size size, const Arg &val);
+
+        crIterator insert(const crIterator &pos,
+                          const std::initializer_list<Arg> &list);
+
+        template<typename Input_iterator>
+        crIterator insert(const crIterator &pos,
+                          const Input_iterator &begin, const Input_iterator &end);
+
+        Iterator erase(Size pos, Size size = 1);
+
+        Iterator erase(const Iterator &iter);
+
+        cIterator erase(const cIterator &iter);
+
+        Iterator erase(const Iterator &begin, const Iterator &end);
+
+        cIterator erase(const cIterator &begin, const cIterator &end);
+
+        rIterator erase(const rIterator &iter);
+
+        crIterator erase(const crIterator &iter);
+
+        rIterator erase(const rIterator &begin, const rIterator &end);
+
+        crIterator erase(const crIterator &begin, const crIterator &end);
+
+        Arg &operator[](Size pos) const {
+            auto temp = find_ptr(pos);
+            return temp.first[0][temp.second];
+        };
+
+        Arg &at(Size pos) const {
+            if (pos >= size_)
+                throw outOfRange("You provided an out-of-range subscript int the 'Deque::at' function");
+            auto temp = find_ptr(pos);
+            return temp.first[0][temp.second];
+        };
+
+        Size size() const { return size_; };
+
+        Size capacity() const { return BLOCK_SIZE * map_size; };
+
+        Arg &front() const {
+            if (!size_)
+                throw outOfRange("You're accessing a non-existent element in the 'Deque::front' function");
+            return map[map_begin][val_begin];
+        };
+
+        Arg &back() const {
+            if (!size_)
+                throw outOfRange("You're accessing a non-existent element in the 'Deque::back' function");
+            return map[val_end ? map_end : map_end - 1]
+            [val_end ? val_end - 1 : BLOCK_SIZE - 1];
+        };
+
+        bool empty() const { return !size_; };
+
+        void swap(Deque<Arg> &other) noexcept {
+            Size temp1 = size_;
+            int temp2 = val_begin, temp3 = val_end,
+                    temp4 = map_begin, temp5 = map_end;
+            Arg **temp6 = map;
+            size_ = other.size_;
+            val_begin = other.val_begin;
+            val_end = other.val_end;
+            map_begin = other.map_begin;
+            map_end = other.map_end;
+            map = other.map;
+            other.size_ = temp1;
+            other.val_begin = temp2;
+            other.val_end = temp3;
+            other.map_begin = temp4;
+            other.map_end = temp5;
+            other.map = temp6;
+        };
+
+        Deque<Arg> &operator=(const Deque<Arg> &other);
+
+        Deque<Arg> &operator=(Deque<Arg> &&other) noexcept;
+
+        template<typename Type>
+        friend bool operator==(const Deque<Type> &left, const Deque<Type> &right);
+
+        template<typename Type>
+        friend bool operator!=(const Deque<Type> &left, const Deque<Type> &right);
+
+        template<typename Type>
+        friend bool operator<(const Deque<Type> &left, const Deque<Type> &right);
+
+        template<typename Type>
+        friend bool operator<=(const Deque<Type> &left, const Deque<Type> &right);
+
+        template<typename Type>
+        friend bool operator>(const Deque<Type> &left, const Deque<Type> &right);
+
+        template<typename Type>
+        friend bool operator>=(const Deque<Type> &left, const Deque<Type> &right);
+
+        template<typename Type>
+        friend inline void swap(Deque<Type> &left, Deque<Type> &right) noexcept;
+
+        Iterator begin() const {
+            return Iterator(map + map_begin, val_begin, *(map + map_begin) + val_begin);
+        };
+
+        Iterator end() const {
+            return Iterator(map + map_end, val_end, *(map + map_end) + val_end);
+        };
+
+        cIterator cbegin() const {
+            return cIterator(Iterator(map + map_begin, val_begin, *(map + map_begin) + val_begin));
+        };
+
+        cIterator cend() const {
+            return cIterator(Iterator(map + map_end, val_end, *(map + map_end) + val_end));
+        };
+
+        rIterator rbegin() const {
+            auto temp = find_ptr(size_ - 1);
+            return rIterator(Iterator(temp.first, temp.second, *temp.first + temp.second));
+        };
+
+        rIterator rend() const {
+            auto temp = find_ptr(0);
+            Arg *target = *temp.first + temp.second;
+            subtract(temp.first, temp.second, target);
+            return rIterator(Iterator(temp.first, temp.second, target));
+        };
+
+        crIterator crbegin() const {
+            auto temp = find_ptr(size_ - 1);
+            return crIterator(Iterator(temp.first, temp.second, *temp.first + temp.second));
+        };
+
+        crIterator crend() const {
+            auto temp = find_ptr(0);
+            Arg *target = *temp.first + temp.second;
+            subtract(temp.first, temp.second, target);
+            return crIterator(Iterator(temp.first, temp.second, target));
+        };
+
     private:
         Size size_ = 0;
 
@@ -107,6 +501,19 @@ namespace STD {
             return {target_map, target_pos};
         };
 
+        inline Arg &get_value(Arg **i, int j, Arg *ptr, const Size &size) {
+            add(i, j, ptr, size);
+            return *ptr;
+        };
+
+        Iterator get_Iterator(const Size &pos) {
+            int i = (pos + val_begin) / BLOCK_SIZE + map_begin,
+                    j = (pos + val_begin) % BLOCK_SIZE;
+            if (j < 0)
+                j += BLOCK_SIZE;
+            return Iterator(map + i, j, map[i] + j);
+        };
+
         Size left_rest() const { return map_begin * BLOCK_SIZE + val_begin; };
 
         Size right_rest() const {
@@ -115,281 +522,13 @@ namespace STD {
 
         void init();
 
-        void fill(Size pos, const Arg &target, Size size,
-                  void (*fun)(int &, int &));
-
-        void fill(Size pos, const std::initializer_list<Arg> &list,
-                  void (*fun)(int &, int &));
-
-        void fill(Size pos, const cIter<Arg> &begin, Size size,
-                  void (*fun)(int &, int &));
-
         void forward_move_element(Size step, Size size);
 
         void backward_move_element(Size step, Size size);
 
         void expand_capacity(int size, bool to_end);
 
-    public:
-        class Iterator;
-
-        class cIterator;
-
-        class rIterator;
-
-        class crIterator;
-
-        Deque();
-
-        Deque(Size size, const Arg &target = Arg());
-
-        Deque(const std::initializer_list<Arg> &list);
-
-        Deque(const Iter<Arg> &begin, const Iter<Arg> &end);
-
-        Deque(const cIter<Arg> &begin, const cIter<Arg> &end);
-
-        Deque(const Deque<Arg> &other);
-
-        Deque(Deque<Arg> &&other) noexcept;
-
-        ~Deque<Arg>();
-
-        void clear();
-
-        void shirk_to_fit();
-
-        Deque<Arg> &assign(Size size, const Arg &target);
-
-        Deque<Arg> &assign(const std::initializer_list<Arg> &list);
-
-        Deque<Arg> &assign(const Iter<Arg> &begin, const Iter<Arg> &end);
-
-        Deque<Arg> &assign(const cIter<Arg> &begin, const cIter<Arg> &end);
-
-        template<typename... args>
-        void emplace_front(args &&...vals);
-
-        void push_front(const Arg &val);
-
-        void push_front(Arg &&val);
-
-        void push_front(Size size, const Arg &val);
-
-        void push_front(const Iter<Arg> &begin, const Iter<Arg> &end);
-
-        void push_front(const cIter<Arg> &begin, const cIter<Arg> &end);
-
-        void pop_front();
-
-        template<typename... args>
-        void emplace_back(args &&...vals);
-
-        void push_back(const Arg &val);
-
-        void push_back(Arg &&val);
-
-        void push_back(Size size, const Arg &val);;
-
-        void push_back(const Iter<Arg> &begin, const Iter<Arg> &end);
-
-        void push_back(const cIter<Arg> &begin, const cIter<Arg> &end);
-
-        void pop_back();
-
-        template<typename... args>
-        Iterator emplace(Size pos, args &&...vals);
-
-        template<typename... args>
-        Iterator emplace(const Iterator &pos, args &&...vals);
-
-        template<typename... args>
-        cIterator emplace(const cIterator &pos, args &&...vals);
-
-        template<typename... args>
-        rIterator emplace(const rIterator &pos, args &&...vals);
-
-        template<typename... args>
-        crIterator emplace(const crIterator &pos, args &&...vals);
-
-        Iterator insert(Size pos, const Arg &val, Size size = 1);
-
-        Iterator insert(Size pos, const std::initializer_list<Arg> &list);
-
-        Iterator insert(Size pos, const Iter <Arg> &begin, const Iter <Arg> &end);
-
-        Iterator insert(Size pos, const cIter<Arg> &begin, const cIter<Arg> &end);
-
-        Iterator insert(const Iterator &pos, Size size, const Arg &val);
-
-        Iterator insert(const Iterator &pos, const std::initializer_list<Arg> &list);
-
-        Iterator insert(const Iterator &pos, const Iter <Arg> &begin, const Iter <Arg> &end);
-
-        Iterator insert(const Iterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end);
-
-        cIterator insert(const cIterator &pos, Size size, const Arg &val);
-
-        cIterator insert(const cIterator &pos, const std::initializer_list<Arg> &list);
-
-        cIterator insert(const cIterator &pos, const Iter <Arg> &begin, const Iter <Arg> &end);
-
-        cIterator insert(const cIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end);
-
-        rIterator insert(const rIterator &pos, Size size, const Arg &val);
-
-        rIterator insert(const rIterator &pos, const std::initializer_list<Arg> &list);
-
-        rIterator insert(const rIterator &pos, const Iter <Arg> &begin, const Iter <Arg> &end);
-
-        rIterator insert(const rIterator &pos, const cIter<Arg> &begin,
-                         const cIter<Arg> &end);
-
-        crIterator insert(const crIterator &pos, Size size, const Arg &val);
-
-        crIterator insert(const crIterator &pos,
-                          const std::initializer_list<Arg> &list);
-
-        crIterator insert(const crIterator &pos, const Iter <Arg> &begin,
-                          const Iter <Arg> &end);
-
-        crIterator insert(const crIterator &pos, const cIter<Arg> &begin,
-                          const cIter<Arg> &end);
-
-        Iterator erase(Size pos, Size size = 1);
-
-        Iterator erase(const Iterator &iter);
-
-        cIterator erase(const cIterator &iter);
-
-        Iterator erase(const Iterator &begin, const Iterator &end);
-
-        cIterator erase(const cIterator &begin, const cIterator &end);
-
-        rIterator erase(const rIterator &iter);
-
-        crIterator erase(const crIterator &iter);
-
-        rIterator erase(const rIterator &begin, const rIterator &end);
-
-        crIterator erase(const crIterator &begin, const crIterator &end);
-
-        Arg &operator[](Size pos) const {
-            auto temp = find_ptr(pos);
-            return temp.first[0][temp.second];
-        };
-
-        Arg &at(Size pos) const {
-            if (pos >= size_)
-                throw outOfRange("You provided an out-of-range subscript int the 'Deque::at' function");
-            auto temp = find_ptr(pos);
-            return temp.first[0][temp.second];
-        };
-
-        Size size() const { return size_; };
-
-        Size capacity() const { return BLOCK_SIZE * map_size; };
-
-        Arg &front() const {
-            if (!size_)
-                throw outOfRange("You're accessing a non-existent element in the 'Deque::front' function");
-            return map[map_begin][val_begin];
-        };
-
-        Arg &back() const {
-            if (!size_)
-                throw outOfRange("You're accessing a non-existent element in the 'Deque::back' function");
-            return map[val_end ? map_end : map_end - 1]
-            [val_end ? val_end - 1 : BLOCK_SIZE - 1];
-        };
-
-        bool empty() const { return !size_; };
-
-        void swap(Deque<Arg> &other) noexcept {
-            Size temp1 = size_;
-            int temp2 = val_begin, temp3 = val_end, temp4 = map_begin, temp5 = map_end;
-            Arg **temp6 = map;
-            size_ = other.size_;
-            val_begin = other.val_begin;
-            val_end = other.val_end;
-            map_begin = other.map_begin;
-            map_end = other.map_end;
-            map = other.map;
-            other.size_ = temp1;
-            other.val_begin = temp2;
-            other.val_end = temp3;
-            other.map_begin = temp4;
-            other.map_end = temp5;
-            other.map = temp6;
-        };
-
-        Deque<Arg> &operator=(const Deque<Arg> &other);
-
-        Deque<Arg> &operator=(Deque<Arg> &&other) noexcept;
-
-        template<typename Type>
-        friend bool operator==(const Deque<Type> &left, const Deque<Type> &right);
-
-        template<typename Type>
-        friend bool operator!=(const Deque<Type> &left, const Deque<Type> &right);
-
-        template<typename Type>
-        friend bool operator<(const Deque<Type> &left, const Deque<Type> &right);
-
-        template<typename Type>
-        friend bool operator<=(const Deque<Type> &left, const Deque<Type> &right);
-
-        template<typename Type>
-        friend bool operator>(const Deque<Type> &left, const Deque<Type> &right);
-
-        template<typename Type>
-        friend bool operator>=(const Deque<Type> &left, const Deque<Type> &right);
-
-        template<typename Type>
-        friend void swap(Deque<Type> &left, Deque<Type> &right) noexcept {
-            left.swap(right);
-        };
-
-        Iterator begin() const {
-            return Iterator(*(map + map_begin) + val_begin, map + map_begin, val_begin);
-        };
-
-        Iterator end() const {
-            return Iterator(*(map + map_end) + val_end, map + map_end, val_end);
-        };
-
-        cIterator cbegin() const {
-            return cIterator(*(map + map_begin) + val_begin, map + map_begin, val_begin);
-        };
-
-        cIterator cend() const {
-            return cIterator(*(map + map_end) + val_end, map + map_end, val_end);
-        };
-
-        rIterator rbegin() const {
-            auto temp = find_ptr(size_ - 1);
-            return rIterator(*temp.first + temp.second, temp.first, temp.second);
-        };
-
-        rIterator rend() const {
-            auto temp = find_ptr(0);
-            Arg *target = *temp.first + temp.second;
-            subtract(temp.first, temp.second, target);
-            return rIterator(target, temp.first, temp.second);
-        };
-
-        crIterator crbegin() const {
-            auto temp = find_ptr(size_ - 1);
-            return crIterator(*temp.first + temp.second, temp.first,
-                              temp.second);
-        };
-
-        crIterator crend() const {
-            auto temp = find_ptr(0);
-            Arg *target = *temp.first + temp.second;
-            subtract(temp.first, temp.second, target);
-            return crIterator(target, temp.first, temp.second);
-        };
+        void insert_move(Size pos, Size size);
     };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -405,49 +544,6 @@ namespace STD {
         val_end = (size_ + rest / 2) % BLOCK_SIZE;
         map_begin = 0;
         map_end = map_size - 1;
-    }
-
-    template<typename Arg>
-    void Deque<Arg>::fill(Size pos, const Arg &target, Size size,
-                          void (*fun)(int &, int &)) {
-        int i = (pos + val_begin) / BLOCK_SIZE + map_begin,
-                j = (pos + val_begin) % BLOCK_SIZE;
-        if (j < 0)
-            j += BLOCK_SIZE;
-        for (int index = 0; index < size; ++index) {
-            map[i][j] = target;
-            fun(i, j);
-        }
-    }
-
-    template<typename Arg>
-    void Deque<Arg>::fill(Size pos, const std::initializer_list<Arg> &list,
-                          void (*fun)(int &, int &)) {
-        int i = (pos + val_begin) / BLOCK_SIZE + map_begin,
-                j = (pos + val_begin) % BLOCK_SIZE;
-        if (j < 0)
-            j += BLOCK_SIZE;
-        auto temp = list.begin();
-        for (int index = 0; index < list.size(); ++index) {
-            map[i][j] = *temp;
-            ++temp;
-            fun(i, j);
-        }
-    }
-
-    template<typename Arg>
-    void Deque<Arg>::fill(Size pos, const cIter<Arg> &begin, Size size,
-                          void (*fun)(int &, int &)) {
-        int i = (pos + val_begin) / BLOCK_SIZE + map_begin,
-                j = (pos + val_begin) % BLOCK_SIZE;
-        if (j < 0)
-            j += BLOCK_SIZE;
-        auto temp = begin.deep_copy();
-        for (int index = 0; index < size; ++index) {
-            map[i][j] = **temp;
-            ++(*temp);
-            fun(i, j);
-        }
     }
 
     template<typename Arg>
@@ -501,6 +597,21 @@ namespace STD {
         }
     }
 
+    template<typename Arg>
+    void Deque<Arg>::insert_move(Size pos, Size size) {
+        if (pos <= size_ / 2) {
+            auto rest = left_rest();
+            if (rest < size)
+                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, false);
+            forward_move_element(size, pos);
+        } else {
+            auto rest = right_rest();
+            if (rest < size)
+                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, true);
+            backward_move_element(size, size_ - pos);
+        }
+    }
+
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg>
@@ -509,39 +620,37 @@ namespace STD {
     template<typename Arg>
     Deque<Arg>::Deque(Size size, const Arg &target) : size_(size) {
         init();
-        fill(0, target, size, add);
+        fill_with(this->begin(), size, target);
     }
 
     template<typename Arg>
     Deque<Arg>::Deque(const std::initializer_list<Arg> &list) : size_(list.size()) {
         init();
-        fill(0, list, add);
+        fill_with(this->begin(), list);
     }
 
     template<typename Arg>
-    Deque<Arg>::Deque(const Iter<Arg> &begin, const Iter<Arg> &end)
-            : Deque(*begin.to_const(), *end.to_const()) {}
-
-    template<typename Arg>
-    Deque<Arg>::Deque(const cIter<Arg> &begin, const cIter<Arg> &end)
-            : size_(calculateLength(begin, end)) {
+    template<typename Input_iterator>
+    Deque<Arg>::Deque(const Input_iterator &begin, const Input_iterator &end)
+            : size_(get_size(begin, end)) {
         init();
-        fill(0, begin, size_, add);
+        fill_with(this->begin(), begin, end);
     }
 
     template<typename Arg>
     Deque<Arg>::Deque(const Deque<Arg> &other) : size_(other.size_) {
         init();
-        fill(0, other.cbegin(), size_, add);
+        fill_with(this->begin(), other.begin(), other.end());
     }
 
     template<typename Arg>
     Deque<Arg>::Deque(Deque<Arg> &&other) noexcept
-            : size_(other.size_), map_size(other.map_size), val_begin(other.val_begin),
+            : size_(other.size_), val_begin(other.val_begin),
               val_end(other.val_end), map_begin(other.map_begin),
               map_end(other.map_end) {
         for (int i = 0; i < map_size; ++i)
             Deallocate_n(map[i]);
+        map_size = other.map_size;
         Deallocate_n(map);
         map = other.map;
         other.size_ = 0;
@@ -600,7 +709,7 @@ namespace STD {
         Deallocate_n(map);
         size_ = size;
         init();
-        fill(0, target, size, add);
+        fill_with(this->begin(), size, target);
         return *this;
     }
 
@@ -611,23 +720,19 @@ namespace STD {
         Deallocate_n(map);
         size_ = list.size();
         init();
-        fill(0, list, add);
+        fill_with(this->begin(), list);
         return *this;
     }
 
     template<typename Arg>
-    Deque<Arg> &Deque<Arg>::assign(const Iter<Arg> &begin, const Iter<Arg> &end) {
-        return assign(*begin.to_const(), *end.to_const());
-    }
-
-    template<typename Arg>
-    Deque<Arg> &Deque<Arg>::assign(const cIter<Arg> &begin, const cIter<Arg> &end) {
+    template<typename Input_iterator>
+    Deque<Arg> &Deque<Arg>::assign(const Input_iterator &begin, const Input_iterator &end) {
         for (int i = 0; i < map_size; ++i)
             Deallocate_n(map[i]);
         Deallocate_n(map);
-        size_ = calculateLength(begin, end);
+        size_ = get_size(begin, end);
         init();
-        fill(0, begin, size_, add);
+        fill_with(this->begin(), begin, end);
         return *this;
     }
 
@@ -665,23 +770,19 @@ namespace STD {
         if (rest < size)
             expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, false);
         subtract(map_begin, val_begin, size);
-        fill(0, val, size, add);
+        fill_with(this->begin(), size, val);
         size_ += size;
     }
 
     template<typename Arg>
-    void Deque<Arg>::push_front(const Iter<Arg> &begin, const Iter<Arg> &end) {
-        push_front(*begin.to_const(), *end.to_const());
-    }
-
-    template<typename Arg>
-    void Deque<Arg>::push_front(const cIter<Arg> &begin, const cIter<Arg> &end) {
-        auto size = calculateLength(begin, end);
+    template<typename Input_iterator>
+    void Deque<Arg>::push_front(const Input_iterator &begin, const Input_iterator &end) {
+        auto size = get_size(begin, end);
         auto rest = left_rest();
         if (rest < size)
             expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, false);
         subtract(map_begin, val_begin, size);
-        fill(0, begin, size, add);
+        fill_with(this->begin(), begin, end);
         size_ += size;
     }
 
@@ -725,24 +826,20 @@ namespace STD {
         auto rest = right_rest();
         if (rest < size)
             expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, true);
+        fill_with(this->end(), size, val);
         add(map_end, val_end, size);
-        fill(size_ - size, val, size, add);
         size_ += size;
     }
 
     template<typename Arg>
-    void Deque<Arg>::push_back(const Iter<Arg> &begin, const Iter<Arg> &end) {
-        push_back(*begin.to_const(), *end.to_const());
-    }
-
-    template<typename Arg>
-    void Deque<Arg>::push_back(const cIter<Arg> &begin, const cIter<Arg> &end) {
-        auto size = calculateLength(begin, end);
+    template<typename Input_iterator>
+    void Deque<Arg>::push_back(const Input_iterator &begin, const Input_iterator &end) {
+        auto size = get_size(begin, end);
         auto rest = right_rest();
         if (rest < size)
             expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, true);
+        fill_with(this->end(), begin, end);
         add(map_end, val_end, size);
-        fill(size_ - size, begin, size, add);
         size_ += size;
     }
 
@@ -758,22 +855,11 @@ namespace STD {
     typename Deque<Arg>::Iterator Deque<Arg>::emplace(Size pos, args &&...vals) {
         if (pos > size_)
             throw outOfRange("You passed an out-of-range value in the 'Deque::emplace' function");
-        Pair<Arg **, int> pair;
-        if (pos <= size_ / 2) {
-            if (map_begin == 0 && val_begin == 0)
-                expand_capacity(1, false);
-            forward_move_element(1, pos);
-            pair = find_ptr(pos);
-            pair.first[0][pair.second] = Arg(vals...);
-        } else {
-            if (map_end == map_size)
-                expand_capacity(1, true);
-            backward_move_element(1, size_ - pos);
-            pair = find_ptr(pos);
-            pair.first[0][pair.second] = Arg(vals...);
-        }
+        insert_move(pos, 1);
+        Pair<Arg **, int> pair = find_ptr(pos);
+        pair.first[0][pair.second] = Arg(vals...);
         ++size_;
-        return Iterator(*pair.first + pair.second, pair.first, pair.second);
+        return Iterator(pair.first, pair.second, *pair.first + pair.second);
     }
 
     template<typename Arg>
@@ -786,122 +872,90 @@ namespace STD {
     template<typename... args>
     typename Deque<Arg>::cIterator
     Deque<Arg>::emplace(const cIterator &pos, args &&...vals) {
-        Iterator temp = emplace(find_pos(pos.map, pos.pos), forward<args>(vals)...);
-        return cIterator(temp.target, temp.map, temp.pos);
+        return cIterator(emplace(find_pos(pos.target.map, pos.target.pos), forward<args>(vals)...));
     }
 
     template<typename Arg>
     template<typename... args>
     typename Deque<Arg>::rIterator
     Deque<Arg>::emplace(const Deque::rIterator &pos, args &&...vals) {
-        rIterator temp = emplace(*pos.to_const(), forward<args>(vals)...);
-        return rIterator(temp.target, temp.map, temp.pos);
+        return rIterator(emplace((--pos).target, forward(vals)...));
     }
 
     template<typename Arg>
     template<typename... args>
     typename Deque<Arg>::crIterator
     Deque<Arg>::emplace(const crIterator &pos, args &&...vals) {
-        auto index = find_pos(pos.map, pos.pos) + 1;
-        if (index > size_)
-            throw outOfRange("You passed an out-of-range value in the 'Deque::emplace' function");
-        Pair<Arg **, int> pair;
-        if (pos <= size_ / 2) {
-            if (map_begin == 0 && val_begin == 0)
-                expand_capacity(1, false);
-            forward_move_element(1, index);
-            pair = find_ptr(index);
-            pair.first[0][pair.second] = Arg(vals...);
-        } else {
-            if (map_end == map_size)
-                expand_capacity(1, true);
-            backward_move_element(1, size_ - index);
-            pair = find_ptr(index);
-            pair.first[0][pair.second] = Arg(vals...);
-        }
-        ++size_;
-        Arg *ptr = *pair.first + pair.second;
-        subtract(pair.first, pair.second, ptr);
-        return crIterator(ptr, pair.first, pair.second);
+        return crIterator(emplace((--pos).target, forward(vals)...));
     }
 
     template<typename Arg>
     typename Deque<Arg>::Iterator
-    Deque<Arg>::insert(Size pos, const Arg &val, Size size) {
+    Deque<Arg>::insert(Size pos, const Arg &val) {
+        return insert(pos, 1, val);
+    }
+
+    template<typename Arg>
+    typename Deque<Arg>::Iterator
+    Deque<Arg>::insert(const Iterator &pos, const Arg &val) {
+        return insert(pos, 1, val);
+    }
+
+    template<typename Arg>
+    typename Deque<Arg>::cIterator
+    Deque<Arg>::insert(const cIterator &pos, const Arg &val) {
+        return insert(pos, 1, val);
+    }
+
+    template<typename Arg>
+    typename Deque<Arg>::rIterator
+    Deque<Arg>::insert(const rIterator &pos, const Arg &val) {
+        return insert(pos, 1, val);
+    }
+
+    template<typename Arg>
+    typename Deque<Arg>::crIterator
+    Deque<Arg>::insert(const crIterator &pos, const Arg &val) {
+        return insert(pos, 1, val);
+    }
+
+    template<typename Arg>
+    typename Deque<Arg>::Iterator
+    Deque<Arg>::insert(Size pos, Size size, const Arg &val) {
         if (pos > size_)
             throw outOfRange("You passed an out-of-range value in the 'Deque::insert' function");
-        if (pos <= size_ / 2) {
-            auto rest = left_rest();
-            if (rest < size)
-                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, false);
-            forward_move_element(size, pos);
-            fill(pos, val, size, add);
-        } else {
-            auto rest = right_rest();
-            if (rest < size)
-                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, true);
-            backward_move_element(size, size_ - pos);
-            fill(pos, val, size, add);
-        }
+        insert_move(pos, size);
+        fill_with(get_Iterator(pos), size, val);
         size_ += size;
         auto pair = find_ptr(pos);
-        return Iterator(*pair.first + pair.second, pair.first, pair.second);
+        return Iterator(pair.first, pair.second, *pair.first + pair.second);
     }
 
     template<typename Arg>
     typename Deque<Arg>::Iterator
     Deque<Arg>::insert(Size pos, const std::initializer_list<Arg> &list) {
         if (pos > size_)
-            throw outOfRange(
-                    "You passed an out-of-range value in the 'Deque::insert' function");
+            throw outOfRange("You passed an out-of-range value in the 'Deque::insert' function");
         auto size = list.size();
-        if (pos <= size_ / 2) {
-            auto rest = left_rest();
-            if (rest < size)
-                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, false);
-            forward_move_element(size, pos);
-            fill(pos, list, add);
-        } else {
-            auto rest = right_rest();
-            if (rest < size)
-                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, true);
-            backward_move_element(size, size_ - pos);
-            fill(pos, list, add);
-        }
+        insert_move(pos, size);
+        fill_with(get_Iterator(pos), list);
         size_ += size;
         auto pair = find_ptr(pos);
-        return Iterator(*pair.first + pair.second, pair.first, pair.second);
+        return Iterator(pair.first, pair.second, *pair.first + pair.second);
     }
 
     template<typename Arg>
+    template<typename Input_iterator>
     typename Deque<Arg>::Iterator
-    Deque<Arg>::insert(Size pos, const Iter <Arg> &begin, const Iter <Arg> &end) {
-        return insert(pos, *begin.to_const(), *end.to_const());
-    }
-
-    template<typename Arg>
-    typename Deque<Arg>::Iterator
-    Deque<Arg>::insert(Size pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
+    Deque<Arg>::insert(Size pos, const Input_iterator &begin, const Input_iterator &end) {
         if (pos > size_)
-            throw outOfRange(
-                    "You passed an out-of-range value in the 'Deque::insert' function");
-        auto size = calculateLength(begin, end);
-        if (pos <= size_ / 2) {
-            auto rest = left_rest();
-            if (rest < size)
-                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, false);
-            forward_move_element(size, pos);
-            fill(pos, begin, size, add);
-        } else {
-            auto rest = right_rest();
-            if (rest < size)
-                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, true);
-            backward_move_element(size, size_ - pos);
-            fill(pos, begin, size, add);
-        }
+            throw outOfRange("You passed an out-of-range value in the 'Deque::insert' function");
+        auto size = get_size(begin, end);
+        insert_move(pos, size);
+        fill_with(get_Iterator(pos), begin, end);
         size_ += size;
         auto pair = find_ptr(pos);
-        return Iterator(*pair.first + pair.second, pair.first, pair.second);
+        return Iterator(pair.first, pair.second, *pair.first + pair.second);
     }
 
     template<typename Arg>
@@ -917,153 +971,91 @@ namespace STD {
     }
 
     template<typename Arg>
+    template<typename Input_iterator>
     typename Deque<Arg>::Iterator
-    Deque<Arg>::insert(const Iterator &pos, const Iter <Arg> &begin, const Iter <Arg> &end) {
-        return insert(find_pos(pos.map, pos.pos), *begin.to_const(), *end.to_const());
-    }
-
-    template<typename Arg>
-    typename Deque<Arg>::Iterator
-    Deque<Arg>::insert(const Iterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
+    Deque<Arg>::insert(const Iterator &pos, const Input_iterator &begin, const Input_iterator &end) {
         return insert(find_pos(pos.map, pos.pos), begin, end);
     }
 
     template<typename Arg>
     typename Deque<Arg>::cIterator
     Deque<Arg>::insert(const cIterator &pos, Size size, const Arg &val) {
-        Iterator temp = insert(find_pos(pos.map, pos.pos), size, val);
-        return cIterator(temp.target, temp.map, temp.pos);
+        return cIterator(insert(pos.target, size, val));
     }
 
     template<typename Arg>
     typename Deque<Arg>::cIterator
     Deque<Arg>::insert(const cIterator &pos, const std::initializer_list<Arg> &list) {
-        Iterator temp = insert(find_pos(pos.map, pos.pos), list);
-        return cIterator(temp.target, temp.map, temp.pos);
+        return cIterator(insert(pos.target, list));
     }
 
     template<typename Arg>
+    template<typename Input_iterator>
     typename Deque<Arg>::cIterator
-    Deque<Arg>::insert(const cIterator &pos, const Iter <Arg> &begin, const Iter <Arg> &end) {
-        Iterator temp = insert(find_pos(pos.map, pos.pos), *begin.to_const(), *end.to_const());
-        return cIterator(temp.target, temp.map, temp.pos);
-    }
-
-    template<typename Arg>
-    typename Deque<Arg>::cIterator
-    Deque<Arg>::insert(const cIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
-        Iterator temp = insert(find_pos(pos.map, pos.pos), begin, end);
-        return cIterator(temp.target, temp.map, temp.pos);
+    Deque<Arg>::insert(const cIterator &pos, const Input_iterator &begin, const Input_iterator &end) {
+        return cIterator(insert(pos.target, begin, end));
     }
 
     template<typename Arg>
     typename Deque<Arg>::rIterator
     Deque<Arg>::insert(const rIterator &pos, Size size, const Arg &val) {
-        auto index = find_pos(pos.map, pos.pos) + 1;
+        auto index = find_pos(pos.target.map, pos.target.pos) + 1;
         if (index > size_)
-            throw outOfRange(
-                    "You passed an out-of-range value in the 'Deque::insert' function");
-        if (index <= size_ / 2) {
-            auto rest = left_rest();
-            if (rest < size)
-                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, false);
-            forward_move_element(size, index);
-            fill(index + size - 1, val, size, subtract);
-        } else {
-            auto rest = right_rest();
-            if (rest < size)
-                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, true);
-            backward_move_element(size, size_ - index);
-            fill(index + size - 1, val, size, subtract);
-        }
+            throw outOfRange("You passed an out-of-range value in the 'Deque::insert' function");
+        insert_move(index, size);
+        auto iter = get_Iterator(index + size - 1);
+        rfill_with(iter, val, size);
         size_ += size;
-        auto pair = find_ptr(index + size - 1);
-        return rIterator(*pair.first + pair.second, pair.first, pair.second);
+        return rIterator(iter);
     }
 
     template<typename Arg>
     typename Deque<Arg>::rIterator
     Deque<Arg>::insert(const rIterator &pos, const std::initializer_list<Arg> &list) {
         auto size = list.size();
-        auto index = find_pos(pos.map, pos.pos) + 1;
+        auto index = find_pos(pos.target.map, pos.target.pos) + 1;
+        insert_move(index, size);
+        auto iter = get_Iterator(index + size - 1);
+        rfill_with(iter, list);
+        size_ += size;
+        return rIterator(iter);
+    }
+
+    template<typename Arg>
+    template<typename Input_iterator>
+    typename Deque<Arg>::rIterator
+    Deque<Arg>::insert(const rIterator &pos, const Input_iterator &begin, const Input_iterator &end) {
+        auto size = get_size(begin, end);
+        auto index = find_pos(pos.target.map, pos.target.pos) + 1;
         if (index > size_)
             throw outOfRange("You passed an out-of-range value in the 'Deque::insert' function");
-        if (index <= size_ / 2) {
-            auto rest = left_rest();
-            if (rest < size)
-                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, false);
-            forward_move_element(size, index);
-            fill(index + size - 1, list, subtract);
-        } else {
-            auto rest = right_rest();
-            if (rest < size)
-                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, true);
-            backward_move_element(size, size_ - index);
-            fill(index + size - 1, list, subtract);
-        }
+        insert_move(index, size);
+        auto iter = get_Iterator(index + size - 1);
+        rfill_with(iter, begin, end);
         size_ += size;
-        auto pair = find_ptr(index + size - 1);
-        return rIterator(*pair.first + pair.second, pair.first, pair.second);
-    }
-
-    template<typename Arg>
-    typename Deque<Arg>::rIterator
-    Deque<Arg>::insert(const rIterator &pos, const Iter <Arg> &begin, const Iter <Arg> &end) {
-        return insert(pos, *begin.to_const(), *end.to_const());
-    }
-
-    template<typename Arg>
-    typename Deque<Arg>::rIterator
-    Deque<Arg>::insert(const rIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
-        auto size = calculateLength(begin, end);
-        auto index = find_pos(pos.map, pos.pos) + 1;
-        if (index > size_)
-            throw outOfRange(
-                    "You passed an out-of-range value in the 'Deque::insert' function");
-        if (index <= size_ / 2) {
-            auto rest = left_rest();
-            if (rest < size)
-                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, false);
-            forward_move_element(size, index);
-            fill(index + size - 1, begin, size, subtract);
-        } else {
-            auto rest = right_rest();
-            if (rest < size)
-                expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, true);
-            backward_move_element(size, size_ - index);
-            fill(index + size - 1, begin, size, subtract);
-        }
-        size_ += size;
-        auto pair = find_ptr(index + size - 1);
-        return rIterator(*pair.first + pair.second, pair.first, pair.second);
+        return rIterator(iter);
     }
 
     template<typename Arg>
     typename Deque<Arg>::crIterator
     Deque<Arg>::insert(const crIterator &pos, Size size, const Arg &val) {
-        rIterator temp = insert(rIterator(pos.target, pos.map, pos.pos), size, val);
-        return crIterator(temp.target, temp.map, temp.pos);
+        rIterator temp = insert(rIterator(pos.target), size, val);
+        return crIterator(temp.target);
     }
 
     template<typename Arg>
     typename Deque<Arg>::crIterator
     Deque<Arg>::insert(const crIterator &pos, const std::initializer_list<Arg> &list) {
-        rIterator temp = insert(rIterator(pos.target, pos.map, pos.pos), list);
-        return crIterator(temp.target, temp.map, temp.pos);
+        rIterator temp = insert(rIterator(pos.target), list);
+        return crIterator(temp.target);
     }
 
     template<typename Arg>
+    template<typename Input_iterator>
     typename Deque<Arg>::crIterator
-    Deque<Arg>::insert(const crIterator &pos, const Iter <Arg> &begin, const Iter <Arg> &end) {
-        rIterator temp = insert(rIterator(pos.target, pos.map, pos.pos), *begin.to_const(), *end.to_const());
-        return crIterator(temp.target, temp.map, temp.pos);
-    }
-
-    template<typename Arg>
-    typename Deque<Arg>::crIterator
-    Deque<Arg>::insert(const crIterator &pos, const cIter<Arg> &begin, const cIter<Arg> &end) {
-        rIterator temp = insert(rIterator(pos.target, pos.map, pos.pos), begin, end);
-        return crIterator(temp.target, temp.map, temp.pos);
+    Deque<Arg>::insert(const crIterator &pos, const Input_iterator &begin, const Input_iterator &end) {
+        rIterator temp = insert(rIterator(pos.target), begin, end);
+        return crIterator(temp.target);
     }
 
     template<typename Arg>
@@ -1072,7 +1064,7 @@ namespace STD {
             throw outOfRange("You passed an out-of-range value in the 'Deque::erase' function");
         auto temp = find_ptr(pos);
         if (size == 0)
-            return Iterator(*temp.first + temp.second, temp.first, temp.second);
+            return Iterator(temp.first, temp.second, *temp.first + temp.second);
         auto target = *temp.first + temp.second;
         for (int i = 0; i < size; ++i) {
             target->~Arg();
@@ -1088,7 +1080,7 @@ namespace STD {
             map_end = record_map_end;
             val_end = record_val_end;
             add(map_begin, val_begin, size);
-            return Iterator(*temp.first + temp.second, temp.first, temp.second);
+            return Iterator(temp.first, temp.second, *temp.first + temp.second);
         } else {
             auto record_map_begin = map_begin, record_val_begin = val_begin;
             map_begin = temp.first - map;
@@ -1098,7 +1090,7 @@ namespace STD {
             val_begin = record_val_begin;
             subtract(map_end, val_end, size);
             subtract(temp.first, temp.second, target, size);
-            return Iterator(*temp.first + temp.second, temp.first, temp.second);
+            return Iterator(temp.first, temp.second, *temp.first + temp.second);
         }
     }
 
@@ -1109,49 +1101,43 @@ namespace STD {
 
     template<typename Arg>
     typename Deque<Arg>::cIterator Deque<Arg>::erase(const cIterator &iter) {
-        Iterator temp = erase(find_pos(iter.map, iter.pos), 1);
-        return cIterator(temp.target, temp.map, temp.pos);
+        return cIterator(erase(find_pos(iter.target.map, iter.target.pos), 1));
     }
 
     template<typename Arg>
     typename Deque<Arg>::Iterator
     Deque<Arg>::erase(const Iterator &begin, const Iterator &end) {
-        return erase(find_pos(begin.map, begin.pos), calculateLength(begin, end));
+        return erase(find_pos(begin.map, begin.pos), end - begin);
     }
 
     template<typename Arg>
     typename Deque<Arg>::cIterator
     Deque<Arg>::erase(const cIterator &begin, const cIterator &end) {
-        Iterator temp = erase(find_pos(begin.map, begin.pos), calculateLength(begin, end));
-        return cIterator(temp.target, temp.map, temp.pos);
+        return cIterator(erase(find_pos(begin.target.map, begin.target.pos), end - begin));
     }
 
     template<typename Arg>
     typename Deque<Arg>::rIterator
     Deque<Arg>::erase(const rIterator &iter) {
-        Iterator temp = erase(find_pos(iter.map, iter.pos), 1);
-        return rIterator(temp.target, temp.map, temp.pos);
+        return rIterator(erase(find_pos(iter.target.map, iter.target.pos), 1));
     }
 
     template<typename Arg>
     typename Deque<Arg>::crIterator
     Deque<Arg>::erase(const crIterator &iter) {
-        Iterator temp = erase(find_pos(iter.map, iter.pos), 1);
-        return crIterator(temp.target, temp.map, temp.pos);
+        return crIterator(erase(find_pos(iter.target.map, iter.target.pos), 1));
     }
 
     template<typename Arg>
     typename Deque<Arg>::rIterator
     Deque<Arg>::erase(const rIterator &begin, const rIterator &end) {
-        Iterator temp = erase(find_pos(end.map, end.pos) + 1, calculateLength(begin, end));
-        return rIterator(temp.target, temp.map, temp.pos);
+        return rIterator(erase(find_pos((end.target + 1).map, (end.target + 1).pos), end - begin));
     }
 
     template<typename Arg>
     typename Deque<Arg>::crIterator
     Deque<Arg>::erase(const crIterator &begin, const crIterator &end) {
-        Iterator temp = erase(find_pos(end.map, end.pos) + 1, calculateLength(begin, end));
-        return crIterator(temp.target, temp.map, temp.pos);
+        return crIterator(erase(find_pos((end.target + 1).map, (end.target + 1).pos), end - begin));
     }
 
     template<typename Arg>
@@ -1163,7 +1149,7 @@ namespace STD {
         Deallocate_n(map);
         size_ = other.size_;
         init();
-        fill(0, other.cbegin(), size_, add);
+        fill_with(this->begin(), other.begin(), other.end());
         return *this;
     }
 
@@ -1244,609 +1230,13 @@ namespace STD {
         return !(left < right);
     }
 
-//----------------------------------------------------------------------------------------------------------------------
-
-    template<typename Arg>
-    class Deque<Arg>::Iterator : public Random_Iter<Arg> {
-    protected:
-        using Iter<Arg>::target;
-
-        Arg **map;
-
-        int pos;
-
-        explicit Iterator(Arg *ptr, Arg **map_ptr, int index)
-                : Random_Iter<Arg>(ptr), map(map_ptr), pos(index) {};
-
-        bool less(const Random_Iter<Arg> &other) const override {
-            const auto &temp = dynamic_cast<const Iterator &>(other);
-            if (map != temp.map)
-                return map < temp.map;
-            return pos < temp.pos;
-        }
-
-        bool not_greater_than(const Random_Iter<Arg> &other) const override {
-            const auto &temp = dynamic_cast<const Iterator &>(other);
-            if (map != temp.map)
-                return map > temp.map;
-            return pos <= temp.pos;
-        }
-
-    public:
-        friend class Deque<Arg>;
-
-        Shared_ptr<Iter<Arg>> deep_copy() const override {
-            return make_shared<Iterator>(*this);
-        };
-
-        Shared_ptr<cIter<Arg>> to_const() const override {
-            return make_shared<cIterator>(cIterator(target, map, pos));
-        };
-
-        Shared_ptr<Random_Iter<Arg>> new_to_add(Size size) const override {
-            Arg **temp1 = map;
-            int temp2 = pos;
-            Arg *temp3 = target;
-            add(temp1, temp2, temp3, size);
-            return make_shared<Iterator>(Iterator(temp1, temp2, temp3));
-        }
-
-        Shared_ptr<Random_Iter<Arg>> new_to_subtract(Size size) const override {
-            Arg **temp1 = map;
-            int temp2 = pos;
-            Arg *temp3 = target;
-            subtract(temp1, temp2, temp3, size);
-            return make_shared<Iterator>(Iterator(temp1, temp2, temp3));
-        }
-
-        using Iter<Arg>::operator*;
-
-        using Iter<Arg>::operator->;
-
-        Arg &operator[](Size size) const override {
-            Arg **temp1 = map;
-            int temp2 = pos;
-            Arg *temp3 = target;
-            add(temp1, temp2, temp3);
-            return *target;
-        }
-
-        Iterator &operator++() override {
-            add(map, pos, target);
-            return *this;
-        };
-
-        Iterator operator++(int) {
-            auto temp1 = target;
-            auto temp2 = map;
-            auto temp3 = pos;
-            add(map, pos, target);
-            return Iterator(temp1, temp2, temp3);
-        };
-
-        Iterator &operator--() override {
-            subtract(map, pos, target);
-            return *this;
-        };
-
-        Iterator operator--(int) {
-            auto temp1 = target;
-            auto temp2 = map;
-            auto temp3 = pos;
-            subtract(map, pos, target);
-            return Iterator(temp1, temp2, temp3);
-        };
-
-        Iterator operator+(Size size) const {
-            auto temp2 = map;
-            auto temp3 = pos;
-            auto temp1 = target;
-            add(temp2, temp3, temp1, size);
-            return Iterator(temp1, temp2, temp3);
-        };
-
-        Iterator operator-(Size size) const {
-            auto temp2 = map;
-            auto temp3 = pos;
-            auto temp1 = target;
-            subtract(temp2, temp3, temp1, size);
-            return Iterator(temp1, temp2, temp3);
-        };
-
-        Iterator &operator+=(Size size) override {
-            add(map, pos, target, size);
-            return *this;
-        };
-
-        Iterator &operator-=(Size size) override {
-            subtract(map, pos, target, size);
-            return *this;
-        };
-
-        friend bool operator==(const Iterator &left, const Iterator &right) {
-            return left.target == right.target;
-        };
-
-        friend bool operator!=(const Iterator &left, const Iterator &right) {
-            return left.target != right.target;
-        };
-
-        friend bool operator>(const Iterator &left, const Iterator &right) {
-            if (left.map != right.map)
-                return left.map > right.map;
-            return left.pos > right.pos;
-        };
-
-        friend bool operator<(const Iterator &left, const Iterator &right) {
-            if (left.map != right.map)
-                return left.map < right.map;
-            return left.pos < right.pos;
-        };
-
-        friend bool operator>=(const Iterator &left, const Iterator &right) {
-            return left.target >= right.target;
-        };
-
-        friend bool operator<=(const Iterator &left, const Iterator &right) {
-            return left.target <= right.target;
-        };
-
-        friend long long operator-(const Iterator &left, const Iterator &right) {
-            return (left.map - right.map) * BLOCK_SIZE + left.pos - right.pos;
-        };
-    };
+    template<typename Type>
+    inline void swap(Deque<Type> &left, Deque<Type> &right) noexcept {
+        left.swap(right);
+    }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-    template<typename Arg>
-    class Deque<Arg>::cIterator : public cRandom_Iter<Arg> {
-    protected:
-        using cIter<Arg>::target;
-
-        Arg **map;
-
-        int pos;
-
-        explicit cIterator(Arg *ptr, Arg **map_ptr, int index)
-                : cRandom_Iter<Arg>(ptr), map(map_ptr), pos(index) {};
-
-        bool less(const cRandom_Iter<Arg> &other) const override {
-            const auto &temp = dynamic_cast<const cIterator &>(other);
-            if (map != temp.map)
-                return map < temp.map;
-            return pos < temp.pos;
-        }
-
-        bool not_greater_than(const cRandom_Iter<Arg> &other) const override {
-            const auto &temp = dynamic_cast<const cIterator &>(other);
-            if (map != temp.map)
-                return map < temp.map;
-            return pos <= temp.pos;
-        }
-
-    public:
-        friend class Deque<Arg>;
-
-        friend class Deque<Arg>::Iterator;
-
-        Shared_ptr<cIter<Arg>> deep_copy() const override {
-            return make_shared<cIterator>(*this);
-        };
-
-        Shared_ptr<cRandom_Iter<Arg>> new_to_add(Size size) const override {
-            Arg **temp1 = map;
-            int temp2 = pos;
-            Arg *temp3 = target;
-            add(temp1, temp2, temp3, size);
-            return make_shared<cIterator>(cIterator(temp1, temp2, temp3));
-        }
-
-        Shared_ptr<cRandom_Iter<Arg>> new_to_subtract(Size size) const override {
-            Arg **temp1 = map;
-            int temp2 = pos;
-            Arg *temp3 = target;
-            subtract(temp1, temp2, temp3, size);
-            return make_shared<cIterator>(cIterator(temp1, temp2, temp3));
-        }
-
-        using cIter<Arg>::operator*;
-
-        using cIter<Arg>::operator->;
-
-        Arg &operator[](Size size) const override {
-            Arg **temp1 = map;
-            int temp2 = pos;
-            Arg *temp3 = target;
-            add(temp1, temp2, temp3);
-            return *target;
-        }
-
-        cIterator &operator++() override {
-            add(map, pos, target);
-            return *this;
-        };
-
-        cIterator operator++(int) {
-            auto temp2 = map;
-            auto temp3 = pos;
-            auto temp1 = target;
-            add(map, pos, target);
-            return cIterator(temp1, temp2, temp3);
-        };
-
-        cIterator &operator--() override {
-            subtract(map, pos, target);
-            return *this;
-        };
-
-        cIterator operator--(int) {
-            auto temp1 = target;
-            auto temp2 = map;
-            auto temp3 = pos;
-            subtract(map, pos, target);
-            return cIterator(temp1, temp2, temp3);
-        };
-
-        cIterator operator+(Size size) const {
-            auto temp2 = map;
-            auto temp3 = pos;
-            auto temp1 = target;
-            add(temp2, temp3, temp1, size);
-            return cIterator(temp1, temp2, temp3);
-        };
-
-        cIterator operator-(Size size) const {
-            auto temp2 = map;
-            auto temp3 = pos;
-            auto temp1 = target;
-            subtract(temp2, temp3, temp1, size);
-            return cIterator(temp1, temp2, temp3);
-        };
-
-        cIterator &operator+=(Size size) override {
-            add(map, pos, target, size);
-            return *this;
-        };
-
-        cIterator &operator-=(Size size) override {
-            subtract(map, pos, target, size);
-            return *this;
-        };
-
-        friend bool operator==(const cIterator &left, const cIterator &right) {
-            return left.target == right.target;
-        };
-
-        friend bool operator!=(const cIterator &left, const cIterator &right) {
-            return left.target != right.target;
-        };
-
-        friend bool operator>(const cIterator &left, const cIterator &right) {
-            if (left.map != right.map)
-                return left.map > right.map;
-            return left.pos > right.pos;
-        };
-
-        friend bool operator<(const cIterator &left, const cIterator &right) {
-            if (left.map != right.map)
-                return left.map < right.map;
-            return left.pos < right.pos;
-        };
-
-        friend bool operator>=(const cIterator &left, const cIterator &right) {
-            return left.target >= right.target;
-        };
-
-        friend bool operator<=(const cIterator &left, const cIterator &right) {
-            return left.target <= right.target;
-        };
-
-        friend long long operator-(const cIterator &left, const cIterator &right) {
-            return (left.map - right.map) * BLOCK_SIZE + left.pos - right.pos;
-        };
-    };
-
-//----------------------------------------------------------------------------------------------------------------------
-
-    template<typename Arg>
-    class Deque<Arg>::rIterator : public Random_Iter<Arg> {
-    protected:
-        using Iter<Arg>::target;
-
-        Arg **map;
-
-        int pos;
-
-        explicit rIterator(Arg *ptr, Arg **map_ptr, int index)
-                : Random_Iter<Arg>(ptr), map(map_ptr), pos(index) {};
-
-        bool less(const Random_Iter<Arg> &other) const override {
-            const auto &temp = dynamic_cast<const rIterator &>(other);
-            if (map != temp.map)
-                return map > temp.map;
-            return pos > temp.pos;
-        }
-
-        bool not_greater_than(const Random_Iter<Arg> &other) const override {
-            const auto &temp = dynamic_cast<const rIterator &>(other);
-            if (map != temp.map)
-                return map > temp.map;
-            return pos >= temp.pos;
-        }
-
-    public:
-        friend class Deque<Arg>;
-
-        Shared_ptr<Iter<Arg>> deep_copy() const override {
-            return make_shared<rIterator>(*this);
-        };
-
-        Shared_ptr<cIter<Arg>> to_const() const override {
-            return make_shared<crIterator>(crIterator(target, map, pos));
-        };
-
-        Shared_ptr<Random_Iter<Arg>> new_to_add(Size size) const override {
-            Arg **temp1 = map;
-            int temp2 = pos;
-            Arg *temp3 = target;
-            subtract(temp1, temp2, temp3, size);
-            return make_shared<rIterator>(rIterator(temp1, temp2, temp3));
-        }
-
-        Shared_ptr<Random_Iter<Arg>> new_to_subtract(Size size) const override {
-            Arg **temp1 = map;
-            int temp2 = pos;
-            Arg *temp3 = target;
-            add(temp1, temp2, temp3, size);
-            return make_shared<rIterator>(rIterator(temp1, temp2, temp3));
-        }
-
-        using Iter<Arg>::operator*;
-
-        using Iter<Arg>::operator->;
-
-        Arg &operator[](Size size) const override {
-            Arg **temp1 = map;
-            int temp2 = pos;
-            Arg *temp3 = target;
-            subtract(temp1, temp2, temp3);
-            return *target;
-        }
-
-        rIterator &operator--() override {
-            add(map, pos, target);
-            return *this;
-        };
-
-        rIterator operator--(int) {
-            auto temp1 = target;
-            auto temp2 = map;
-            auto temp3 = pos;
-            add(map, pos, target);
-            return rIterator(temp1, temp2, temp3);
-        };
-
-        rIterator &operator++() override {
-            subtract(map, pos, target);
-            return *this;
-        };
-
-        rIterator operator++(int) {
-            auto temp1 = target;
-            auto temp2 = map;
-            auto temp3 = pos;
-            subtract(map, pos, target);
-            return rIterator(temp1, temp2, temp3);
-        };
-
-        rIterator operator-(Size size) const {
-            auto temp2 = map;
-            auto temp3 = pos;
-            auto temp1 = target;
-            add(temp2, temp3, temp1, size);
-            return rIterator(temp1, temp2, temp3);
-        };
-
-        rIterator operator+(Size size) const {
-            auto temp2 = map;
-            auto temp3 = pos;
-            auto temp1 = target;
-            subtract(temp2, temp3, temp1, size);
-            return rIterator(temp1, temp2, temp3);
-        };
-
-        rIterator &operator-=(Size size) override {
-            add(map, pos, target, size);
-            return *this;
-        };
-
-        rIterator &operator+=(Size size) override {
-            subtract(map, pos, target, size);
-            return *this;
-        };
-
-        friend bool operator==(const rIterator &left, const rIterator &right) {
-            return left.target == right.target;
-        };
-
-        friend bool operator!=(const rIterator &left, const rIterator &right) {
-            return left.target != right.target;
-        };
-
-        friend bool operator<(const rIterator &left, const rIterator &right) {
-            if (left.map != right.map)
-                return left.map > right.map;
-            return left.pos > right.pos;
-        };
-
-        friend bool operator>(const rIterator &left, const rIterator &right) {
-            if (left.map != right.map)
-                return left.map < right.map;
-            return left.pos < right.pos;
-        };
-
-        friend bool operator<=(const rIterator &left, const rIterator &right) {
-            return left.target >= right.target;
-        };
-
-        friend bool operator>=(const rIterator &left, const rIterator &right) {
-            return left.target <= right.target;
-        };
-
-        friend long long operator-(const rIterator &left, const rIterator &right) {
-            return (right.map - left.map) * BLOCK_SIZE + right.pos - left.pos;
-        };
-    };
-
-//----------------------------------------------------------------------------------------------------------------------
-
-    template<typename Arg>
-    class Deque<Arg>::crIterator : public cRandom_Iter<Arg> {
-    protected:
-        using cIter<Arg>::target;
-
-        Arg **map;
-
-        int pos;
-
-        explicit crIterator(Arg *ptr, Arg **map_ptr, int index)
-                : cRandom_Iter<Arg>(ptr), map(map_ptr), pos(index) {};
-
-        bool less(const cRandom_Iter<Arg> &other) const override {
-            const auto &temp = dynamic_cast<const crIterator &>(other);
-            if (map != temp.map)
-                return map > temp.map;
-            return pos > temp.pos;
-        }
-
-        bool not_greater_than(const cRandom_Iter<Arg> &other) const override {
-            const auto &temp = dynamic_cast<const crIterator &>(other);
-            if (map != temp.map)
-                return map > temp.map;
-            return pos >= temp.pos;
-        }
-
-    public:
-        friend class Deque<Arg>;
-
-        friend class Deque<Arg>::rIterator;
-
-        Shared_ptr<cIter<Arg>> deep_copy() const override {
-            return make_shared<crIterator>(*this);
-        };
-
-        Shared_ptr<cRandom_Iter<Arg>> new_to_add(Size size) const override {
-            Arg **temp1 = map;
-            int temp2 = pos;
-            Arg *temp3 = target;
-            subtract(temp1, temp2, temp3, size);
-            return make_shared<crIterator>(crIterator(temp1, temp2, temp3));
-        }
-
-        Shared_ptr<cRandom_Iter<Arg>> new_to_subtract(Size size) const override {
-            Arg **temp1 = map;
-            int temp2 = pos;
-            Arg *temp3 = target;
-            add(temp1, temp2, temp3, size);
-            return make_shared<crIterator>(crIterator(temp1, temp2, temp3));
-        }
-
-        using cIter<Arg>::operator*;
-
-        using cIter<Arg>::operator->;
-
-        Arg &operator[](Size size) const override {
-            Arg **temp1 = map;
-            int temp2 = pos;
-            Arg *temp3 = target;
-            subtract(temp1, temp2, temp3, size);
-            return *target;
-        }
-
-        crIterator &operator--() override {
-            add(map, pos, target);
-            return *this;
-        };
-
-        crIterator operator--(int) {
-            auto temp1 = target;
-            auto temp2 = map;
-            auto temp3 = pos;
-            add(map, pos, target);
-            return crIterator(temp1, temp2, temp3);
-        };
-
-        crIterator &operator++() override {
-            subtract(map, pos, target);
-            return *this;
-        };
-
-        crIterator operator++(int) {
-            auto temp1 = target;
-            auto temp2 = map;
-            auto temp3 = pos;
-            subtract(map, pos, target);
-            return crIterator(temp1, temp2, temp3);
-        };
-
-        crIterator operator-(Size size) const {
-            auto temp2 = map;
-            auto temp3 = pos;
-            auto temp1 = target;
-            add(temp2, temp3, temp1, size);
-            return crIterator(temp1, temp2, temp3);
-        };
-
-        crIterator operator+(Size size) const {
-            auto temp2 = map;
-            auto temp3 = pos;
-            auto temp1 = target;
-            subtract(temp2, temp3, temp1, size);
-            return crIterator(temp1, temp2, temp3);
-        };
-
-        crIterator &operator-=(Size size) override {
-            add(map, pos, target, size);
-            return *this;
-        };
-
-        crIterator &operator+=(Size size) override {
-            subtract(map, pos, target, size);
-            return *this;
-        };
-
-        friend bool operator==(const crIterator &left, const crIterator &right) {
-            return left.target == right.target;
-        };
-
-        friend bool operator!=(const crIterator &left, const crIterator &right) {
-            return left.target != right.target;
-        };
-
-        friend bool operator<(const crIterator &left, const crIterator &right) {
-            if (left.map != right.map)
-                return left.map > right.map;
-            return left.pos > right.pos;
-        };
-
-        friend bool operator>(const crIterator &left, const crIterator &right) {
-            if (left.map != right.map)
-                return left.map < right.map;
-            return left.pos < right.pos;
-        };
-
-        friend bool operator<=(const crIterator &left, const crIterator &right) {
-            return left.target >= right.target;
-        };
-
-        friend bool operator>=(const crIterator &left, const crIterator &right) {
-            return left.target <= right.target;
-        };
-
-        friend long long operator-(const crIterator &left, const crIterator &right) {
-            return (right.map - left.map) * BLOCK_SIZE + right.pos - left.pos;
-        };
-    };
 } // namespace STD
 
 #endif // TINYSTL_DEQUE_HPP

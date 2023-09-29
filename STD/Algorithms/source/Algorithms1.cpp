@@ -5,7 +5,7 @@
 
 namespace STD {
 
-Size calculateLength(const char *target) {
+Size calculate_Length(const char *target) {
     const char *temp = target;
     Size len = 0;
     while (*temp != '\0')
@@ -40,12 +40,12 @@ const char *Boyer_Moore(const char *pattern, Size pattern_len,
 
 const char *Boyer_Moore(const char *pattern, const char *target,
                              Size target_length) {
-    return Boyer_Moore(pattern, calculateLength(pattern), target,
+    return Boyer_Moore(pattern, calculate_Length(pattern), target,
                        target_length);
 }
 
 const char *Boyer_Moore(const char *pattern, const char *target) {
-    return Boyer_Moore(pattern, target, calculateLength(target));
+    return Boyer_Moore(pattern, target, calculate_Length(target));
 }
 
 const char *rBoyer_Moore(const char *pattern, Size pattern_len,
@@ -75,12 +75,12 @@ const char *rBoyer_Moore(const char *pattern, Size pattern_len,
 
 const char *rBoyer_Moore(const char *pattern, const char *target,
                               Size target_length) {
-    return rBoyer_Moore(pattern, calculateLength(pattern), target,
+    return rBoyer_Moore(pattern, calculate_Length(pattern), target,
                         target_length);
 }
 
 const char *rBoyer_Moore(const char *pattern, const char *target) {
-    return rBoyer_Moore(pattern, target, calculateLength(target));
+    return rBoyer_Moore(pattern, target, calculate_Length(target));
 }
 
 // const char *STD::Knuth_Morris_Pratt(const char *pattern, Size pattern_len,
@@ -102,13 +102,13 @@ const char *rBoyer_Moore(const char *pattern, const char *target) {
 
 // const char *STD::Knuth_Morris_Pratt(const char *pattern, const char *target,
 // Size target_length) {
-//     return Knuth_Morris_Pratt(pattern, calculateLength(pattern), target,
+//     return Knuth_Morris_Pratt(pattern, calculate_Length(pattern), target,
 //     target_length);
 // }
 //
 // const char *STD::Knuth_Morris_Pratt(const char *pattern, const char *target)
 // {
-//     return Knuth_Morris_Pratt(pattern, target, calculateLength(target));
+//     return Knuth_Morris_Pratt(pattern, target, calculate_Length(target));
 // }
 
 // const char *STD::rKnuth_Morris_Pratt(const char *pattern, Size pattern_len,
@@ -130,12 +130,12 @@ const char *rBoyer_Moore(const char *pattern, const char *target) {
 
 // const char *STD::rKnuth_Morris_Pratt(const char *pattern, const char *target,
 // Size target_length) {
-//     return rKnuth_Morris_Pratt(pattern, calculateLength(pattern), target,
+//     return rKnuth_Morris_Pratt(pattern, calculate_Length(pattern), target,
 //     target_length);
 // }
 //
 // const char *STD::rKnuth_Morris_Pratt(const char *pattern, const char *target)
 // {
-//     return rKnuth_Morris_Pratt(pattern, target, calculateLength(target));
+//     return rKnuth_Morris_Pratt(pattern, target, calculate_Length(target));
 // }
 } // namespace STD

@@ -5,440 +5,132 @@
 #ifndef TINYSTL_STRING_HPP
 #define TINYSTL_STRING_HPP
 
-#include "Iter.hpp"
-#include <iostream>
+#include "Algorithms/source/Container_algorithms.hpp"
 #include "Algorithms/Algorithms1.hpp"
+#include "Iterator.hpp"
+#include <iostream>
 
 namespace STD {
 
+    class String;
+
+    namespace Detail {
+
+        struct String_Iterator : public Iterator<Random_iterator_tag, char> {
+            using Basic = Iterator<Random_iterator_tag, char>;
+
+            using Self = String_Iterator;
+
+            using Reference = typename Basic::Reference;
+
+            using Pointer = typename Basic::Pointer;
+
+            friend class STD::String;
+
+            friend class rIterator<Self, Random_iterator_tag>;
+
+            friend class cIterator<Self, Random_iterator_tag>;
+
+            friend class crIterator<Self, Random_iterator_tag>;
+
+        private:
+            char *target;
+
+            explicit String_Iterator(char *target) : target(target) {};
+
+        public:
+            Reference operator*() const {
+                return *target;
+            };
+
+            Pointer operator->() const {
+                return target;
+            };
+
+            Reference operator[](Step size) const {
+                return target[size];
+            }
+
+            Self &operator++() {
+                ++target;
+                return *this;
+            }
+
+            Self operator++(int) {
+                auto temp = Self(target++);
+                return temp;
+            };
+
+            Self &operator--() {
+                --target;
+                return *this;
+            };
+
+            Self operator--(int) {
+                auto temp = Self(target--);
+                return temp;
+            };
+
+            Self &operator+=(Step size) {
+                target += size;
+                return *this;
+            };
+
+            Self &operator-=(Step size) {
+                target -= size;
+                return *this;
+            };
+
+            friend Self operator+(const Self &Iterator, Step size) {
+                return Self(Iterator.target + size);
+            };
+
+            friend Self operator-(const Self &Iterator, Step size) {
+                return Self(Iterator.target - size);
+            };
+
+            friend Difference operator-(const Self &left, const Self &right) {
+                return left.target - right.target;
+            };
+
+            friend bool operator==(const Self &left, const Self &right) {
+                return left.target == right.target;
+            };
+
+            friend bool operator!=(const Self &left, const Self &right) {
+                return left.target != right.target;
+            };
+
+            friend bool operator<(const Self &left, const Self &right) {
+                return left.target < right.target;
+            };
+
+            friend bool operator<=(const Self &left, const Self &right) {
+                return left.target <= right.target;
+            };
+
+            friend bool operator>(const Self &left, const Self &right) {
+                return left.target > right.target;
+            };
+
+            friend bool operator>=(const Self &left, const Self &right) {
+                return left.target >= right.target;
+            };
+        };
+
+    }
+
     class String {
-    private:
-        Size size_ = 0;
-
-        char *val_begin = nullptr, *val_end = nullptr, *store_end = nullptr;
-
-        void reallocate(Size size);
-
-        void forward(Size pos_from, Size pos_to);
-
-        char *backward(Size pos_from, Size pos_to);
-
-        static void fill_with(char *pos, char target, Size size);
-
-        static void fill_with(char *pos, const char *target, Size size);
-
-        static void fill_with(char *pos, const std::initializer_list<char> &list);
-
-        static void fill_with(char *pos, const cIter<char> &begin, Size size);
-
-        static void rfill_with(char *pos, const char *target, Size size);
-
-        static void rfill_with(char *pos, const std::initializer_list<char> &list);
-
-        static void rfill_with(char *pos, const cIter<char> &begin, Size size);
-
     public:
         static const Size Npos = -1;
 
-        class Iterator : public Random_Iter<char> {
-        protected:
-            using Iter<char>::target;
+        using Iterator = Detail::String_Iterator;
 
-            Iterator &operator=(char *ptr) {
-                target = ptr;
-                return *this;
-            };
+        using cIterator = STD::cIterator<Iterator, Random_iterator_tag>;
 
-            explicit Iterator(char *ptr) : Random_Iter<char>(ptr) {};
+        using rIterator = STD::rIterator<Iterator, Random_iterator_tag>;
 
-        public:
-            friend class String;
-
-            Shared_ptr<Iter<char>> deep_copy() const override {
-                return make_shared<Iterator>(*this);
-            };
-
-            Shared_ptr<cIter<char>> to_const() const override {
-                return make_shared<cIterator>(cIterator(target));
-            };
-
-            Shared_ptr<Random_Iter<char>> new_to_add(Size size) const override {
-                return make_shared<Iterator>(Iterator(target - size));
-            }
-
-            Shared_ptr<Random_Iter<char>> new_to_subtract(Size size) const override {
-                return make_shared<Iterator>(Iterator(target + size));
-            }
-
-            using Iter<char>::operator*;
-
-            using Iter<char>::operator->;
-
-            Iterator &operator++() override {
-                ++target;
-                return *this;
-            };
-
-            Iterator operator++(int) { return Iterator(target++); };
-
-            Iterator &operator--() override {
-                --target;
-                return *this;
-            };
-
-            Iterator operator--(int) { return Iterator(target--); };
-
-            Iterator operator+(Size size) const { return Iterator(target + size); };
-
-            Iterator operator-(Size size) const { return Iterator(target - size); };
-
-            Iterator &operator+=(Size size) override {
-                target += size;
-                return *this;
-            };
-
-            Iterator &operator-=(Size size) override {
-                target -= size;
-                return *this;
-            };
-
-            friend bool operator==(const Iterator &left, const Iterator &right) {
-                return left.target == right.target;
-            };
-
-            friend bool operator!=(const Iterator &left, const Iterator &right) {
-                return left.target != right.target;
-            };
-
-            friend bool operator>(const Iterator &left, const Iterator &right) {
-                return left.target > right.target;
-            };
-
-            friend bool operator<(const Iterator &left, const Iterator &right) {
-                return left.target < right.target;
-            };
-
-            friend bool operator>=(const Iterator &left, const Iterator &right) {
-                return left.target >= right.target;
-            };
-
-            friend bool operator<=(const Iterator &left, const Iterator &right) {
-                return left.target <= right.target;
-            };
-
-            friend long long operator-(const Iterator &left, const Iterator &right) {
-                return left.target - right.target;
-            };
-        };
-
-        class cIterator : public cRandom_Iter<char> {
-        protected:
-            using cIter<char>::target;
-
-            cIterator &operator=(char *ptr) {
-                target = ptr;
-                return *this;
-            };
-
-            explicit cIterator(char *ptr) : cRandom_Iter<char>(ptr) {};
-
-        public:
-            friend class String;
-
-            friend class String::Iterator;
-
-            Shared_ptr<cIter<char>> deep_copy() const override {
-                return make_shared<cIterator>(*this);
-            };
-
-            Shared_ptr<cRandom_Iter<char>> new_to_add(Size size) const override {
-                return make_shared<cIterator>(cIterator(target - size));
-            }
-
-            Shared_ptr<cRandom_Iter<char>> new_to_subtract(Size size) const override {
-                return make_shared<cIterator>(cIterator(target + size));
-            }
-
-            using cIter<char>::operator*;
-
-            using cIter<char>::operator->;
-
-            cIterator &operator++() override {
-                ++target;
-                return *this;
-            };
-
-            cIterator operator++(int) { return cIterator(target++); };
-
-            cIterator &operator--() override {
-                --target;
-                return *this;
-            };
-
-            cIterator operator--(int) { return cIterator(target--); };
-
-            cIterator operator+(Size size) const {
-                return cIterator(target + size);
-            };
-
-            cIterator operator-(Size size) const {
-                return cIterator(target - size);
-            };
-
-            cIterator &operator+=(Size size) override {
-                target += size;
-                return *this;
-            };
-
-            cIterator &operator-=(Size size) override {
-                target -= size;
-                return *this;
-            };
-
-            friend bool operator==(const cIterator &left, const cIterator &right) {
-                return left.target == right.target;
-            };
-
-            friend bool operator!=(const cIterator &left, const cIterator &right) {
-                return left.target != right.target;
-            };
-
-            friend bool operator>(const cIterator &left, const cIterator &right) {
-                return left.target > right.target;
-            };
-
-            friend bool operator<(const cIterator &left, const cIterator &right) {
-                return left.target < right.target;
-            };
-
-            friend bool operator>=(const cIterator &left, const cIterator &right) {
-                return left.target >= right.target;
-            };
-
-            friend bool operator<=(const cIterator &left, const cIterator &right) {
-                return left.target <= right.target;
-            };
-
-            friend long long operator-(const cIterator &left, const cIterator &right) {
-                return left.target - right.target;
-            };
-        };
-
-        class rIterator : public Random_Iter<char> {
-        protected:
-            using Iter<char>::target;
-
-            rIterator &operator=(char *ptr) {
-                target = ptr;
-                return *this;
-            }
-
-            explicit rIterator(char *ptr) : Random_Iter<char>(ptr) {};
-
-            bool less(const Random_Iter<char> &other) const override {
-                return target > dynamic_cast<const rIterator &>(other).target;
-            }
-
-            bool not_greater_than(const Random_Iter<char> &other) const override {
-                return target >= dynamic_cast<const rIterator &>(other).target;
-            }
-
-        public:
-            friend class String;
-
-            Shared_ptr<Iter<char>> deep_copy() const override {
-                return make_shared<rIterator>(*this);
-            };
-
-            Shared_ptr<cIter<char>> to_const() const override {
-                return make_shared<crIterator>(crIterator(target));
-            };
-
-            Shared_ptr<Random_Iter<char>> new_to_add(Size size) const override {
-                return make_shared<rIterator>(rIterator(target - size));
-            }
-
-            Shared_ptr<Random_Iter<char>> new_to_subtract(Size size) const override {
-                return make_shared<rIterator>(rIterator(target + size));
-            }
-
-            using Iter<char>::operator*;
-
-            using Iter<char>::operator->;
-
-            rIterator &operator++() override {
-                --target;
-                return *this;
-            };
-
-            rIterator operator++(int) { return rIterator(target--); };
-
-            rIterator &operator--() override {
-                ++target;
-                return *this;
-            };
-
-            rIterator operator--(int) { return rIterator(target++); };
-
-            rIterator operator+(Size size) const {
-                return rIterator(target - size);
-            };
-
-            rIterator operator-(Size size) const {
-                return rIterator(target + size);
-            };
-
-            rIterator &operator+=(Size size) override {
-                target -= size;
-                return *this;
-            };
-
-            rIterator &operator-=(Size size) override {
-                target += size;
-                return *this;
-            };
-
-            friend bool operator==(const rIterator &left, const rIterator &right) {
-                return left.target == right.target;
-            };
-
-            friend bool operator!=(const rIterator &left, const rIterator &right) {
-                return left.target != right.target;
-            };
-
-            friend bool operator>(const rIterator &left, const rIterator &right) {
-                return left.target < right.target;
-            };
-
-            friend bool operator<(const rIterator &left, const rIterator &right) {
-                return left.target > right.target;
-            };
-
-            friend bool operator>=(const rIterator &left, const rIterator &right) {
-                return left.target <= right.target;
-            };
-
-            friend bool operator<=(const rIterator &left, const rIterator &right) {
-                return left.target >= right.target;
-            };
-
-            friend long long operator-(const rIterator &left, const rIterator &right) {
-                return right.target - left.target;
-            };
-        };
-
-        class crIterator : public cRandom_Iter<char> {
-        protected:
-            using cIter<char>::target;
-
-            crIterator &operator=(char *ptr) {
-                target = ptr;
-                return *this;
-            };
-
-            bool less(const cRandom_Iter<char> &other) const override {
-                return target > dynamic_cast<const crIterator &>(other).target;
-            }
-
-            bool not_greater_than(const cRandom_Iter<char> &other) const override {
-                return target >= dynamic_cast<const crIterator &>(other).target;
-            }
-
-            explicit crIterator(char *ptr) : cRandom_Iter<char>(ptr) {};
-
-        public:
-            friend class String;
-
-            friend class String::rIterator;
-
-            Shared_ptr<cIter<char>> deep_copy() const override {
-                return make_shared<crIterator>(*this);
-            };
-
-            Shared_ptr<cRandom_Iter<char>> new_to_add(Size size) const override {
-                return make_shared<crIterator>(crIterator(target - size));
-            }
-
-            Shared_ptr<cRandom_Iter<char>> new_to_subtract(Size size) const override {
-                return make_shared<crIterator>(crIterator(target + size));
-            }
-
-            using cIter<char>::operator*;
-
-            using cIter<char>::operator->;
-
-            char &operator[](Size size) const override { return *(target - size); }
-
-            crIterator &operator++() override {
-                --target;
-                return *this;
-            };
-
-            crIterator operator++(int) { return crIterator(target--); };
-
-            crIterator &operator--() override {
-                ++target;
-                return *this;
-            };
-
-            crIterator operator--(int) { return crIterator(target++); };
-
-            crIterator operator+(Size size) const {
-                return crIterator(target - size);
-            };
-
-            crIterator operator-(Size size) const {
-                return crIterator(target + size);
-            };
-
-            crIterator &operator+=(Size size) override {
-                target -= size;
-                return *this;
-            };
-
-            crIterator &operator-=(Size size) override {
-                target += size;
-                return *this;
-            };
-
-            bool less(const crIterator &other) const {
-                return target > other.target;
-            }
-
-            bool not_greater_than(const crIterator &other) const {
-                return target >= other.target;
-            }
-
-            friend bool operator==(const crIterator &left, const crIterator &right) {
-                return left.target == right.target;
-            };
-
-            friend bool operator!=(const crIterator &left, const crIterator &right) {
-                return left.target != right.target;
-            };
-
-            friend bool operator>(const crIterator &left, const crIterator &right) {
-                return left.target < right.target;
-            };
-
-            friend bool operator<(const crIterator &left, const crIterator &right) {
-                return left.target > right.target;
-            };
-
-            friend bool operator>=(const crIterator &left, const crIterator &right) {
-                return left.target <= right.target;
-            };
-
-            friend bool operator<=(const crIterator &left, const crIterator &right) {
-                return left.target >= right.target;
-            };
-
-            friend long long operator-(const crIterator &left, const crIterator &right) {
-                return right.target - left.target;
-            };
-        };
-
-        //----------------------------------------------------------------------------------------------------------------------
+        using crIterator = STD::crIterator<Iterator, Random_iterator_tag>;
 
         String();
 
@@ -459,9 +151,8 @@ namespace STD {
 
         String(String &&other) noexcept;
 
-        String(const Iter<char> &begin, const Iter<char> &end);
-
-        String(const cIter<char> &begin, const cIter<char> &end);
+        template<typename Input_iterator>
+        String(const Input_iterator &begin, const Input_iterator &end);
 
         ~String() { Deallocate_n(val_begin); };
 
@@ -479,13 +170,14 @@ namespace STD {
 
         String sub_str(Size begin, Size len) const;
 
-        String &assign(const Iter<char> &begin, const Iter<char> &end);
-
-        String &assign(const cIter<char> &begin, const cIter<char> &end);
+        template<typename Input_iterator>
+        String &assign(const Input_iterator &begin, const Input_iterator &end);
 
         void clear(bool whether_to_release = false);
 
-        void append(char t, Size len = 1);
+        void append(char t);
+
+        void append(Size len, char t);
 
         void append(const char *target);
 
@@ -499,11 +191,12 @@ namespace STD {
 
         void append(const String &target, Size pos, Size len);
 
-        void append(const Iter<char> &begin, const Iter<char> &end);
+        template<typename Input_iterator>
+        void append(const Input_iterator &begin, const Input_iterator &end);
 
-        void append(const cIter<char> &begin, const cIter<char> &end);
+        void push_back(char t);
 
-        void push_back(char t, Size len = 1);
+        void push_back(Size len, char t);
 
         void push_back(const char *target);
 
@@ -517,16 +210,17 @@ namespace STD {
 
         void push_back(const String &target, Size pos, Size len);
 
-        void push_back(const Iter<char> &begin, const Iter<char> &end);
-
-        void push_back(const cIter<char> &begin, const cIter<char> &end);
+        template<typename Input_iterator>
+        void push_back(const Input_iterator &begin, const Input_iterator &end);
 
         void pop_back() {
             if (size_)
                 *--val_end = '\0';
         };
 
-        Iterator insert(Size pos, char t, Size size = 1);
+        Iterator insert(Size pos, char t);
+
+        Iterator insert(Size pos, Size size, char t);
 
         Iterator insert(Size pos, const std::initializer_list<char> &list);
 
@@ -538,11 +232,12 @@ namespace STD {
 
         Iterator insert(Size pos, const String &target, Size target_pos = 0, Size target_len = Npos);
 
-        Iterator insert(Size pos, const Iter<char> &begin, const Iter<char> &end);
+        template<typename Input_iterator>
+        Iterator insert(Size pos, const Input_iterator &begin, const Input_iterator &end);
 
-        Iterator insert(Size pos, const cIter<char> &begin, const cIter<char> &end);
+        Iterator insert(const Iterator &iter, char t);
 
-        Iterator insert(const Iterator &iter, char t, Size size = 1);
+        Iterator insert(const Iterator &iter, Size size, char t);
 
         Iterator insert(const Iterator &iter, const std::initializer_list<char> &list);
 
@@ -555,11 +250,12 @@ namespace STD {
         Iterator insert(const Iterator &iter, const String &target,
                         Size target_pos = 0, Size target_len = Npos);
 
-        Iterator insert(const Iterator &iter, const Iter<char> &begin, const Iter<char> &end);
+        template<typename Input_iterator>
+        Iterator insert(const Iterator &iter, const Input_iterator &begin, const Input_iterator &end);
 
-        Iterator insert(const Iterator &iter, const cIter<char> &begin, const cIter<char> &end);
+        cIterator insert(const cIterator &iter, char t);
 
-        cIterator insert(const cIterator &iter, char t, Size size = 1);
+        cIterator insert(const cIterator &iter, Size size, char t);
 
         cIterator insert(const cIterator &iter, const std::initializer_list<char> &list);
 
@@ -572,11 +268,12 @@ namespace STD {
         cIterator insert(const cIterator &iter, const String &target,
                          Size target_pos = 0, Size target_len = Npos);
 
-        cIterator insert(const cIterator &iter, const Iter<char> &begin, const Iter<char> &end);
+        template<typename Input_iterator>
+        cIterator insert(const cIterator &iter, const Input_iterator &begin, const Input_iterator &end);
 
-        cIterator insert(const cIterator &iter, const cIter<char> &begin, const cIter<char> &end);
+        rIterator insert(const rIterator &iter, char t);
 
-        rIterator insert(const rIterator &iter, char t, Size size = 1);
+        rIterator insert(const rIterator &iter, Size size, char t);
 
         rIterator insert(const rIterator &iter, const std::initializer_list<char> &list);
 
@@ -589,11 +286,12 @@ namespace STD {
         rIterator insert(const rIterator &iter, const String &target,
                          Size target_pos = 0, Size target_len = Npos);
 
-        rIterator insert(const rIterator &iter, const Iter<char> &begin, const Iter<char> &end);
+        template<typename Input_iterator>
+        rIterator insert(const rIterator &iter, const Input_iterator &begin, const Input_iterator &end);
 
-        rIterator insert(const rIterator &iter, const cIter<char> &begin, const cIter<char> &end);
+        crIterator insert(const crIterator &iter, char t);
 
-        crIterator insert(const crIterator &iter, char t, Size size = 1);
+        crIterator insert(const crIterator &iter, Size size, char t);
 
         crIterator insert(const crIterator &iter, const std::initializer_list<char> &list);
 
@@ -607,9 +305,8 @@ namespace STD {
         crIterator insert(const crIterator &iter, const String &target,
                           Size target_pos = 0, Size target_len = Npos);
 
-        crIterator insert(const crIterator &iter, const Iter<char> &begin, const Iter<char> &end);
-
-        crIterator insert(const crIterator &iter, const cIter<char> &begin, const cIter<char> &end);
+        template<typename Input_iterator>
+        crIterator insert(const crIterator &iter, const Input_iterator &begin, const Input_iterator &end);
 
         Iterator erase(Size pos, Size size = 1);
 
@@ -639,9 +336,8 @@ namespace STD {
 
         String &replace(Size pos, Size len, const String &target);
 
-        String &replace(Size pos, Size len, const Iter<char> &begin, const Iter<char> &end);
-
-        String &replace(Size pos, Size len, const cIter<char> &begin, const cIter<char> &end);
+        template<typename Input_iterator>
+        String &replace(Size pos, Size len, const Input_iterator &begin, const Input_iterator &end);
 
         String &replace(Size pos, Size len, const String &target, Size target_pos, Size target_len);
 
@@ -660,11 +356,9 @@ namespace STD {
         String &replace(const Iterator &begin, const Iterator &end,
                         const String &target, Size target_pos, Size target_len);
 
+        template<typename Input_iterator>
         String &replace(const Iterator &begin, const Iterator &end,
-                        const Iter<char> &target_begin, const Iter<char> &target_end);
-
-        String &replace(const Iterator &begin, const Iterator &end,
-                        const cIter<char> &target_begin, const cIter<char> &target_end);
+                        const Input_iterator &target_begin, const Input_iterator &target_end);
 
         String &replace(const cIterator &begin, const cIterator &end, Size n, char t);
 
@@ -681,11 +375,9 @@ namespace STD {
         String &replace(const cIterator &begin, const cIterator &end,
                         const String &target, Size target_pos, Size target_len);
 
+        template<typename Input_iterator>
         String &replace(const cIterator &begin, const cIterator &end,
-                        const Iter<char> &target_begin, const Iter<char> &target_end);
-
-        String &replace(const cIterator &begin, const cIterator &end,
-                        const cIter<char> &target_begin, const cIter<char> &target_end);
+                        const Input_iterator &target_begin, const Input_iterator &target_end);
 
         String &replace(const rIterator &begin, const rIterator &end, Size n, char t);
 
@@ -702,11 +394,9 @@ namespace STD {
         String &replace(const rIterator &begin, const rIterator &end,
                         const String &target, Size target_pos, Size target_len);
 
+        template<typename Input_iterator>
         String &replace(const rIterator &begin, const rIterator &end,
-                        const Iter<char> &target_begin, const Iter<char> &target_end);
-
-        String &replace(const rIterator &begin, const rIterator &end,
-                        const cIter<char> &target_begin, const cIter<char> &target_end);
+                        const Input_iterator &target_begin, const Input_iterator &target_end);
 
         String &replace(const crIterator &begin, const crIterator &end, Size n, char t);
 
@@ -723,18 +413,16 @@ namespace STD {
         String &replace(const crIterator &begin, const crIterator &end,
                         const String &target, Size target_pos, Size target_len);
 
+        template<typename Input_iterator>
         String &replace(const crIterator &begin, const crIterator &end,
-                        const Iter<char> &target_begin, const Iter<char> &target_end);
+                        const Input_iterator &target_begin, const Input_iterator &target_end);
 
-        String &replace(const crIterator &begin, const crIterator &end,
-                        const cIter<char> &target_begin, const cIter<char> &target_end);
-
-        char &operator[](Size pos) const { return *(val_begin + pos); };
+        char &operator[](Size pos) const { return val_begin[pos]; };
 
         char &at(Size pos) const {
             if (pos >= size_)
                 throw outOfRange("You provided an out-of-range subscript int the 'String::at' function");
-            return *(val_begin + pos);
+            return val_begin[pos];
         };
 
         char &front() const {
@@ -746,7 +434,7 @@ namespace STD {
         char &back() const {
             if (!size_)
                 throw outOfRange("You're accessing a non-existent element in the 'String::back' function");
-            return *(val_end - 1);
+            return val_end[-1];
         };
 
         bool empty() const { return !size_; };
@@ -865,17 +553,29 @@ namespace STD {
 
         Iterator end() const { return Iterator(val_end); };
 
-        cIterator cbegin() const { return cIterator(val_begin); };
+        cIterator cbegin() const { return cIterator(Iterator(val_begin)); };
 
-        cIterator cend() const { return cIterator(val_end); };
+        cIterator cend() const { return cIterator(Iterator(val_end)); };
 
-        rIterator rbegin() const { return rIterator(val_end - 1); };
+        rIterator rbegin() const { return rIterator(Iterator(val_end - 1)); };
 
-        rIterator rend() const { return rIterator(val_begin - 1); };
+        rIterator rend() const { return rIterator(Iterator(val_begin - 1)); };
 
-        crIterator crbegin() const { return crIterator(val_end - 1); };
+        crIterator crbegin() const { return crIterator(Iterator(val_end - 1)); };
 
-        crIterator crend() const { return crIterator(val_begin - 1); }
+        crIterator crend() const { return crIterator(Iterator(val_begin - 1)); };
+
+    private:
+        Size size_ = 0;
+
+        char *val_begin = nullptr, *val_end = nullptr, *store_end = nullptr;
+
+        void reallocate(Size size);
+
+        void forward(Size pos_from, Size pos_to);
+
+        char *backward(Size pos_from, Size pos_to);
+
     };
 
 } // namespace STD
