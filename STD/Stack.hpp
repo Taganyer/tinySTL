@@ -11,20 +11,17 @@ namespace STD {
     template<typename Arg, class Container = Vector<Arg>>
     class Stack {
     private:
-
         Container target = Container();
 
     public:
-
         Stack() = default;
 
         Stack(const Container &target) : target(target) {};
 
         Stack(Container &&target) : target(move(target)) {};
 
-        Stack(const Iter<Arg> &begin, const Iter<Arg> &end) : target(Container(begin, end)) {};
-
-        Stack(const cIter<Arg> &begin, const cIter<Arg> &end) : target(Container(begin, end)) {};
+        template<typename Input_iterator>
+        Stack(const Input_iterator &begin, const Input_iterator &end) : target(Container(begin, end)) {};
 
         Arg &top() const {
             return target.back();

@@ -15,28 +15,28 @@ namespace STD {
     };
 
     template<typename Arg>
-    class Greater {
+    struct Greater {
         inline bool operator()(const Arg &left, const Arg &right) const {
             return left > right;
         }
     };
 
     template<typename Arg>
-    class Equal {
+    struct Equal {
         inline bool operator()(const Arg &left, const Arg &right) const {
             return left == right;
         }
     };
 
     template<typename Arg>
-    class Not_Less_Than {
+    struct Not_Less_Than {
         inline bool operator()(const Arg &left, const Arg &right) const {
             return left >= right;
         }
     };
 
     template<typename Arg>
-    class Not_Greater_Than {
+    struct Not_Greater_Than {
         inline bool operator()(const Arg &left, const Arg &right) const {
             return left <= right;
         }

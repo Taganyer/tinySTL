@@ -103,30 +103,8 @@ String::String(String &&other) noexcept
     other.val_begin = other.val_end = other.store_end = nullptr;
 }
 
-template<typename Input_iterator>
-String::String(const Input_iterator &begin, const Input_iterator &end)
-        : size_(get_size(begin, end)) {
-    val_begin = Allocate_n<char>(size_ + 1);
-    store_end = val_begin + size_ + 1;
-    val_end = val_begin + size_;
-    fill_with(val_begin, begin, end);
-    *val_end = '\0';
-}
-
 String String::sub_str(Size begin, Size len) const {
     return {val_begin + begin, len};
-}
-
-template<typename Input_iterator>
-String &String::assign(const Input_iterator &begin, const Input_iterator &end) {
-    Deallocate_n(val_begin);
-    size_ = get_size(begin, end);
-    val_begin = Allocate_n<char>(size_ + 1);
-    val_end = val_begin + size_;
-    store_end = val_end + 1;
-    fill_with(val_begin, begin, end);
-    *val_end = '\0';
-    return *this;
 }
 
 void String::clear(bool whether_to_release) {
@@ -172,46 +150,25 @@ void String::append(const char *target, Size len) {
 }
 
 void String::append(const char *target) {
-    append(target, 0, STD::calculate_Length(target));
+    append(target, STD::calculate_Length(target));
 }
 
 void String::append(const char *target, Size pos, Size len) {
     append(target + pos, len);
 }
 
-void String::append(const String &target) {
-    if (!target.size_) return;
-    append(target.c_str());
-}
-
-void String::append(const String &target, Size pos) {
-    if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::append or String::push_back' function");
-    append(target.c_str() + pos);
-}
-
 void String::append(const String &target, Size pos, Size len) {
+    if (len == Npos) len = target.size_;
     if (pos + len > size_)
         throw outOfRange("You selected an out-of-range value in the 'String::append or String::push_back' function");
     append(target.c_str() + pos, len);
-}
-
-template<typename Input_iterator>
-void String::append(const Input_iterator &begin, const Input_iterator &end) {
-    Size count = get_size(begin, end);
-    if (capacity() - size_ - 1 < count)
-        reallocate(capacity() + count + 1);
-    fill_with(val_end, begin, end);
-    size_ += count;
-    val_end += count;
-    *val_end = '\0';
 }
 
 void String::push_back(char t) { append(t); }
 
 void String::push_back(Size len, char t) { append(len, t); }
 
-void String::push_back(const char *target) { append(target); }
+void String::push_back(const char *target) { append(target, STD::calculate_Length(target)); }
 
 void String::push_back(const char *target, Size len) { append(target, len); }
 
@@ -219,17 +176,9 @@ void String::push_back(const char *target, Size pos, Size len) {
     append(target, pos, len);
 }
 
-void String::push_back(const String &target) { append(target); }
-
-void String::push_back(const String &target, Size pos) { append(target, pos); }
-
 void String::push_back(const String &target, Size pos, Size len) {
-    append(target, pos, len);
-}
-
-template<typename Input_iterator>
-void String::push_back(const Input_iterator &begin, const Input_iterator &end) {
-    append(begin, end);
+    if (len == Npos) len = target.size_;
+    append(target.c_str() + pos, len);
 }
 
 String::Iterator
@@ -282,19 +231,8 @@ String::insert(Size pos, const char *target, Size target_pos, Size target_len) {
 
 String::Iterator
 String::insert(Size pos, const String &target, Size target_pos, Size target_len) {
+    if (target_len == Npos) target_len = target.size_;
     return insert(pos, target.c_str() + target_pos, target_len);
-}
-
-template<typename Input_iterator>
-String::Iterator
-String::insert(Size pos, const Input_iterator &begin, const Input_iterator &end) {
-    if (begin == end)
-        return Iterator(val_begin + pos);
-    if (pos > size_)
-        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
-    Size target_len = get_size(begin, end);
-    fill_with(backward(pos, pos + target_len), begin, end);
-    return Iterator(val_begin + pos);
 }
 
 String::Iterator
@@ -335,13 +273,6 @@ String::insert(const Iterator &iter, const String &target,
                   target.c_str() + target_pos, target_len);
 }
 
-template<typename Input_iterator>
-String::Iterator
-String::insert(const Iterator &iter, const Input_iterator &begin,
-               const Input_iterator &end) {
-    return insert(iter.target - val_begin, begin, end);
-}
-
 String::cIterator
 String::insert(const cIterator &iter, char t) {
     return cIterator(insert(iter.target.target - val_begin, t));
@@ -378,15 +309,9 @@ String::insert(const cIterator &iter, const char *target,
 String::cIterator
 String::insert(const cIterator &iter, const String &target,
                Size target_pos, Size target_len) {
+    if (target_len == Npos) target_len = target.size_;
     return cIterator(insert(iter.target.target - val_begin,
                             target.c_str() + target_pos, target_len));
-}
-
-template<typename Input_iterator>
-String::cIterator
-String::insert(const cIterator &iter, const Input_iterator &begin,
-               const Input_iterator &end) {
-    return cIterator(insert(iter.target.target - val_begin, begin, end));
 }
 
 String::rIterator
@@ -449,24 +374,8 @@ String::insert(const rIterator &iter, const char *target,
 String::rIterator
 String::insert(const rIterator &iter, const String &target,
                Size target_pos, Size target_len) {
-    if (target_len == Npos)
-        target_len = target.size_;
+    if (target_len == Npos) target_len = target.size_;
     return insert(iter, target.c_str() + target_pos, target_len);
-}
-
-template<typename Input_iterator>
-String::rIterator
-String::insert(const rIterator &iter, const Input_iterator &begin,
-               const Input_iterator &end) {
-    if (begin == end)
-        return iter;
-    if (iter.target.target >= val_end || iter.target.target < val_begin - 1)
-        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
-    Size target_len = get_size(begin, end);
-    Size pos_from = iter.target.target - val_begin + 1;
-    auto ptr = backward(pos_from, pos_from + target_len) + target_len - 1;
-    rfill_with(ptr, begin, end);
-    return rIterator(Iterator(ptr));
 }
 
 String::crIterator
@@ -507,13 +416,6 @@ String::insert(const crIterator &iter, const String &target,
     if (target_len == Npos) target_len = target.size_;
     return crIterator(insert(rIterator(iter.target),
                              target.c_str() + target_pos, target_len).target);
-}
-
-template<typename Input_iterator>
-String::crIterator
-String::insert(const crIterator &iter, const Input_iterator &begin,
-               const Input_iterator &end) {
-    return crIterator(insert(rIterator(iter.target), begin, end).target);
 }
 
 String::Iterator String::erase(Size pos, Size size) {
@@ -611,19 +513,6 @@ String &String::replace(Size pos, Size len, const String &target,
     return replace(pos, len, target.c_str() + target_pos, target_len);
 }
 
-template<typename Input_iterator>
-String &String::replace(Size pos, Size len, const Input_iterator &begin, const Input_iterator &end) {
-    if (pos + len > size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
-    Size target_len = get_size(begin, end);
-    if (len < target_len)
-        backward(pos + len, pos + target_len);
-    else if (len > target_len)
-        forward(pos + len, pos + target_len);
-    fill_with(val_begin + pos, begin, end);
-    return *this;
-}
-
 String &String::replace(const Iterator &begin, const Iterator &end, Size n, char t) {
     return replace(begin.target - val_begin, end.target - begin.target, n, t);
 }
@@ -654,12 +543,6 @@ String &String::replace(const Iterator &begin, const Iterator &end,
                    target.c_str() + target_pos, target_len);
 }
 
-template<typename Input_iterator>
-String &String::replace(const Iterator &begin, const Iterator &end,
-                        const Input_iterator &target_begin, const Input_iterator &target_end) {
-    return replace(begin.target - val_begin, end - begin, target_begin, target_end);
-}
-
 String &String::replace(const cIterator &begin, const cIterator &end, Size n, char t) {
     return replace(begin.target.target - val_begin, end - begin, n, t);
 }
@@ -688,12 +571,6 @@ String &String::replace(const cIterator &begin, const cIterator &end,
                         const String &target, Size target_pos, Size target_len) {
     return replace(begin.target.target - val_begin, end - begin,
                    target.c_str() + target_pos, target_len);
-}
-
-template<typename Input_iterator>
-String &String::replace(const cIterator &begin, const cIterator &end,
-                        const Input_iterator &target_begin, const Input_iterator &target_end) {
-    return replace(begin.target.target - val_begin, end - begin, target_begin, target_end);
 }
 
 String &String::replace(const rIterator &begin, const rIterator &end, Size n, char t) {
@@ -756,30 +633,6 @@ String &String::replace(const rIterator &begin, const rIterator &end,
     return replace(begin, end, target.c_str() + target_pos, target_len);
 }
 
-template<typename Input_iterator>
-String &String::replace(const rIterator &begin, const rIterator &end,
-                        const Input_iterator &target_begin, const Input_iterator &target_end) {
-    if (begin.target.target >= val_end || begin.target.target < val_begin ||
-        end.target.target < val_begin - 1 || end.target.target >= val_end ||
-        begin.target < end.target)
-        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
-    Size len = end - begin;
-    Size target_len = get_size(target_begin, target_end);
-    if (len < target_len) {
-        Size pos_from = end.target.target - val_begin + len + 1;
-        Size pos_to = pos_from + target_len - len;
-        backward(pos_from, pos_to);
-        rfill_with(val_begin + pos_to - 1, target_begin, target_end);
-    } else if (len > target_len) {
-        Size pos_from = begin.target.target - val_begin + 1;
-        Size pos_to = pos_from + target_len - len;
-        forward(pos_from, pos_to);
-        rfill_with(val_begin + pos_to - 1, target_begin, target_end);
-    } else
-        rfill_with(begin.target.target, target_begin, target_end);
-    return *this;
-}
-
 String &String::replace(const crIterator &begin, const crIterator &end, Size n, char t) {
     return replace(end.target.target - val_begin + 1, end - begin, n, t);
 }
@@ -809,12 +662,6 @@ String &String::replace(const crIterator &begin, const crIterator &end,
                         const String &target, Size target_pos, Size target_len) {
     return replace(rIterator(begin.target), rIterator(end.target),
                    target.c_str() + target_pos, target_len);
-}
-
-template<typename Input_iterator>
-String &String::replace(const crIterator &begin, const crIterator &end,
-                        const Input_iterator &target_begin, const Input_iterator &target_end) {
-    return replace(rIterator(begin.target), rIterator(end.target), target_begin, target_end);
 }
 
 String &String::operator=(const String &other) {

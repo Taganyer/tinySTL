@@ -8,26 +8,24 @@
 #include "Deque.hpp"
 #include "Vector.hpp"
 #include "Function.hpp"
+#include "Algorithms/Algorithms2.hpp"
 
 namespace STD {
 
     template<typename Arg, class Container = Deque<Arg>>
     class Queue {
     private:
-
         Container target = Container();
 
     public:
-
         Queue() = default;
 
         Queue(const Container &target) : target(target) {};
 
         Queue(Container &&target) : target(move(target)) {};
 
-        Queue(const Iter<Arg> &begin, const Iter<Arg> &end) : target(Container(begin, end)) {};
-
-        Queue(const cIter<Arg> &begin, const cIter<Arg> &end) : target(Container(begin, end)) {};
+        template<typename Input_iterator>
+        Queue(const Input_iterator &begin, const Input_iterator &end) : target(Container(begin, end)) {};
 
         Arg &front() const {
             return target.front();
@@ -62,7 +60,6 @@ namespace STD {
     template<typename Arg, class Container = Vector<Arg>, typename Compare = Less<Arg>>
     class Priority_queue {
     private:
-
         Container target = Container();
 
         Compare compare;
@@ -77,31 +74,28 @@ namespace STD {
 
         Priority_queue(Container &&target, Compare compare = Less<Arg>()) : target(move(target)), compare(compare) {};
 
-        Priority_queue(const Iter<Arg> &begin, const Iter<Arg> &end, Compare compare = Less<Arg>()) : target(
-                Container(begin, end)), compare(compare) {};
-
-        Priority_queue(const cIter<Arg> &begin, const cIter<Arg> &end, Compare compare = Less<Arg>()) : target(
-                Container(begin, end)), compare(compare) {};
+        template<typename Input_iterator>
+        Priority_queue(const Input_iterator &begin, const Input_iterator &end, Compare compare = Less<Arg>()) : target(
+                Container(begin, end)), compare(compare) {
+            Sort(target.begin(), target.end(), compare);
+        };
 
         Arg &front() const {
-            return target.front();
+            return target.back();
         };
 
         void pop() {
-            target.pop_front();
+            target.pop_back();
         }
 
         void push(const Arg &val) {
-            target.push_back(val);
-        }
-
-        void push(Arg &&val) {
-            target.push_back(move(val));
+            target.insert(Binary_Search(target.begin(), target.end(), val), val);
         }
 
         template<typename ...args>
         void emplace(args &&...vals) {
-            target.emplace_back(move(vals)...);
+            Arg val = Arg(vals...);
+            target.emplace(Binary_Search(target.begin(), target.end(), val), val);
         }
 
         bool empty() const {

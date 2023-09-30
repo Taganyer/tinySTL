@@ -16,4 +16,8 @@ add_executable(tinySTL main.cpp
         STD/List.hpp
         STD/Forward_list.hpp
         STD/Deque.hpp
+        STD/Stack.hpp
+        STD/Queue.hpp
+        STD/Algorithms/Algorithms2.hpp
+        STD/Detail/Hashcode.hpp
 )

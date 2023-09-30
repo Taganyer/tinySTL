@@ -6,13 +6,15 @@
 #define TINYSTL_TEST_HPP
 
 #include "STD/Vector.hpp"
-//#include "STD/String.hpp"
+#include "STD/String.hpp"
 //#include "STD/Forward_list.hpp"
 #include "STD/Deque.hpp"
+#include "STD/Algorithms.hpp"
 //#include "STD/Stack.hpp"
-//#include "STD/Queue.hpp"
+#include "STD/Queue.hpp"
 #include "STD/List.hpp"
 #include "STD/Array.hpp"
+#include "STD/Detail/Hashcode.hpp"
 #include <iostream>
 
 namespace STD {
@@ -25,6 +27,10 @@ namespace STD {
     void List_test();
 
     void Deque_test();
+
+    void String_test();
+
+    void Priority_queue_test();
 
 
     void Vector_test() {
@@ -80,12 +86,12 @@ namespace STD {
         swap(test, test1);
         test = test1;
         cout << *iter << endl;
-        for (const auto &i : test) {
+        for (const auto &i: test) {
             cout << i << ends;
         }
         cout << endl;
         test1.erase(test1.begin(), advance(test1.begin(), 7));
-        for (const auto &i : test1) {
+        for (const auto &i: test1) {
             cout << i << ends;
         }
         cout << endl;
@@ -136,6 +142,35 @@ namespace STD {
         for (auto i: test) {
             cout << i << ends;
         }
+    }
+
+    void String_test() {
+        String test("012345678"), test1(10, 'a'),
+                test2{'b', 'c', 'd', 'e', 'f'}, test3(test.rbegin(), test.rend());
+        test.replace(test.crbegin(), test.crbegin() + 5, "asdfghjkl");
+
+        test *= 1000;
+//        cout << *test3.insert(test3.cend(), test) << endl;
+        Sort(test3.begin(), test3.end());
+        cout << *Binary_Search(test3.begin(), test3.end(), '9') << endl;
+        cout << (Hash<String>()(test)) << endl;
+        cout << test1 << endl;
+        cout << test2 << endl;
+        cout << test3 << endl;
+    }
+
+    void Priority_queue_test() {
+        Deque<int> container{7, 34, 5, 1, 0, -1, 45, 69, 34};
+        Priority_queue<int> test(container.begin(), container.end());
+        for (int i = 0; i < 100; ++i) {
+            if (i % 2) test.push(i);
+            else test.push(-i);
+        }
+        while (!test.empty()) {
+            cout << test.front() << ends;
+            test.pop();
+        }
+        cout << endl << test.size() << endl;
     }
 }
 
