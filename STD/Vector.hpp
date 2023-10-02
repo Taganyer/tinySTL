@@ -8,6 +8,7 @@
 #include "Algorithms/source/Container_algorithms.hpp"
 #include "Iterator.hpp"
 #include "Allocater.hpp"
+#include "Detail/Hashcode.hpp"
 
 namespace STD {
 
@@ -140,7 +141,7 @@ namespace STD {
         //编译器给这个类开后门了，不用它没办法实现相同的效果。
         Vector(const std::initializer_list<Arg> &list);
 
-        //当Arg的类型是数字时，编译器一定会调用这个函数而不是Vector(Size, Arg)，所以需要另作处理。
+        //当Arg的类型是数字时，编译器一定会调用这个函数而不是Vector(Size, Key)，所以需要另作处理。
         template<typename Input_iterator>
         Vector(const Input_iterator &begin, const Input_iterator &end);
 
@@ -163,7 +164,7 @@ namespace STD {
 
         Vector<Arg> &assign(Size size, const Arg &val);
 
-        //当Arg的类型是数字时，编译器一定会调用这个函数而不是assign(Size, Arg)，所以需要另作处理。
+        //当Arg的类型是数字时，编译器一定会调用这个函数而不是assign(Size, Key)，所以需要另作处理。
         template<typename Input_iterator>
         Vector<Arg> &assign(const Input_iterator &begin, const Input_iterator &end);
 

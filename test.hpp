@@ -15,6 +15,7 @@
 #include "STD/List.hpp"
 #include "STD/Array.hpp"
 #include "STD/Detail/Hashcode.hpp"
+#include "STD/Detail/Red_Black_Tree.hpp"
 #include <iostream>
 
 namespace STD {
@@ -31,6 +32,10 @@ namespace STD {
     void String_test();
 
     void Priority_queue_test();
+
+    void Hash_test();
+
+    void Red_Black_Tree_test();
 
 
     void Vector_test() {
@@ -172,6 +177,77 @@ namespace STD {
         }
         cout << endl << test.size() << endl;
     }
+
+    void Hash_test() {
+        Hash<int> int_test;
+
+        Hash<String> String_test;
+
+        Hash<int *> p_test;
+
+        Hash<const int *> cp_test;
+
+        Hash<Vector<int>> v_test;
+
+        int d1 = 999;
+
+        String d2("the data........ \n");
+
+        Vector<int> d3 {1, 2, 3, 4}, d4(d3);
+
+        int *p1 = &d1;
+
+        const int *p2 = &d1;
+
+        cout << int_test(d1) << endl;
+
+        cout << String_test(d2) << endl;
+
+        cout << p_test(p1) << endl;
+
+        cout << cp_test(p2) << endl;
+
+        cout << v_test(d3) << endl;
+
+        cout << v_test(d4) << endl;
+
+        auto ptr = new char[1000];
+
+        ptr[0] = 1;
+
+        ptr[1] = 1;
+
+        cout << int (ptr[1000]) << endl;
+
+        const auto * tp = (const unsigned long long *)ptr - 1;
+
+        cout << *(tp) << endl;
+
+        delete[] ptr;
+    }
+
+    void Red_Black_Tree_test() {
+        Red_Black_Tree<int, int> test;
+        for (int i = 0; i < 400; ++i) {
+            if (i % 2)
+                test.insert(i, i);
+            else
+                test.insert(-i, i);
+        }
+        for (auto &t : test) {
+            cout << t.first << ends;
+        }
+        for (int i = 0; i < 400; ++i) {
+            if (i % 2)
+                test.erase(i);
+            else
+                test.erase(-i);
+        }
+        auto iter = test.find(0);
+        cout << endl << test.size()<<endl;
+    }
+
+
 }
 
 #endif //TINYSTL_TEST_HPP

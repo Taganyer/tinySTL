@@ -5,6 +5,8 @@
 #ifndef TINYSTL_FUNCTION_HPP
 #define TINYSTL_FUNCTION_HPP
 
+#include "Detail/Hashcode.hpp"
+
 namespace STD {
 
     template<typename Arg>
