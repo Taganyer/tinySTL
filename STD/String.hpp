@@ -132,6 +132,18 @@ namespace STD {
 
         using crIterator = STD::crIterator<Iterator, Random_iterator_tag>;
 
+    private:
+        Size size_ = 0;
+
+        char *val_begin = nullptr, *val_end = nullptr, *store_end = nullptr;
+
+        void reallocate(Size size);
+
+        void forward(Size pos_from, Size pos_to);
+
+        char *backward(Size pos_from, Size pos_to);
+
+    public:
         String();
 
         String(Size size, char target);
@@ -556,17 +568,6 @@ namespace STD {
         crIterator crbegin() const { return crIterator(Iterator(val_end - 1)); };
 
         crIterator crend() const { return crIterator(Iterator(val_begin - 1)); };
-
-    private:
-        Size size_ = 0;
-
-        char *val_begin = nullptr, *val_end = nullptr, *store_end = nullptr;
-
-        void reallocate(Size size);
-
-        void forward(Size pos_from, Size pos_to);
-
-        char *backward(Size pos_from, Size pos_to);
 
     };
 

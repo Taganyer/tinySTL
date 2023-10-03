@@ -134,6 +134,16 @@ namespace STD {
 
         using crIterator = STD::crIterator<Iterator, Random_iterator_tag>;
 
+    private:
+        Size size_ = 0;
+
+        Arg *val_begin = nullptr, *val_end = nullptr, *store_end = nullptr;
+
+        void reallocate(Size size);
+
+        Arg *backward(Size pos_from, Size pos_to);
+
+    public:
         Vector() = default;
 
         explicit Vector(Size size, Arg target = Arg());
@@ -337,16 +347,6 @@ namespace STD {
         crIterator crbegin() const { return crIterator(Iterator(val_end - 1)); };
 
         crIterator crend() const { return crIterator(Iterator(val_begin - 1)); };
-
-    private:
-
-        Size size_ = 0;
-
-        Arg *val_begin = nullptr, *val_end = nullptr, *store_end = nullptr;
-
-        void reallocate(Size size);
-
-        Arg *backward(Size pos_from, Size pos_to);
 
     };
 

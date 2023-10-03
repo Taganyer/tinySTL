@@ -158,6 +158,14 @@ namespace STD {
 
         using crIterator = STD::crIterator<Iterator, Random_iterator_tag>;
 
+    private:
+        Size size_ = 0;
+
+        int val_begin, val_end, map_begin, map_end, map_size;
+
+        Arg **map = nullptr;
+
+    public:
         Deque();
 
         Deque(Size size, const Arg &target = Arg());
@@ -409,12 +417,6 @@ namespace STD {
         };
 
     private:
-        Size size_ = 0;
-
-        int val_begin, val_end, map_begin, map_end, map_size;
-
-        Arg **map = nullptr;
-
         inline static void add(int &i, int &j) {
             if (++j == BLOCK_SIZE) {
                 j = 0;
@@ -529,6 +531,7 @@ namespace STD {
         void expand_capacity(int size, bool to_end);
 
         void insert_move(Size pos, Size size);
+
     };
 
 //----------------------------------------------------------------------------------------------------------------------

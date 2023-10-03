@@ -14,12 +14,12 @@ add_executable(tinySTL main.cpp
         STD/Detail/crIter.hpp
         STD/Iterator.hpp
         STD/List.hpp
-        STD/Forward_list.hpp
+        STD/Forward_List.hpp
         STD/Deque.hpp
         STD/Stack.hpp
         STD/Queue.hpp
         STD/Algorithms/Algorithms2.hpp
         STD/Detail/Hashcode.hpp
-        STD/source/Uordered_Map.hpp
+        STD/Uordered_Map.hpp
         STD/Detail/Red_Black_Tree.hpp
 )

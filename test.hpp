@@ -7,7 +7,7 @@
 
 #include "STD/Vector.hpp"
 #include "STD/String.hpp"
-//#include "STD/Forward_list.hpp"
+#include "STD/Forward_List.hpp"
 #include "STD/Deque.hpp"
 #include "STD/Algorithms.hpp"
 //#include "STD/Stack.hpp"
@@ -26,6 +26,8 @@ namespace STD {
     void Vector_test();
 
     void List_test();
+
+    void Forward_List_test();
 
     void Deque_test();
 
@@ -87,7 +89,7 @@ namespace STD {
 
     void List_test() {
         List<int> test(10, 0), test1 = {1, 2, 3, 4, 5, 6};
-        auto iter = test.insert(test.end(), {10, 10, 10});
+        auto iter = test.insert(test.rbegin(), {10, 9, 8});
         swap(test, test1);
         test = test1;
         cout << *iter << endl;
@@ -95,11 +97,34 @@ namespace STD {
             cout << i << ends;
         }
         cout << endl;
-        test1.erase(test1.begin(), advance(test1.begin(), 7));
+        test1.erase(test1.begin(), --test1.end());
         for (const auto &i: test1) {
             cout << i << ends;
         }
         cout << endl;
+    }
+
+    void Forward_List_test() {
+        Forward_List<int> test(10, 0), test1 = {1, 2, 3, 4, 5, 6};
+        auto iter = test.insert_after(test.before_begin(), {10, 9, 8});
+        swap(test, test1);
+        test = test1;
+        cout << *iter << endl;
+        for (const auto &i: test) {
+            cout << i << ends;
+        }
+        cout << endl;
+        test1.erase_after(test1.before_begin(), test1.end());
+        for (const auto &i: test1) {
+            cout << i << ends;
+        }
+        cout << endl;
+        iter = test.before_begin();
+        for (int i = 0; i < 100; ++i) {
+            if (iter == test.before_begin()) ++iter;
+            cout << *iter << ends;
+            ++iter;
+        }
     }
 
     void Deque_test() {
@@ -193,7 +218,7 @@ namespace STD {
 
         String d2("the data........ \n");
 
-        Vector<int> d3 {1, 2, 3, 4}, d4(d3);
+        Vector<int> d3{1, 2, 3, 4}, d4(d3);
 
         int *p1 = &d1;
 
@@ -217,9 +242,9 @@ namespace STD {
 
         ptr[1] = 1;
 
-        cout << int (ptr[1000]) << endl;
+        cout << int(ptr[1000]) << endl;
 
-        const auto * tp = (const unsigned long long *)ptr - 1;
+        const auto *tp = (const unsigned long long *) ptr - 1;
 
         cout << *(tp) << endl;
 
@@ -234,17 +259,19 @@ namespace STD {
             else
                 test.insert(-i, i);
         }
-        for (auto &t : test) {
+        for (auto &t: test) {
             cout << t.first << ends;
         }
-        for (int i = 0; i < 400; ++i) {
+        for (int i = 0; i < 200; ++i) {
             if (i % 2)
                 test.erase(i);
             else
                 test.erase(-i);
         }
-        auto iter = test.find(0);
-        cout << endl << test.size()<<endl;
+        for (auto &t: test) {
+            cout << t.first << ends;
+        }
+        cout << endl << test.size() << endl;
     }
 
 
