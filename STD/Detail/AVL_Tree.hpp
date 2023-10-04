@@ -1,9 +1,9 @@
 //
-// Created by 86152 on 2023/10/1.
+// Created by 86152 on 2023/10/4.
 //
 
-#ifndef TINYSTL_RED_BLACK_TREE_HPP
-#define TINYSTL_RED_BLACK_TREE_HPP
+#ifndef TINYSTL_AVL_TREE_HPP
+#define TINYSTL_AVL_TREE_HPP
 
 #include "../Iterator.hpp"
 #include "../Allocater.hpp"
@@ -12,7 +12,7 @@
 namespace STD {
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    class Red_Black_Tree;
+    class AVL_Tree;
 
     namespace Detail {
 
@@ -21,21 +21,21 @@ namespace STD {
          */
 
         template<typename Key, typename Val, typename Compare, typename Equal_>
-        struct Red_Black_Tree_Iterator : public Iterator<Bidirectional_iterator_tag, Pair<Key, Val>> {
+        struct AVL_Tree_Iterator : public Iterator<Bidirectional_iterator_tag, Pair<Key, Val>> {
         public:
             using Basic = Iterator<Bidirectional_iterator_tag, Pair<Key, Val>>;
 
-            using Self = Red_Black_Tree_Iterator<Key, Val, Compare, Equal_>;
+            using Self = AVL_Tree_Iterator<Key, Val, Compare, Equal_>;
 
             using Reference = typename Basic::Reference;
 
             using Pointer = typename Basic::Pointer;
 
-            using Container = Red_Black_Tree<Key, Val, Compare, Equal_>;
+            using Container = AVL_Tree<Key, Val, Compare, Equal_>;
 
             using Node = typename Container::Node;
 
-            friend class Red_Black_Tree<Key, Val, Compare, Equal_>;
+            friend class AVL_Tree<Key, Val, Compare, Equal_>;
 
             friend class rIterator<Self, Random_iterator_tag>;
 
@@ -48,7 +48,7 @@ namespace STD {
 
             Container *container;
 
-            explicit Red_Black_Tree_Iterator(Node *target, Container *container) :
+            explicit AVL_Tree_Iterator(Node *target, Container *container) :
                     target(target), container(container) {};
 
         public:
@@ -78,8 +78,8 @@ namespace STD {
         };
 
         template<typename Key, typename Val, typename Compare, typename Equal_>
-        typename Red_Black_Tree_Iterator<Key, Val, Compare, Equal_>::Self
-        &Red_Black_Tree_Iterator<Key, Val, Compare, Equal_>::operator++() {
+        typename AVL_Tree_Iterator<Key, Val, Compare, Equal_>::Self
+        &AVL_Tree_Iterator<Key, Val, Compare, Equal_>::operator++() {
             if (!target) {
                 target = container->val_begin;
                 return *this;
@@ -96,15 +96,15 @@ namespace STD {
         }
 
         template<typename Key, typename Val, typename Compare, typename Equal_>
-        typename Red_Black_Tree_Iterator<Key, Val, Compare, Equal_>::Self
-        Red_Black_Tree_Iterator<Key, Val, Compare, Equal_>::operator++(int) {
+        typename AVL_Tree_Iterator<Key, Val, Compare, Equal_>::Self
+        AVL_Tree_Iterator<Key, Val, Compare, Equal_>::operator++(int) {
             Self temp = Self(target, container);
             ++(*this);
         }
 
         template<typename Key, typename Val, typename Compare, typename Equal_>
-        typename Red_Black_Tree_Iterator<Key, Val, Compare, Equal_>::Self
-        &Red_Black_Tree_Iterator<Key, Val, Compare, Equal_>::operator--() {
+        typename AVL_Tree_Iterator<Key, Val, Compare, Equal_>::Self
+        &AVL_Tree_Iterator<Key, Val, Compare, Equal_>::operator--() {
             if (!target) {
                 target = container->val_end;
                 return *this;
@@ -121,19 +121,19 @@ namespace STD {
         }
 
         template<typename Key, typename Val, typename Compare, typename Equal_>
-        typename Red_Black_Tree_Iterator<Key, Val, Compare, Equal_>::Self
-        Red_Black_Tree_Iterator<Key, Val, Compare, Equal_>::operator--(int) {
+        typename AVL_Tree_Iterator<Key, Val, Compare, Equal_>::Self
+        AVL_Tree_Iterator<Key, Val, Compare, Equal_>::operator--(int) {
             Self temp = Self(target, container);
             --(*this);
         }
     }
 
     template<typename Key, typename Val, typename Compare = Less<Key>, typename Equal_ = Equal<Key>>
-    class Red_Black_Tree {
+    class AVL_Tree {
     public:
-        friend class Detail::Red_Black_Tree_Iterator<Key, Val, Compare, Equal_>;
+        friend class Detail::AVL_Tree_Iterator<Key, Val, Compare, Equal_>;
 
-        using Iterator = Detail::Red_Black_Tree_Iterator<Key, Val, Compare, Equal_>;
+        using Iterator = Detail::AVL_Tree_Iterator<Key, Val, Compare, Equal_>;
 
         using cIterator = STD::cIterator<Iterator, Bidirectional_iterator_tag>;
 
@@ -141,7 +141,7 @@ namespace STD {
 
         using crIterator = STD::crIterator<Iterator, Bidirectional_iterator_tag>;
 
-        using Self = Red_Black_Tree<Key, Val, Compare, Equal_>;
+        using Self = AVL_Tree<Key, Val, Compare, Equal_>;
 
     private:
         struct Node {
@@ -149,13 +149,13 @@ namespace STD {
 
             Node *left = nullptr, *right = nullptr, *last = nullptr;
 
-            bool Red = false;
+            int height = 1;
 
-            explicit Node(const Key &key, const Val &val, bool red) :
-                    value({key, val}), Red(red) {};
+            explicit Node(const Key &key, const Val &val, int height = 1) :
+                    value({key, val}), height(height) {};
 
-            explicit Node(const Key &key, Val &&val, bool red) :
-                    value({key, move(val)}), Red(red) {};
+            explicit Node(const Key &key, Val &&val, int height = 0) :
+                    value({key, move(val)}), height(height) {};
 
             const Key &key() const { return value.first; };
 
@@ -169,17 +169,27 @@ namespace STD {
 
         Size size_ = 0;
 
-        // 判断是否为红色节点。
-        bool is_Red(Node *node) const {
-            if (!node) return false;
-            else return node->Red;
+        // 计算传入节点的左节点与右节点之差
+        int height_difference(Node *node) const {
+            if (!node) return 0;
+            int left = node->left ? node->left->height : 0;
+            int right = node->right ? node->right->height : 0;
+            return left - right;
         };
 
-        // link操作是为了更新子节点的last，并将子节点连接到父节点上。
+        // 重新计算传入节点的高度
+        void calculate_height(Node *node) const {
+            int left = node->left ? node->left->height : 0;
+            int right = node->right ? node->right->height : 0;
+            node->height = left > right ? left + 1 : right + 1;
+        }
+
+        // link操作是为了更新子节点的last，并将子节点连接到父节点上，同时会重新计算父节点的高度，可以减少许多麻烦。
         void link(Node *parent, bool left, Node *child) const {
             if (parent) {
                 if (left) parent->left = child;
                 else parent->right = child;
+                calculate_height(parent);
             }
             if (child) child->last = parent;
         };
@@ -189,34 +199,22 @@ namespace STD {
             Node *n_right = node->right;
             link(node, false, n_right->left);
             link(n_right, true, node);
-            n_right->Red = node->Red;
-            node->Red = true;
             return n_right;
-        };
+        }
 
         // 右旋
         Node *R_alpha(Node *node) {
             Node *n_left = node->left;
             link(node, true, n_left->right);
             link(n_left, false, node);
-            n_left->Red = node->Red;
-            node->Red = true;
             return n_left;
-        };
+        }
 
-        // 插入时的反转颜色，也就是将临时的4节点分裂出两个2节点。
-        void insert_change_Color(Node *node) const {
-            node->Red = true;
-            node->left->Red = false;
-            node->right->Red = false;
-        };
+        // 该函数的作用是在树被破坏时，重新平衡树。
+        Node *balance(Node *node);
 
-        // 删除时的反转颜色，也就是创建一个临时4节点。
-        void erase_change_Color(Node *node) const {
-            node->Red = false;
-            node->left->Red = true;
-            node->right->Red = true;
-        };
+        // 内置版本的插入函数。
+        Node *insert(Node *node, Node *&target);
 
         // 找到该节点下的最小值。
         static Node *the_min(Node *node);
@@ -224,26 +222,14 @@ namespace STD {
         // 找到该节点下的最大值。
         static Node *the_max(Node *node);
 
-        // 内置版本的插入函数。
-        Node *insert(Node *node, Node *&target);
+        // 从该节点开始寻找目标值。
+        Node *get_from(Node *node, const Key &key) const;
 
-        // 用作建立临时4节点。
-        Node *erase_left_adjustment(Node *node);
-
-        // 用作建立临时4节点。
-        Node *erase_right_adjustment(Node *node);
-
-        // 删除该节点下的最小值。
-        Node *erase_min(Node *node);
-
-        // 该函数的作用是在树被破坏时，重新平衡树。
-        Node *balance(Node *node);
+        // 删除该节点下的最大值。
+        Node *erase_max(Node *node);
 
         // 内置递归版本的删除函数。
         Node *erase(Node *node, const Key &key);
-
-        // 从该节点下获取某个值。
-        Node *get_from(Node *node, const Key &key) const;
 
         // 将该节点的全部分支删除。
         void erase_from(Node *node);
@@ -252,17 +238,17 @@ namespace STD {
         Node *copy(Node *target, Node *parent);
 
     public:
-        Red_Black_Tree() = default;
+        AVL_Tree() = default;
 
-        Red_Black_Tree(const Self &other);
+        AVL_Tree(const Self &other);
 
-        Red_Black_Tree(Self &&other) noexcept;
+        AVL_Tree(Self &&other) noexcept;
 
         template<typename Input_Key, typename Input_Val>
-        Red_Black_Tree(Input_Key k_begin, const Input_Key &k_end,
-                       Input_Val v_begin);
+        AVL_Tree(Input_Key k_begin, const Input_Key &k_end,
+                 Input_Val v_begin);
 
-        ~Red_Black_Tree();
+        ~AVL_Tree();
 
         void clear();
 
@@ -332,33 +318,24 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Key, typename Val, typename Compare, typename Equal>
-    typename Red_Black_Tree<Key, Val, Compare, Equal>::Node *
-    Red_Black_Tree<Key, Val, Compare, Equal>::the_min(Node *node) {
+    typename AVL_Tree<Key, Val, Compare, Equal>::Node *
+    AVL_Tree<Key, Val, Compare, Equal>::the_min(Node *node) {
         if (!node) return nullptr;
         while (node->left) node = node->left;
         return node;
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal>
-    typename Red_Black_Tree<Key, Val, Compare, Equal>::Node *
-    Red_Black_Tree<Key, Val, Compare, Equal>::the_max(Node *node) {
+    typename AVL_Tree<Key, Val, Compare, Equal>::Node *
+    AVL_Tree<Key, Val, Compare, Equal>::the_max(Node *node) {
         if (!node) return nullptr;
         while (node->right) node = node->right;
         return node;
     }
 
-    template<typename Key, typename Val, typename Compare, typename Equal_>
-    void Red_Black_Tree<Key, Val, Compare, Equal_>::erase_from(Node *node) {
-        if (!node) return;
-        erase_from(node->left);
-        erase_from(node->right);
-        Deallocate(node);
-        --size_;
-    }
-
     template<typename Key, typename Val, typename Compare, typename Equal>
-    typename Red_Black_Tree<Key, Val, Compare, Equal>::Node *
-    Red_Black_Tree<Key, Val, Compare, Equal>::get_from(Node *node, const Key &key) const {
+    typename AVL_Tree<Key, Val, Compare, Equal>::Node *
+    AVL_Tree<Key, Val, Compare, Equal>::get_from(Node *node, const Key &key) const {
         while (node && !equal(key, node->key())) {
             if (less(key, node->key())) node = node->left;
             else node = node->right;
@@ -367,110 +344,103 @@ namespace STD {
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    typename Red_Black_Tree<Key, Val, Compare, Equal_>::Node *
-    Red_Black_Tree<Key, Val, Compare, Equal_>::copy(Node *target, Node *parent) {
+    void AVL_Tree<Key, Val, Compare, Equal_>::erase_from(Node *node) {
+        if (!node) return;
+        erase_from(node->left);
+        erase_from(node->right);
+        Deallocate(node);
+        --size_;
+    }
+
+    template<typename Key, typename Val, typename Compare, typename Equal>
+    typename AVL_Tree<Key, Val, Compare, Equal>::Node *
+    AVL_Tree<Key, Val, Compare, Equal>::copy(Node *target, Node *parent) {
         if (!target) return nullptr;
-        Node *temp = Allocate<Node>(target->value.first, target->value.second, target->Red);
+        Node *temp = Allocate<Node>(target->value.first, target->value.second, target->height);
         temp->left = copy(target->left, temp);
         temp->right = copy(target->right, temp);
         temp->last = parent;
         return temp;
     }
 
-    // 该树为左倾红黑树。
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    typename Red_Black_Tree<Key, Val, Compare, Equal_>::Node *
-    Red_Black_Tree<Key, Val, Compare, Equal_>::insert(Node *node, Node *&target) {
+    typename AVL_Tree<Key, Val, Compare, Equal_>::Node
+    *AVL_Tree<Key, Val, Compare, Equal_>::balance(Node *node) {
+        int difference = height_difference(node); // 得到左右的节点高度差。
+        //一共有六种情况（插入会出现四种，删除会出现六种），这里合并为四种。
+        if (difference > 1) { // 本节点的左边太长
+            if (height_difference(node->left) >= 0) {
+                node = R_alpha(node);
+            } else { // 本节点的左节点的右边比较长
+                link(node, true, L_alpha(node->left));
+                node = R_alpha(node);
+            }
+        } else if (difference < -1) { // 本节点的右边太长
+            if (height_difference(node->right) <= 0) {
+                node = L_alpha(node);
+            } else { // 本节点的右节点的左边比较长
+                link(node, false, R_alpha(node->right));
+                node = L_alpha(node);
+            }
+        }
+        return node;
+    }
+
+    template<typename Key, typename Val, typename Compare, typename Equal_>
+    typename AVL_Tree<Key, Val, Compare, Equal_>::Node
+    *AVL_Tree<Key, Val, Compare, Equal_>::insert(Node *node, Node *&target) {
         if (!node) { // 说明找到了合适的位置插入，将目标向上传递，终止递归。
             ++size_;
             return target;
         }
-        if (less(target->key(), node->key())) // 目标值小于当前节点。
+        if (less(target->key(), node->key())) // 目标小于本节点，向左边寻找。
             link(node, true, insert(node->left, target));
-        else if (!equal(target->key(), node->key())) // 目标值大于当前节点。
+        else if (!equal(target->key(), node->key())) // 目标大于本节点，向右边寻找。
             link(node, false, insert(node->right, target));
-        else { // 目标值等于当前节点，给本节点重新赋值。
+        else { // 找到了相等值，给本节点重新赋值。
             node->value = move(target->value);
             Deallocate(target);
             target = node;
         }
-        // 当前节点出现红色右倾节点，违反左倾策略，左旋之后，两个子节点均为黑色，父节点为红色。
-        if (!is_Red(node->left) && is_Red(node->right)) node = L_alpha(node);
-        // 当前的节点子节点出现左边红节点相连的情况，此时node一定是黑色的，右旋建立一个临时4节点。
-        if (is_Red(node->left) && is_Red(node->left->left)) node = R_alpha(node);
-        // 当前节点出现临时4节点，将它分裂。
-        if (is_Red(node->left) && is_Red(node->right)) insert_change_Color(node);
-        return node;
-    }
-
-    template<typename Key, typename Val, typename Compare, typename Equal>
-    typename Red_Black_Tree<Key, Val, Compare, Equal>::Node *
-    Red_Black_Tree<Key, Val, Compare, Equal>::erase_left_adjustment(Node *node) {
-        erase_change_Color(node);
-        if (is_Red(node->right->left)) { // 上面建立了临时4节点，这里出现了红节点相连的状况，经过下面的操作可重新建立临时4节点。
-            link(node, false, R_alpha(node->right));
-            node = L_alpha(node);
-        }
-        return node;
-    }
-
-    template<typename Key, typename Val, typename Compare, typename Equal>
-    typename Red_Black_Tree<Key, Val, Compare, Equal>::Node *
-    Red_Black_Tree<Key, Val, Compare, Equal>::erase_right_adjustment(Node *node) {
-        erase_change_Color(node);
-        if (is_Red(node->left->left)) { // 上面建立了临时4节点，这里出现了红节点相连的状况，经过下面的操作可重新建立临时4节点。
-            node = R_alpha(node);
-        }
-        return node;
-    }
-
-    template<typename Key, typename Val, typename Compare, typename Equal_>
-    typename Red_Black_Tree<Key, Val, Compare, Equal_>::Node *
-    Red_Black_Tree<Key, Val, Compare, Equal_>::balance(Node *node) {
-        if (is_Red(node->right))  // 当前节点出现红色右倾节点，违反左倾策略，左旋之后，两个子节点均为黑色，父节点为红色。
-            node = L_alpha(node);
-        if (!is_Red(node->left) && is_Red(node->right)) node = L_alpha(node);
-        if (is_Red(node->left) && is_Red(node->left->left)) node = R_alpha(node);
-        if (is_Red(node->left) && is_Red(node->right)) insert_change_Color(node);
-        return node;
-    }
-
-    template<typename Key, typename Val, typename Compare, typename Equal_>
-    typename Red_Black_Tree<Key, Val, Compare, Equal_>::Node *
-    Red_Black_Tree<Key, Val, Compare, Equal_>::erase_min(Node *node) {
-        if (!node->left) { // 找到最小值，直接删除。
-            Deallocate(node);
-            --size_;
-            return nullptr;
-        }
-        if (!is_Red(node->left) && !is_Red(node->left->left)) // 两个子节点都是2节点，建立临时4节点。
-            node = erase_left_adjustment(node);
-        link(node, true, erase_min(node->left)); // 不满足条件，继续递归。
         return balance(node);
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    typename Red_Black_Tree<Key, Val, Compare, Equal_>::Node *
-    Red_Black_Tree<Key, Val, Compare, Equal_>::erase(Node *node, const Key &key) {
-        if (less(key, node->key())) { // 当前节点小于目标值。
-            if (!is_Red(node->left) && !is_Red(node->left->left)) // 两个子节点都是2节点，建立临时4节点。
-                node = erase_left_adjustment(node);
+    typename AVL_Tree<Key, Val, Compare, Equal_>::Node
+    *AVL_Tree<Key, Val, Compare, Equal_>::erase_max(Node *node) {
+        if (node->right) { // 当没有找到最大值时，继续递归寻找。
+            link(node, false, erase_max(node->right));
+        } else if (node->left) { // 找到最大值，但其还有左节点，我们将其值换上来，删掉左节点。
+            STD::swap(node->value, node->left->value);
+            link(node, true, erase_max(node->left));
+        } else { // 找到最大值，并且它没有任何子节点，可直接删除。
+            if (val_end == node) val_end = node->last;
+            Deallocate(node);
+            --size_;
+            return nullptr;
+        }
+        return balance(node);
+    }
+
+    template<typename Key, typename Val, typename Compare, typename Equal_>
+    typename AVL_Tree<Key, Val, Compare, Equal_>::Node
+    *AVL_Tree<Key, Val, Compare, Equal_>::erase(Node *node, const Key &key) {
+        if (!node) return nullptr; // 说明树中没有该目标，终止递归。
+        if (less(key, node->key())) // 目标值小于当前值，向左继续寻找。
             link(node, true, erase(node->left, key));
-        } else { // 当前节点大于或等于目标值。
-            if (is_Red(node->left)) // 左节点为非2节点，右旋建立一个3节点。
-                node = R_alpha(node);
-            if (equal(key, node->key()) && !node->right) { // 要删除的节点为底部节点，直接删除。
+        else if (!equal(key, node->key())) // 目标值大于当前值，向右继续寻找。
+            link(node, false, erase(node->right, key));
+        else { // 找到目标值
+            if (node->left) { // 有子节点比较麻烦，我们选择置换上来当前节点左边的最大值，转而删除被置换的那个节点。
+                STD::swap(node->value, the_max(node->left)->value);
+                link(node, true, erase_max(node->left));
+            } else { // 这里合并了两种情况（有右节点和无节点），直接删除该节点，将该节点的右节点向上传递。
+                auto temp = node->right;
+                if (node == val_begin) val_begin = temp;
+                if (node == val_end) val_end = node->last;
                 Deallocate(node);
                 --size_;
-                return nullptr;
-            }
-            if (!is_Red(node->right) && !is_Red(node->right->left)) // 两个子节点都是2节点，建立临时4节点。
-                node = erase_right_adjustment(node);
-            if (equal(key, node->key())) { // 要删除的节点有子节点，置换其右边节点的最小值，转而删除被置换的那个底部节点。
-                STD::swap(node->value, the_min(node->right)->value);
-                link(node, false, erase_min(node->right));
-            } else { // 当前节点不是目标值，继续递归。
-                link(node, false, erase(node->right, key));
+                return temp;
             }
         }
         return balance(node);
@@ -479,7 +449,7 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    Red_Black_Tree<Key, Val, Compare, Equal_>::Red_Black_Tree(const Self &other) :
+    AVL_Tree<Key, Val, Compare, Equal_>::AVL_Tree(const Self &other) :
             size_(other.size_), less(other.less), equal(other.equal) {
         root = copy(other.root);
         val_begin = the_min(root);
@@ -487,7 +457,7 @@ namespace STD {
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    Red_Black_Tree<Key, Val, Compare, Equal_>::Red_Black_Tree(Self &&other) noexcept
+    AVL_Tree<Key, Val, Compare, Equal_>::AVL_Tree(Self &&other) noexcept
             : size_(other.size_), root(other.root), val_begin(other.val_begin),
               val_end(other.val_end), less(other.less), equal(other.equal) {
         other.size_ = 0;
@@ -496,8 +466,8 @@ namespace STD {
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
     template<typename Input_Key, typename Input_Val>
-    Red_Black_Tree<Key, Val, Compare, Equal_>::Red_Black_Tree(Input_Key k_begin, const Input_Key &k_end,
-                                                              Input_Val v_begin) {
+    AVL_Tree<Key, Val, Compare, Equal_>::AVL_Tree(Input_Key k_begin, const Input_Key &k_end,
+                                                  Input_Val v_begin) {
         while (k_begin != k_end) {
             insert(*k_begin, *v_begin);
             ++k_begin, ++v_begin;
@@ -505,21 +475,21 @@ namespace STD {
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    Red_Black_Tree<Key, Val, Compare, Equal_>::~Red_Black_Tree() {
+    AVL_Tree<Key, Val, Compare, Equal_>::~AVL_Tree() {
         clear();
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    void Red_Black_Tree<Key, Val, Compare, Equal_>::clear() {
+    void AVL_Tree<Key, Val, Compare, Equal_>::clear() {
         erase_from(root);
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    Pair<typename Red_Black_Tree<Key, Val, Compare, Equal_>::Iterator, bool>
-    Red_Black_Tree<Key, Val, Compare, Equal_>::insert(const Key &key, const Val &value) {
+    Pair<typename AVL_Tree<Key, Val, Compare, Equal_>::Iterator, bool>
+    AVL_Tree<Key, Val, Compare, Equal_>::insert(const Key &key, const Val &value) {
         Size record = size_;
-        //插入节点为红节点，可以强迫结构的变换。
-        Node *temp = Allocate<Node>(key, value, true);
+        // 节点默认高度为1。
+        Node *temp = Allocate<Node>(key, value, 1);
         if (!size_) {
             val_begin = temp;
             val_end = temp;
@@ -529,17 +499,15 @@ namespace STD {
             val_end = temp;
         }
         root = insert(root, temp);
-        root->Red = false;
         root->last = nullptr;
         return {Iterator(temp, this), size_ != record};
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    Pair<typename Red_Black_Tree<Key, Val, Compare, Equal_>::Iterator, bool>
-    Red_Black_Tree<Key, Val, Compare, Equal_>::insert(const Key &key, Val &&value) {
+    Pair<typename AVL_Tree<Key, Val, Compare, Equal_>::Iterator, bool>
+    AVL_Tree<Key, Val, Compare, Equal_>::insert(const Key &key, Val &&value) {
         Size record = size_;
-        //插入节点为红节点，可以强迫结构的变换。
-        Node *temp = Allocate<Node>(key, move(value), true);
+        Node *temp = Allocate<Node>(key, move(value), 1);
         if (!size_) {
             val_begin = temp;
             val_end = temp;
@@ -549,36 +517,21 @@ namespace STD {
             val_end = temp;
         }
         root = insert(root, temp);
-        root->Red = false;
         root->last = nullptr;
         return {Iterator(temp, this), size_ != record};
     }
 
-
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    bool Red_Black_Tree<Key, Val, Compare, Equal_>::erase(const Key &key) {
+    bool AVL_Tree<Key, Val, Compare, Equal_>::erase(const Key &key) {
         Size record = size_;
-        if (equal(key, val_begin->key())) {
-            if (!val_begin->right) val_begin = val_begin->last;
-            else val_begin = val_begin->right;
-        }
-        if (equal(key, val_end->key())) {
-            if (!val_end->left) val_end = val_end->last;
-            else val_end = val_end->left;
-        }
-        if (!is_Red(root->left) && !is_Red(root->right))
-            root->Red = true;
         root = erase(root, key);
-        if (root) {
-            root->Red = false;
-            root->last = nullptr;
-        }
+        if (root) root->last = nullptr;
         return record != size_;
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    typename Red_Black_Tree<Key, Val, Compare, Equal_>::Iterator
-    Red_Black_Tree<Key, Val, Compare, Equal_>::find(const Key &key) const {
+    typename AVL_Tree<Key, Val, Compare, Equal_>::Iterator
+    AVL_Tree<Key, Val, Compare, Equal_>::find(const Key &key) const {
         auto temp = root;
         while (temp && !equal(key, temp->key())) {
             if (less(key, temp->key())) temp = temp->left;
@@ -588,15 +541,15 @@ namespace STD {
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    Val &Red_Black_Tree<Key, Val, Compare, Equal_>::operator[](const Key &key) {
+    Val &AVL_Tree<Key, Val, Compare, Equal_>::operator[](const Key &key) {
         auto ptr = get_from(root, key);
         if (ptr) return ptr->value.second;
         return (*(insert(key, Val()).first)).second;
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self
-    &Red_Black_Tree<Key, Val, Compare, Equal_>::operator=(const Self &other) {
+    typename AVL_Tree<Key, Val, Compare, Equal_>::Self
+    &AVL_Tree<Key, Val, Compare, Equal_>::operator=(const Self &other) {
         if (this == &other) return *this;
         clear();
         less = other.less;
@@ -608,8 +561,8 @@ namespace STD {
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self
-    &Red_Black_Tree<Key, Val, Compare, Equal_>::operator=(Self &&other) noexcept {
+    typename AVL_Tree<Key, Val, Compare, Equal_>::Self
+    &AVL_Tree<Key, Val, Compare, Equal_>::operator=(Self &&other) noexcept {
         if (this == &other) return *this;
         size_ = other.size_;
         root = other.root;
@@ -623,8 +576,8 @@ namespace STD {
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    bool operator==(const typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &left,
-                    const typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &right) {
+    bool operator==(const typename AVL_Tree<Key, Val, Compare, Equal_>::Self &left,
+                    const typename AVL_Tree<Key, Val, Compare, Equal_>::Self &right) {
         if (left.size_ != right.size_) return false;
         auto l = left.begin(), r = right.begin();
         Size size = l.size_;
@@ -636,14 +589,14 @@ namespace STD {
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    bool operator!=(const typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &left,
-                    const typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &right) {
+    bool operator!=(const typename AVL_Tree<Key, Val, Compare, Equal_>::Self &left,
+                    const typename AVL_Tree<Key, Val, Compare, Equal_>::Self &right) {
         return !(left == right);
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    bool operator<(const typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &left,
-                   const typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &right) {
+    bool operator<(const typename AVL_Tree<Key, Val, Compare, Equal_>::Self &left,
+                   const typename AVL_Tree<Key, Val, Compare, Equal_>::Self &right) {
         auto l = left.begin(), r = right.begin(), l_end = left.end(), r_end = right.end();
         while (l != l_end && r != r_end) {
             if (*l != *r) return *l < *r;
@@ -653,14 +606,14 @@ namespace STD {
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    bool operator<=(const typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &left,
-                    const typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &right) {
+    bool operator<=(const typename AVL_Tree<Key, Val, Compare, Equal_>::Self &left,
+                    const typename AVL_Tree<Key, Val, Compare, Equal_>::Self &right) {
         return !(left > right);
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    bool operator>(const typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &left,
-                   const typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &right) {
+    bool operator>(const typename AVL_Tree<Key, Val, Compare, Equal_>::Self &left,
+                   const typename AVL_Tree<Key, Val, Compare, Equal_>::Self &right) {
         auto l = left.begin(), r = right.begin(), l_end = left.end(), r_end = right.end();
         while (l != l_end && r != r_end) {
             if (*l != *r) return *l > *r;
@@ -670,17 +623,17 @@ namespace STD {
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    bool operator>=(const typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &left,
-                    const typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &right) {
+    bool operator>=(const typename AVL_Tree<Key, Val, Compare, Equal_>::Self &left,
+                    const typename AVL_Tree<Key, Val, Compare, Equal_>::Self &right) {
         return !(left < right);
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    void swap(typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &left,
-              typename Red_Black_Tree<Key, Val, Compare, Equal_>::Self &right) noexcept {
+    void swap(typename AVL_Tree<Key, Val, Compare, Equal_>::Self &left,
+              typename AVL_Tree<Key, Val, Compare, Equal_>::Self &right) noexcept {
         left.swap(right);
     }
 
 }
 
-#endif //TINYSTL_RED_BLACK_TREE_HPP
+#endif //TINYSTL_AVL_TREE_HPP

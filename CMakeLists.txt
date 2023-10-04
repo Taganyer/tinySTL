@@ -22,4 +22,5 @@ add_executable(tinySTL main.cpp
         STD/Detail/Hashcode.hpp
         STD/Uordered_Map.hpp
         STD/Detail/Red_Black_Tree.hpp
+        STD/Detail/AVL_Tree.hpp
 )

@@ -16,6 +16,7 @@
 #include "STD/Array.hpp"
 #include "STD/Detail/Hashcode.hpp"
 #include "STD/Detail/Red_Black_Tree.hpp"
+#include "STD/Detail/AVL_Tree.hpp"
 #include <iostream>
 
 namespace STD {
@@ -38,6 +39,8 @@ namespace STD {
     void Hash_test();
 
     void Red_Black_Tree_test();
+
+    void AVL_Tree_Test();
 
 
     void Vector_test() {
@@ -274,7 +277,32 @@ namespace STD {
         cout << endl << test.size() << endl;
     }
 
-
+    void AVL_Tree_Test() {
+        AVL_Tree<int, int> test;
+        for (int i = 0; i < 400; ++i) {
+            if (i % 2)
+                test.insert(i, i);
+            else
+                test.insert(-i, i);
+        }
+        for (auto &t: test) {
+            cout << t.first << ends;
+        }
+        cout << endl;
+        for (int i = 0; i < 200; ++i) {
+            bool judge = false;
+            if (i % 2)
+                judge = test.erase(i);
+            else
+                judge = test.erase(-i);
+        }
+        int i = 0;
+        for (auto &t: test) {
+            cout << t.first << ends;
+            ++i;
+        }
+        cout << endl << test.size() << endl << i <<endl;
+    }
 }
 
 #endif //TINYSTL_TEST_HPP
