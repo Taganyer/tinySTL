@@ -271,6 +271,9 @@ namespace STD {
 
         Red_Black_Tree(Self &&other) noexcept;
 
+        template<typename Input_Key>
+        Red_Black_Tree(Input_Key k_begin, const Input_Key &k_end);
+
         ~Red_Black_Tree();
 
         void clear();
@@ -528,6 +531,15 @@ namespace STD {
             : size_(other.size_), root(other.root), less(other.less), equal(other.equal) {
         other.size_ = 0;
         other.root = nullptr;
+    }
+
+    template<typename Key, typename Compare, typename Equal_>
+    template<typename Input_Key>
+    Red_Black_Tree<Key, Compare, Equal_>::Red_Black_Tree(Input_Key k_begin, const Input_Key &k_end) {
+        while (k_begin != k_end) {
+            insert(*k_begin);
+            ++k_begin;
+        }
     }
 
     template<typename Key, typename Compare, typename Equal_>
