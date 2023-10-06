@@ -20,7 +20,9 @@ add_executable(tinySTL main.cpp
         STD/Queue.hpp
         STD/Algorithms/Algorithms2.hpp
         STD/Detail/Hashcode.hpp
-        STD/Uordered_Map.hpp
+        STD/Unordered_Map.hpp
         STD/Detail/Red_Black_Tree.hpp
         STD/Detail/AVL_Tree.hpp
+        STD/Map.hpp
+        STD/Set.hpp
 )

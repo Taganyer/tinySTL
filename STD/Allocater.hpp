@@ -79,13 +79,41 @@ namespace STD {
 
         Second second;
 
-        Pair(const First &first, const Second &second) : first(first), second(second) {};
+        Pair(const First &first = First(), const Second &second = Second()) : first(first), second(second) {};
 
         Pair(First &&first, const Second &second) : first(move(first)), second(second) {};
 
         Pair(const First &first, Second &&second) : first(first), second(move(second)) {};
 
         Pair(First &&first, Second &&second) : first(move(first)), second(move(second)) {};
+
+        friend bool operator==(const Pair<First, Second> &left, const Pair<First, Second> &right) {
+            return left.first == right.first && left.second == right.second;
+        }
+
+        friend bool operator!=(const Pair<First, Second> &left, const Pair<First, Second> &right) {
+            return left.first != right.first || left.second != right.second;
+        }
+
+        friend bool operator<(const Pair<First, Second> &left, const Pair<First, Second> &right) {
+            if (left.first < right.first || left.first == right.first && left.second < right.second)
+                return true;
+            return false;
+        }
+
+        friend bool operator<=(const Pair<First, Second> &left, const Pair<First, Second> &right) {
+            return !(left > right);
+        }
+
+        friend bool operator>(const Pair<First, Second> &left, const Pair<First, Second> &right) {
+            if (left.first > right.first || left.first == right.first && left.second > right.second)
+                return true;
+            return false;
+        }
+
+        friend bool operator>=(const Pair<First, Second> &left, const Pair<First, Second> &right) {
+            return !(left < right);
+        }
     };
 }
 

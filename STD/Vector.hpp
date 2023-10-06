@@ -811,7 +811,7 @@ namespace STD {
         val_begin = Allocate_n<Arg>(other.capacity());
         val_end = val_begin + size_;
         store_end = val_begin + other.capacity();
-        fill_with(val_begin, other.val_begin, size_);
+        fill_with(val_begin, other.val_begin, other.val_end);
         return *this;
     }
 

@@ -17,6 +17,8 @@
 #include "STD/Detail/Hashcode.hpp"
 #include "STD/Detail/Red_Black_Tree.hpp"
 #include "STD/Detail/AVL_Tree.hpp"
+#include "STD/Map.hpp"
+#include "STD/Set.hpp"
 #include <iostream>
 
 namespace STD {
@@ -41,6 +43,10 @@ namespace STD {
     void Red_Black_Tree_test();
 
     void AVL_Tree_Test();
+
+    void Map_test();
+
+    void Set_test();
 
 
     void Vector_test() {
@@ -175,6 +181,8 @@ namespace STD {
         for (auto i: test) {
             cout << i << ends;
         }
+
+        cout << (test == test1) << endl;
     }
 
     void String_test() {
@@ -255,30 +263,76 @@ namespace STD {
     }
 
     void Red_Black_Tree_test() {
-        Red_Black_Tree<int, int> test;
+        Red_Black_Tree<int> test, test1;
         for (int i = 0; i < 400; ++i) {
             if (i % 2)
-                test.insert(i, i);
+                test.insert(i);
             else
-                test.insert(-i, i);
+                test.insert(-i);
         }
-        for (auto &t: test) {
-            cout << t.first << ends;
-        }
+//        for (auto &t: test) {
+//            cout << t << ends;
+//        }
         for (int i = 0; i < 200; ++i) {
+            if (i == 129)
+                cout << "test" << endl;
             if (i % 2)
                 test.erase(i);
             else
                 test.erase(-i);
+            auto iter = test.begin(), end = test.end();
+            int j = 0;
+            while (iter != end) {
+                ++iter;
+                ++j;
+                if (j > 399 - i) {
+                    cout << i << endl;
+                    break;
+                }
+            }
         }
         for (auto &t: test) {
-            cout << t.first << ends;
+            cout << t << ends;
         }
         cout << endl << test.size() << endl;
+        swap(test, test1);
+        test1 = test;
+        cout << (test == test1);
     }
 
     void AVL_Tree_Test() {
-        AVL_Tree<int, int> test;
+        AVL_Tree<const int> test;
+        for (int i = 0; i < 400; ++i) {
+            if (i % 2)
+                test.insert(i);
+            else
+                test.insert(-i);
+        }
+        for (auto &t: test) {
+            cout << t << ends;
+        }
+        cout << endl;
+        for (int i = 0; i < 200; ++i) {
+            bool judge = false;
+            if (i % 2)
+                judge = test.erase(i);
+            else
+                judge = test.erase(-i);
+            if (!judge) cout << i << ends;
+        }
+        cout << endl;
+        int i = 0;
+        for (auto &t: test) {
+            cout << t << ends;
+            ++i;
+        }
+        cout << endl << test.size() << endl << i << endl;
+    }
+
+    void Map_test() {
+        Vector<int> d1{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}, d2(10, 6);
+        Map<int, int> test, test2(d1.crbegin(), d1.crend(), d2.begin()),
+                test3(test2);
         for (int i = 0; i < 400; ++i) {
             if (i % 2)
                 test.insert(i, i);
@@ -290,19 +344,65 @@ namespace STD {
         }
         cout << endl;
         for (int i = 0; i < 200; ++i) {
-            bool judge = false;
             if (i % 2)
-                judge = test.erase(i);
+                test.erase(i);
             else
-                judge = test.erase(-i);
+                test.erase(-i);
         }
+        test = test2;
         int i = 0;
         for (auto &t: test) {
             cout << t.first << ends;
             ++i;
         }
-        cout << endl << test.size() << endl << i <<endl;
+        cout << endl << test.size() << endl << i << endl;
     }
+
+    void Set_test() {
+        auto comp = [](const int &lhs, const int &rhs) { return lhs > rhs; };
+        Set<int, Greater<int>, Equal<int>> test,
+                test1(test);
+        for (int i = 0; i < 400; ++i) {
+            if (i % 2)
+                test.insert(i);
+            else
+                test.insert(-i);
+        }
+//        for (auto &t: test) {
+//            cout << t << ends;
+//        }
+        for (int i = 0; i < 200; ++i) {
+            if (i == 129)
+                cout << "test" << endl;
+            if (i % 2)
+                test.erase(i);
+            else
+                test.erase(-i);
+            auto iter = test.begin(), end = test.end();
+            int j = 0;
+            while (iter != end) {
+                ++iter;
+                ++j;
+                if (j > 399 - i) {
+                    cout << i << endl;
+                    break;
+                }
+            }
+        }
+        for (auto &t: test) {
+            cout << t << ends;
+        }
+        cout << endl << test.size() << endl;
+        swap(test, test1);
+        test = test1;
+        cout << (test == test1) << endl;
+        auto iter = test.crbegin();
+        while (iter != test.crend()) {
+            cout << *iter << ends;
+            ++iter;
+        }
+    }
+
 }
 
 #endif //TINYSTL_TEST_HPP
