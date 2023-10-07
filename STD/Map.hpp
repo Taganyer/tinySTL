@@ -39,14 +39,22 @@ namespace STD {
 
 
     template<typename Key, typename Val, typename Compare = Less<Key>, typename Equal_ = Equal<Key>>
-    class Map : public Red_Black_Tree<Pair<const Key, Val>, Detail::Map_compare_Helper<Key, Val, Compare>,
+    class Map : public Detail::Red_Black_Tree<Pair<const Key, Val>, Detail::Map_compare_Helper<Key, Val, Compare>,
             Detail::Map_equal_Helper<Key, Val, Equal_>> {
     public:
         using Cmp = Detail::Map_compare_Helper<Key, Val, Compare>;
 
         using Eql = Detail::Map_equal_Helper<Key, Val, Equal_>;
 
-        using Basic = Red_Black_Tree<Pair<const Key, Val>, Cmp, Eql>;
+        using Map_Type = Pair<const Key, Val>;
+
+        using Key_Type = Key;
+
+        using Value_Type = Val;
+
+        using Basic = Detail::Red_Black_Tree<Value_Type, Cmp, Eql>;
+
+        using Self = Map<Key, Val, Compare, Equal_>;
 
         using Iterator = typename Basic::Iterator;
 
@@ -59,9 +67,16 @@ namespace STD {
         explicit Map(Compare compare = Compare(), Equal_ equal = Equal_()) :
                 Basic(Cmp(compare), Eql(equal)), less(compare), equal(equal) {};
 
+        Map(const std::initializer_list<Map_Type> &list, Compare compare = Compare(),
+            Equal_ equal = Equal_());
+
         template<typename Key_Input, typename Val_Input>
         Map(Key_Input key_begin, const Key_Input &key_end, Val_Input val_begin,
             Compare compare = Compare(), Equal_ equal = Equal_());
+
+        Map(const Self &other) : Basic(other), less(other.less), equal(other.equal) {};
+
+        Map(Self &&other) noexcept: Basic(move(other)), less(other.less), equal(other.equal) {};
 
         ~Map() = default;
 
@@ -75,19 +90,27 @@ namespace STD {
 
         bool erase(const Key &key);
 
-        Val &operator[](const Key &key) const;
-
         Iterator find(const Key &key) const;
 
-        using Basic::size;
+        Val &operator[](const Key &key) const;
 
-        using Basic::empty;
+        Self &operator=(const Self &other) {
+            Basic::operator=(other);
+            return *this;
+        };
 
-        using Basic::swap;
+        Self &operator=(Self &&other) noexcept {
+            Basic::operator=(move(other));
+            return *this;
+        };
 
-        using Basic::clear;
+        void swap(Self &other) noexcept {
+            Basic::swap(other);
+        };
 
-        using Basic::operator=;
+        friend void swap(Self &left, Self &right) noexcept {
+            left.Basic::swap(right);
+        };
 
     private:
         using Node = typename Basic::Node;
@@ -117,6 +140,11 @@ namespace STD {
     }
 
 //----------------------------------------------------------------------------------------------------------------------
+
+    template<typename Key, typename Val, typename Compare, typename Equal_>
+    Map<Key, Val, Compare, Equal_>::Map
+            (const std::initializer_list<Map_Type> &list, Compare compare, Equal_ equal) :
+            Basic(list, Cmp(compare), Eql(equal)), less(compare), equal(equal) {}
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
     template<typename Key_Input, typename Val_Input>
@@ -208,17 +236,17 @@ namespace STD {
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    Val &Map<Key, Val, Compare, Equal_>::operator[](const Key &key) const {
-        Node *ptr = get_from(root, key);
-        if (ptr) return ptr->value.second;
-        else return (*Basic::insert({key, Val()}).first).second;
-    }
-
-    template<typename Key, typename Val, typename Compare, typename Equal_>
     typename Map<Key, Val, Compare, Equal_>::Iterator
     Map<Key, Val, Compare, Equal_>::find(const Key &key) const {
         Node *ptr = get_from(root, key);
         return Basic::get_Iterator(ptr);
+    }
+
+    template<typename Key, typename Val, typename Compare, typename Equal_>
+    Val &Map<Key, Val, Compare, Equal_>::operator[](const Key &key) const {
+        Node *ptr = get_from(root, key);
+        if (ptr) return ptr->value.second;
+        else return (*Basic::insert({key, Val()}).first).second;
     }
 
 }

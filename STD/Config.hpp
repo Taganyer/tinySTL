@@ -15,32 +15,30 @@ namespace STD {
 
     using Step = long long;
 
-    constexpr const int MAX_INT = 2147483647;
+    constexpr int MAX_INT = 2147483647;
 
-    constexpr const int MIN_INT = -2147483648;
+    constexpr int MIN_INT = -2147483648;
 
-    constexpr const unsigned int MAX_UINT_INT = 4294967295;
+    constexpr unsigned int MAX_UINT_INT = 4294967295;
 
-    constexpr const long long MAX_LLONG = 9223372036854775807;
+    constexpr long long MAX_LLONG = 9223372036854775807;
 
-    constexpr const long long MIN_LLONG = -9223372036854775808;
+    constexpr long long MIN_LLONG = -9223372036854775808;
 
-    constexpr const unsigned long long MAX_UINT_LLONG = -1;
+    constexpr unsigned long long MAX_UINT_LLONG = -1;
+
+    namespace Detail {
+
+        using Size = STD::Size;
+
+        using Step = STD::Step;
+
+        using Ptrdiff = STD::Ptrdiff;
+
+        using Difference = STD::Difference;
+
+    }
 
 }
-
-namespace Detail {
-
-    using Size = STD::Size;
-
-    using Step = STD::Step;
-
-    using Ptrdiff = STD::Ptrdiff;
-
-    using Difference = STD::Difference;
-
-}
-
-//#define IS_NOEXPECT(...) noexcept(__VA_ARGS__)
 
 #endif //TINYSTL_CONFIG_HPP

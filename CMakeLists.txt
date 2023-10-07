@@ -4,7 +4,7 @@ project(tinySTL)
 set(CMAKE_CXX_STANDARD 11)
 
 add_executable(tinySTL main.cpp
-        STD/source/String.cpp
+        STD/Detail/String.cpp
         STD/Array.hpp
         STD/Vector.hpp
         STD/Algorithms/source/Container_algorithms.hpp
@@ -25,4 +25,6 @@ add_executable(tinySTL main.cpp
         STD/Detail/AVL_Tree.hpp
         STD/Map.hpp
         STD/Set.hpp
+        STD/Detail/Hashtable.hpp
+        STD/Unordered_Set.hpp
 )

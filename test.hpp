@@ -19,6 +19,9 @@
 #include "STD/Detail/AVL_Tree.hpp"
 #include "STD/Map.hpp"
 #include "STD/Set.hpp"
+#include "STD/Detail/Hashtable.hpp"
+#include "STD/Unordered_Map.hpp"
+#include "STD/Unordered_Set.hpp"
 #include <iostream>
 
 namespace STD {
@@ -47,6 +50,10 @@ namespace STD {
     void Map_test();
 
     void Set_test();
+
+    void Hashtable_Test();
+
+    void Unordered_Map_Test();
 
 
     void Vector_test() {
@@ -263,7 +270,8 @@ namespace STD {
     }
 
     void Red_Black_Tree_test() {
-        Red_Black_Tree<int> test, test1;
+        Detail::Red_Black_Tree<int> test,
+                test1{88, 77, 66};
         for (int i = 0; i < 400; ++i) {
             if (i % 2)
                 test.insert(i);
@@ -301,7 +309,7 @@ namespace STD {
     }
 
     void AVL_Tree_Test() {
-        AVL_Tree<const int> test;
+        Detail::AVL_Tree<const int> test;
         for (int i = 0; i < 400; ++i) {
             if (i % 2)
                 test.insert(i);
@@ -331,8 +339,10 @@ namespace STD {
 
     void Map_test() {
         Vector<int> d1{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}, d2(10, 6);
-        Map<int, int> test, test2(d1.crbegin(), d1.crend(), d2.begin()),
-                test3(test2);
+        Map<int, int> test,
+                test2(d1.crbegin(), d1.crend(), d2.begin()),
+                test3 = Map<int, int>({{99, 2},
+                                       {98, 3}});
         for (int i = 0; i < 400; ++i) {
             if (i % 2)
                 test.insert(i, i);
@@ -349,7 +359,9 @@ namespace STD {
             else
                 test.erase(-i);
         }
-        test = test2;
+        test = move(Map<int, int>{{1, 2},
+                                  {2, 3}});;
+        swap(test2, test3);
         int i = 0;
         for (auto &t: test) {
             cout << t.first << ends;
@@ -372,8 +384,6 @@ namespace STD {
 //            cout << t << ends;
 //        }
         for (int i = 0; i < 200; ++i) {
-            if (i == 129)
-                cout << "test" << endl;
             if (i % 2)
                 test.erase(i);
             else
@@ -394,13 +404,81 @@ namespace STD {
         }
         cout << endl << test.size() << endl;
         swap(test, test1);
-        test = test1;
+        test = move(test1);
         cout << (test == test1) << endl;
         auto iter = test.crbegin();
         while (iter != test.crend()) {
             cout << *iter << ends;
             ++iter;
         }
+    }
+
+    void Hashtable_Test() {
+        Detail::Hashtable<int, Hash<int>, Equal<int>> test,
+                test1(test);
+        int arr[400] = {0};
+        for (int i = 0; i < 400; ++i) {
+            if (i % 2)
+                test.insert(i);
+            else
+                test.insert(-i);
+        }
+        int i = 0;
+        for (auto t: test) {
+            if (t < 0) t = -t;
+            if (t >= 400 || arr[t])
+                cout << "error:" << t << ends;
+            arr[t] = 1;
+            ++i;
+        }
+        cout << endl << i << endl;
+        for (int i = 0; i < 200; ++i) {
+            bool judge = false;
+            if (i % 2)
+                judge = test.erase(i);
+            else
+                judge = test.erase(-i);
+            if (!judge) cout << i << ends;
+        }
+        cout << endl;
+        i = 0;
+        auto iter = test.rend();
+        while (iter != test.rbegin()) {
+            cout << *--iter << ends;
+            ++i;
+        }
+        cout << endl << test.size() << endl << i << endl;
+    }
+
+    void Unordered_Map_Test() {
+        Vector<int> d1{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}, d2(10, 6);
+        Unordered_Map<int, int> test,
+                test2(d1.crbegin(), d1.crend(), d2.begin()),
+                test3{{99, 2},
+                      {98, 3}};
+        for (int i = 0; i < 400; ++i) {
+            if (i % 2)
+                test.insert(i, i);
+            else
+                test.insert(-i, i);
+        }
+        for (auto &t: test) {
+            cout << t.first << ends;
+        }
+        cout << endl;
+        for (int i = 0; i < 200; ++i) {
+            if (i % 2)
+                test.erase(i);
+            else
+                test.erase(-i);
+        }
+        swap(test, test2);
+        int i = 0;
+        for (auto &t: test) {
+            cout << t.first << ends;
+            ++i;
+        }
+        cout << endl << test.size() << endl << i << endl;
     }
 
 }

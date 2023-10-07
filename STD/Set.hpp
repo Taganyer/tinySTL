@@ -10,9 +10,13 @@
 namespace STD {
 
     template<typename Key, typename Compare = Less<Key>, typename Equal_ = Equal<Key>>
-    class Set : public Red_Black_Tree<const Key, Compare, Equal_> {
+    class Set : public Detail::Red_Black_Tree<const Key, Compare, Equal_> {
     public:
-        using Basic = Red_Black_Tree<const Key, Compare, Equal_>;
+        using Basic = Detail::Red_Black_Tree<const Key, Compare, Equal_>;
+
+        using Key_Type = Key;
+
+        using Value_Type = Key;
 
         using Iterator = typename Basic::Iterator;
 
@@ -22,17 +26,7 @@ namespace STD {
 
         using crIterator = typename Basic::crIterator;
 
-        using Self = Set<Key, Compare, Equal_>;
-
-        explicit Set(Compare compare = Compare(), Equal_ equal = Equal_()) :
-                Basic(compare, equal) {};
-
-        template<typename Key_Input, typename Val_Input>
-        Set(Key_Input key_begin, const Key_Input &key_end, Val_Input val_begin,
-            Compare compare = Compare(), Equal_ equal = Equal_()) :
-                Basic(key_begin, key_end, val_begin, compare, equal) {};
-
-        ~Set() = default;
+        using Detail::Red_Black_Tree<const Key, Compare, Equal_>::Red_Black_Tree;
 
     };
 }

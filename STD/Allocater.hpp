@@ -67,9 +67,9 @@ namespace STD {
 
     template<typename Arg>
     void Memset(Arg *target, const Arg &val, Size size) {
-        for (int i = 0; i < size; ++i) {
+        while (size) {
             *target = val;
-            ++target;
+            ++target, --size;
         }
     }
 
