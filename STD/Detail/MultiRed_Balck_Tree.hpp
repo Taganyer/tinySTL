@@ -1,9 +1,9 @@
 //
-// Created by 86152 on 2023/10/1.
+// Created by 86152 on 2023/10/9.
 //
 
-#ifndef TINYSTL_RED_BLACK_TREE_HPP
-#define TINYSTL_RED_BLACK_TREE_HPP
+#ifndef TINYSTL_MULTIRED_BALCK_TREE_HPP
+#define TINYSTL_MULTIRED_BALCK_TREE_HPP
 
 #include "../Iterator.hpp"
 #include "../Allocater.hpp"
@@ -14,20 +14,16 @@ namespace STD {
     namespace Detail {
 
         template<typename Key, typename Compare, typename Equal_>
-        class Red_Black_Tree;
-
-        /* 该迭代器end()和rend()和cend()和crend()指向的位置相同，都无法被解引用。这使得该迭代器
-         * 的行为更像一个环形迭代器，带来隐患的同时，也可以进行一些特殊的操作。使用时要多加注意。
-         */
+        class MultiRed_Black_Tree;
 
         template<typename Key, typename Compare, typename Equal_>
-        struct Red_Black_Tree_Iterator : public Iterator<Bidirectional_iterator_tag, Key> {
+        struct MultiRed_Black_Tree_Iterator : public Iterator<Bidirectional_iterator_tag, Key> {
         public:
             using Basic = Iterator<Bidirectional_iterator_tag, Key>;
 
-            using Self = Red_Black_Tree_Iterator<Key, Compare, Equal_>;
+            using Self = MultiRed_Black_Tree_Iterator<Key, Compare, Equal_>;
 
-            using Container = Red_Black_Tree<Key, Compare, Equal_>;
+            using Container = MultiRed_Black_Tree<Key, Compare, Equal_>;
 
             using Reference = typename Basic::Reference;
 
@@ -35,7 +31,11 @@ namespace STD {
 
             using Node = typename Container::Node;
 
-            friend class Red_Black_Tree<Key, Compare, Equal_>;
+            using Joint = typename Node::Joint;
+
+            friend class MultiRed_Black_Tree<Key, Compare, Equal_>;
+
+            friend class Iterator<Bidirectional_iterator_tag, Key>;
 
             friend class rIterator<Self, Bidirectional_iterator_tag>;
 
@@ -46,18 +46,20 @@ namespace STD {
         private:
             Node *target;
 
+            Joint *value;
+
             Container *container;
 
-            explicit Red_Black_Tree_Iterator(Node *target, Container *container) :
-                    target(target), container(container) {};
+            explicit MultiRed_Black_Tree_Iterator(Joint *value, Node *target, Container *container) :
+                    value(value), target(target), container(container) {};
 
         public:
             Reference operator*() const {
-                return target->value;
+                return value->value;
             };
 
             Pointer operator->() const {
-                return &(target->value);
+                return &(value->value);
             };
 
             Self &operator++();
@@ -69,72 +71,92 @@ namespace STD {
             Self operator--(int);
 
             friend bool operator==(const Self &left, const Self &right) {
-                return left.target == right.target && left.container == right.container;
+                return left.value == right.value && left.container == right.container;
             };
 
             friend bool operator!=(const Self &left, const Self &right) {
-                return left.target != right.target || left.container != right.container;
+                return left.value != right.value || left.container != right.container;
             };
         };
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree_Iterator<Key, Compare, Equal_>::Self
-        &Red_Black_Tree_Iterator<Key, Compare, Equal_>::operator++() {
+        typename MultiRed_Black_Tree_Iterator<Key, Compare, Equal_>::Self
+        &MultiRed_Black_Tree_Iterator<Key, Compare, Equal_>::operator++() {
             if (!target) {
                 target = Container::the_min(container->root);
+                value = target->list;
+                return *this;
+            }
+            if (value->next) {
+                value = value->next;
                 return *this;
             }
             if (target->right) {
                 target = Container::the_min(target->right);
+                value = target->list;
             } else {
                 Node *temp = target;
                 while (temp->last && temp->last->right == temp)
                     temp = temp->last;
                 target = temp->last;
+                if (target) value = target->list;
+                else value = nullptr;
             }
             return *this;
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree_Iterator<Key, Compare, Equal_>::Self
-        Red_Black_Tree_Iterator<Key, Compare, Equal_>::operator++(int) {
-            Self temp = Self(target, container);
+        typename MultiRed_Black_Tree_Iterator<Key, Compare, Equal_>::Self
+        MultiRed_Black_Tree_Iterator<Key, Compare, Equal_>::operator++(int) {
+            Self temp = Self(value, target, container);
             ++(*this);
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree_Iterator<Key, Compare, Equal_>::Self
-        &Red_Black_Tree_Iterator<Key, Compare, Equal_>::operator--() {
+        typename MultiRed_Black_Tree_Iterator<Key, Compare, Equal_>::Self
+        &MultiRed_Black_Tree_Iterator<Key, Compare, Equal_>::operator--() {
             if (!target) {
                 target = Container::the_max(container->root);
                 return *this;
             }
+            if (target->list != value) {
+                Joint *temp = target->list;
+                while (temp->next != value) temp = temp->next;
+                value = temp;
+                return *this;
+            }
             if (target->left) {
                 target = Container::the_max(target->left);
+                Joint *temp = target->list;
+                while (temp->next) temp = temp->next;
+                value = temp;
             } else {
                 Node *temp = target;
                 while (temp->last && temp->last->left == temp)
                     temp = temp->last;
                 target = temp->last;
+                if (target) {
+                    Joint *joint = target->list;
+                    while (joint->next) joint = joint->next;
+                    value = joint;
+                } else value = nullptr;
             }
             return *this;
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree_Iterator<Key, Compare, Equal_>::Self
-        Red_Black_Tree_Iterator<Key, Compare, Equal_>::operator--(int) {
-            Self temp = Self(target, container);
+        typename MultiRed_Black_Tree_Iterator<Key, Compare, Equal_>::Self
+        MultiRed_Black_Tree_Iterator<Key, Compare, Equal_>::operator--(int) {
+            Self temp = Self(value, target, container);
             --(*this);
         }
 
-//----------------------------------------------------------------------------------------------------------------------
-
         template<typename Key, typename Compare = Less<Key>, typename Equal_ = Equal<Key>>
-        class Red_Black_Tree {
+        class MultiRed_Black_Tree {
         public:
-            friend class Red_Black_Tree_Iterator<Key, Compare, Equal_>;
+            friend class MultiRed_Black_Tree_Iterator<Key, Compare, Equal_>;
 
-            using Iterator = Red_Black_Tree_Iterator<Key, Compare, Equal_>;
+            using Iterator = MultiRed_Black_Tree_Iterator<Key, Compare, Equal_>;
 
             using cIterator = STD::cIterator<Iterator, Bidirectional_iterator_tag>;
 
@@ -142,20 +164,89 @@ namespace STD {
 
             using crIterator = STD::crIterator<Iterator, Bidirectional_iterator_tag>;
 
-            using Self = Red_Black_Tree<Key, Compare, Equal_>;
+            using Self = MultiRed_Black_Tree<Key, Compare, Equal_>;
 
         protected:
             struct Node {
-                Key value;
+                struct Joint {
+                    Key value;
+
+                    Joint *next = nullptr;
+
+                    template<typename ...Args>
+                    explicit Joint(Args &&...args) : value(forward<Args>(args)...) {};
+
+                };
+
+                Joint *list;
 
                 Node *left = nullptr, *right = nullptr, *last = nullptr;
 
                 bool Red = true;
 
                 template<typename ...Args>
-                explicit Node(Args &&...args) : value(forward<Args>(args)...) {};
+                explicit Node(Args &&...args) : list(Allocate<Joint>(forward<Args>(args)...)) {};
+
+                void add(Node *&target) {
+                    Joint *temp = list;
+                    while (temp->next) temp = temp->next;
+                    temp->next = target->list;
+                    target->list = nullptr;
+                    Deallocate(target);
+                    target = this;
+                }
+
+                void remove(Joint *target) {
+                    if (target == list) {
+                        Joint *del = list;
+                        list = list->next;
+                        Deallocate(del);
+                    } else {
+                        Joint *temp = list, *del;
+                        while (temp->next != target) temp = temp->next;
+                        del = temp->next;
+                        temp->next = del->next;
+                        Deallocate(del);
+                    }
+                }
+
+                Node *copy() const {
+                    Node *head = Allocate<Node>(list->value);
+                    Joint *temp = list->next, *t = head->list;
+                    while (temp) {
+                        t->next = Allocate<Joint>(temp->value);
+                        t = t->next;
+                        temp = temp->next;
+                    }
+                    return head;
+                }
+
+                int size() const {
+                    Joint *temp = list;
+                    int count = 0;
+                    while (temp) {
+                        ++count;
+                        temp = temp->next;
+                    }
+                    return count;
+                }
+
+                ~Node() {
+                    Joint *del = list, *temp = list;
+                    while (temp) {
+                        temp = temp->next;
+                        Deallocate(del);
+                        del = temp;
+                    }
+                }
 
             };
+
+            using Joint = typename Node::Joint;
+
+            Compare less;
+
+            Equal_ equal;
 
             Node *root = nullptr;
 
@@ -179,7 +270,7 @@ namespace STD {
             }
 
             // 内置版本的插入函数。
-            Node *insert(Node *node, Node *target, Node *&judge);
+            Node *insert(Node *node, Node *&target);
 
             // 内置递归版本的删除函数。
             Node *erase(Node *node, const Key &key, Node *&val, Node *&target_val);
@@ -194,13 +285,11 @@ namespace STD {
             static Node *copy(Node *target, Node *parent);
 
             // 得到某个节点的迭代器，主要是为了子类服务。。
-            Iterator get_Iterator(Node *temp) const { return Iterator(temp, const_cast<Self *>(this)); };
+            Iterator get_Iterator(Joint *val, Node *node) const {
+                return Iterator(val, node, const_cast<Self *>(this));
+            };
 
         private:
-            Compare less;
-
-            Equal_ equal;
-
             // link操作是为了更新子节点的last，并将子节点连接到父节点上。
             void link(Node *parent, bool left, Node *child) const {
                 if (parent) {
@@ -263,28 +352,28 @@ namespace STD {
             void erase_from(Node *node);
 
         public:
-            explicit Red_Black_Tree(Compare compare = Compare(), Equal_ equal = Equal_())
+            explicit MultiRed_Black_Tree(Compare compare = Compare(), Equal_ equal = Equal_())
                     : less(compare), equal(equal) {};
 
-            Red_Black_Tree(const std::initializer_list<Key> &list, Compare compare = Compare(),
-                           Equal_ equal = Equal_());
+            MultiRed_Black_Tree(const std::initializer_list<Key> &list, Compare compare = Compare(),
+                                Equal_ equal = Equal_());
 
             template<typename Input_Key>
-            Red_Black_Tree(Input_Key k_begin, const Input_Key &k_end, Compare compare = Compare(),
-                           Equal_ equal = Equal_());
+            MultiRed_Black_Tree(Input_Key k_begin, const Input_Key &k_end, Compare compare = Compare(),
+                                Equal_ equal = Equal_());
 
-            Red_Black_Tree(const Self &other);
+            MultiRed_Black_Tree(const Self &other);
 
-            Red_Black_Tree(Self &&other) noexcept;
+            MultiRed_Black_Tree(Self &&other) noexcept;
 
-            ~Red_Black_Tree();
+            ~MultiRed_Black_Tree();
 
             void clear();
 
             template<typename ...Input_Key>
-            Pair<Iterator, bool> emplace(Input_Key &&...args);
+            Iterator emplace(Input_Key &&...args);
 
-            Pair<Iterator, bool> insert(const Key &key);
+            Iterator insert(const Key &key);
 
             bool erase(const Key &key);
 
@@ -299,12 +388,6 @@ namespace STD {
             Iterator find(const Key &key);
 
             cIterator find(const Key &key) const;
-
-            Iterator at(const Key &key);
-
-            cIterator at(const Key &key) const;
-
-            Key &operator[](const Key &key);
 
             Size count(const Key &key) const;
 
@@ -342,21 +425,27 @@ namespace STD {
 
             Self &operator=(Self &&other) noexcept;
 
-            Iterator begin() const { return Iterator(the_min(root), const_cast<Self *>(this)); };
+            Iterator begin() const {
+                Node *temp = the_min(root);
+                return get_Iterator(temp->list, temp);
+            };
 
-            Iterator end() const { return Iterator(nullptr, const_cast<Self *>(this)); };
+            Iterator end() const { return get_Iterator(nullptr, nullptr); };
 
-            cIterator cbegin() const { return cIterator(Iterator(the_min(root), const_cast<Self *>(this))); };
+            cIterator cbegin() const { return cIterator(begin()); };
 
-            cIterator cend() const { return cIterator(Iterator(nullptr, const_cast<Self *>(this))); };
+            cIterator cend() const { return cIterator(get_Iterator(nullptr, nullptr)); };
 
-            rIterator rbegin() const { return rIterator(Iterator(the_max(root), const_cast<Self *>(this))); };
+            rIterator rbegin() const {
+                auto temp = the_max(root);
+                return rIterator(temp->list, temp);
+            };
 
-            rIterator rend() const { return rIterator(Iterator(nullptr, const_cast<Self *>(this))); };
+            rIterator rend() const { return rIterator(get_Iterator(nullptr, nullptr)); };
 
-            crIterator crbegin() const { return crIterator(Iterator(the_max(root), const_cast<Self *>(this))); };
+            crIterator crbegin() const { return crIterator(rbegin()); };
 
-            crIterator crend() const { return crIterator(Iterator(nullptr, const_cast<Self *>(this))); };
+            crIterator crend() const { return crIterator(get_Iterator(nullptr, nullptr)); };
 
             friend bool operator==(const Self &left, const Self &right) {
                 if (left.size_ != right.size_) return false;
@@ -408,23 +497,23 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
         template<typename Key, typename Compare, typename Equal>
-        typename Red_Black_Tree<Key, Compare, Equal>::Node *
-        Red_Black_Tree<Key, Compare, Equal>::the_min(Node *node) {
+        typename MultiRed_Black_Tree<Key, Compare, Equal>::Node *
+        MultiRed_Black_Tree<Key, Compare, Equal>::the_min(Node *node) {
             if (!node) return nullptr;
             while (node->left) node = node->left;
             return node;
         }
 
         template<typename Key, typename Compare, typename Equal>
-        typename Red_Black_Tree<Key, Compare, Equal>::Node *
-        Red_Black_Tree<Key, Compare, Equal>::the_max(Node *node) {
+        typename MultiRed_Black_Tree<Key, Compare, Equal>::Node *
+        MultiRed_Black_Tree<Key, Compare, Equal>::the_max(Node *node) {
             if (!node) return nullptr;
             while (node->right) node = node->right;
             return node;
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        void Red_Black_Tree<Key, Compare, Equal_>::erase_from(Node *node) {
+        void MultiRed_Black_Tree<Key, Compare, Equal_>::erase_from(Node *node) {
             if (!node) return;
             erase_from(node->left);
             erase_from(node->right);
@@ -433,20 +522,20 @@ namespace STD {
         }
 
         template<typename Key, typename Compare, typename Equal>
-        typename Red_Black_Tree<Key, Compare, Equal>::Node *
-        Red_Black_Tree<Key, Compare, Equal>::get_from(Node *node, const Key &key) const {
-            while (node && !equal(key, node->value)) {
-                if (less(key, node->value)) node = node->left;
+        typename MultiRed_Black_Tree<Key, Compare, Equal>::Node *
+        MultiRed_Black_Tree<Key, Compare, Equal>::get_from(Node *node, const Key &key) const {
+            while (node && !equal(key, node->list->value)) {
+                if (less(key, node->list->value)) node = node->left;
                 else node = node->right;
             }
             return node;
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::Node *
-        Red_Black_Tree<Key, Compare, Equal_>::copy(Node *target, Node *parent) {
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::Node *
+        MultiRed_Black_Tree<Key, Compare, Equal_>::copy(Node *target, Node *parent) {
             if (!target) return nullptr;
-            Node *temp = Allocate<Node>(target->value);
+            Node *temp = target->copy();
             temp->Red = target->Red;
             temp->left = copy(target->left, temp);
             temp->right = copy(target->right, temp);
@@ -456,18 +545,19 @@ namespace STD {
 
         // 该树为左倾红黑树。
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::Node *
-        Red_Black_Tree<Key, Compare, Equal_>::insert(Node *node, Node *target, Node *&judge) {
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::Node *
+        MultiRed_Black_Tree<Key, Compare, Equal_>::insert(Node *node, Node *&target) {
             if (!node) { // 说明找到了合适的位置插入，将目标向上传递，终止递归。
                 ++size_;
                 return target;
             }
-            if (less(target->value, node->value)) // 目标值小于当前节点。
-                link(node, true, insert(node->left, target, judge));
-            else if (!equal(target->value, node->value)) // 目标值大于当前节点。
-                link(node, false, insert(node->right, target, judge));
+            if (less(target->list->value, node->list->value)) // 目标值小于当前节点。
+                link(node, true, insert(node->left, target));
+            else if (!equal(target->list->value, node->list->value)) // 目标值大于当前节点。
+                link(node, false, insert(node->right, target));
             else { // 目标值等于当前节点，给本节点重新赋值。
-                judge = node;
+                ++size_;
+                node->add(target);
                 return node;
             }
             // 当前节点出现红色右倾节点，违反左倾策略，左旋之后，两个子节点均为黑色，父节点为红色。
@@ -480,8 +570,8 @@ namespace STD {
         }
 
         template<typename Key, typename Compare, typename Equal>
-        typename Red_Black_Tree<Key, Compare, Equal>::Node *
-        Red_Black_Tree<Key, Compare, Equal>::erase_left_adjustment(Node *node) {
+        typename MultiRed_Black_Tree<Key, Compare, Equal>::Node *
+        MultiRed_Black_Tree<Key, Compare, Equal>::erase_left_adjustment(Node *node) {
             erase_change_Color(node);
             if (is_Red(node->right->left)) { // 上面建立了临时4节点，这里出现了红节点相连的状况，经过下面的操作可重新建立临时4节点。
                 link(node, false, R_alpha(node->right));
@@ -491,8 +581,8 @@ namespace STD {
         }
 
         template<typename Key, typename Compare, typename Equal>
-        typename Red_Black_Tree<Key, Compare, Equal>::Node *
-        Red_Black_Tree<Key, Compare, Equal>::erase_right_adjustment(Node *node) {
+        typename MultiRed_Black_Tree<Key, Compare, Equal>::Node *
+        MultiRed_Black_Tree<Key, Compare, Equal>::erase_right_adjustment(Node *node) {
             erase_change_Color(node);
             if (is_Red(node->left->left)) { // 上面建立了临时4节点，这里出现了红节点相连的状况，经过下面的操作可重新建立临时4节点。
                 node = R_alpha(node);
@@ -501,8 +591,8 @@ namespace STD {
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::Node *
-        Red_Black_Tree<Key, Compare, Equal_>::balance(Node *node) {
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::Node *
+        MultiRed_Black_Tree<Key, Compare, Equal_>::balance(Node *node) {
             if (is_Red(node->right))  // 当前节点出现红色右倾节点，违反左倾策略，左旋之后，两个子节点均为黑色，父节点为红色。
                 node = L_alpha(node);
             if (!is_Red(node->left) && is_Red(node->right)) node = L_alpha(node);
@@ -512,11 +602,11 @@ namespace STD {
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::Node *
-        Red_Black_Tree<Key, Compare, Equal_>::erase_min(Node *node, Node *&val) {
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::Node *
+        MultiRed_Black_Tree<Key, Compare, Equal_>::erase_min(Node *node, Node *&val) {
             if (!node->left) { // 找到最小值，直接删除。
                 val = node;
-                --size_;
+                size_ -= node->size();
                 return nullptr;
             }
             if (!is_Red(node->left) && !is_Red(node->left->left)) // 两个子节点都是2节点，建立临时4节点。
@@ -526,23 +616,23 @@ namespace STD {
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::Node *
-        Red_Black_Tree<Key, Compare, Equal_>::erase(Node *node, const Key &key, Node *&val, Node *&target_val) {
-            if (less(key, node->value)) { // 当前节点小于目标值。
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::Node *
+        MultiRed_Black_Tree<Key, Compare, Equal_>::erase(Node *node, const Key &key, Node *&val, Node *&target_val) {
+            if (less(key, node->list->value)) { // 当前节点小于目标值。
                 if (!is_Red(node->left) && !is_Red(node->left->left)) // 两个子节点都是2节点，建立临时4节点。
                     node = erase_left_adjustment(node);
                 link(node, true, erase(node->left, key, val, target_val));
             } else { // 当前节点大于或等于目标值。
                 if (is_Red(node->left)) // 左节点为非2节点，右旋建立一个3节点。
                     node = R_alpha(node);
-                if (equal(key, node->value) && !node->right) { // 要删除的节点为底部节点，直接删除。
+                if (equal(key, node->list->value) && !node->right) { // 要删除的节点为底部节点，直接删除。
+                    size_ -= node->size();
                     Deallocate(node);
-                    --size_;
                     return nullptr;
                 }
                 if (!is_Red(node->right) && !is_Red(node->right->left)) // 两个子节点都是2节点，建立临时4节点。
                     node = erase_right_adjustment(node);
-                if (equal(key, node->value)) { // 要删除的节点有子节点，置换其右边节点的最小值，转而删除被置换的那个底部节点。
+                if (equal(key, node->list->value)) { // 要删除的节点有子节点，置换其右边节点的最小值，转而删除被置换的那个底部节点。
                     target_val = node;
                     link(node, false, erase_min(node->right, val));
                 } else { // 当前节点不是目标值，继续递归。
@@ -555,7 +645,7 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
         template<typename Key, typename Compare, typename Equal_>
-        Red_Black_Tree<Key, Compare, Equal_>::Red_Black_Tree
+        MultiRed_Black_Tree<Key, Compare, Equal_>::MultiRed_Black_Tree
                 (const std::initializer_list<Key> &list, Compare compare, Equal_ equal)
                 : less(compare), equal(equal) {
             for (const Key &t: list) {
@@ -565,7 +655,7 @@ namespace STD {
 
         template<typename Key, typename Compare, typename Equal_>
         template<typename Input_Key>
-        Red_Black_Tree<Key, Compare, Equal_>::Red_Black_Tree
+        MultiRed_Black_Tree<Key, Compare, Equal_>::MultiRed_Black_Tree
                 (Input_Key k_begin, const Input_Key &k_end, Compare compare, Equal_ equal) :
                 less(compare), equal(equal) {
             while (k_begin != k_end) {
@@ -575,63 +665,55 @@ namespace STD {
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        Red_Black_Tree<Key, Compare, Equal_>::Red_Black_Tree(const Self &other) :
+        MultiRed_Black_Tree<Key, Compare, Equal_>::MultiRed_Black_Tree(const Self &other) :
                 size_(other.size_), less(other.less), equal(other.equal) {
             root = copy(other.root, nullptr);
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        Red_Black_Tree<Key, Compare, Equal_>::Red_Black_Tree(Self &&other) noexcept
+        MultiRed_Black_Tree<Key, Compare, Equal_>::MultiRed_Black_Tree(Self &&other) noexcept
                 : size_(other.size_), root(other.root), less(other.less), equal(other.equal) {
             other.size_ = 0;
             other.root = nullptr;
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        Red_Black_Tree<Key, Compare, Equal_>::~Red_Black_Tree() {
+        MultiRed_Black_Tree<Key, Compare, Equal_>::~MultiRed_Black_Tree() {
             clear();
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        void Red_Black_Tree<Key, Compare, Equal_>::clear() {
+        void MultiRed_Black_Tree<Key, Compare, Equal_>::clear() {
             erase_from(root);
         }
 
         template<typename Key, typename Compare, typename Equal_>
         template<typename ...Input_Key>
-        Pair<typename Red_Black_Tree<Key, Compare, Equal_>::Iterator, bool>
-        Red_Black_Tree<Key, Compare, Equal_>::emplace(Input_Key &&...args) {
-            Size record = size_;
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::Iterator
+        MultiRed_Black_Tree<Key, Compare, Equal_>::emplace(Input_Key &&...args) {
             //插入节点为红节点，可以强迫结构的变换。
-            Node *temp = Allocate<Node>(forward<args>(args)...), *judge = nullptr;
-            root = insert(root, temp, judge);
+            Node *temp = Allocate<Node>(forward<args>(args)...);
+            Joint *record = temp->list;
+            root = insert(root, temp);
             root->Red = false;
             root->last = nullptr;
-            if (judge) {
-                swap_value(temp, judge);
-                Deallocate(judge);
-            }
-            return {Iterator(temp, this), size_ != record};
+            Iterator(record, temp, this);
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        Pair<typename Red_Black_Tree<Key, Compare, Equal_>::Iterator, bool>
-        Red_Black_Tree<Key, Compare, Equal_>::insert(const Key &key) {
-            Size record = size_;
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::Iterator
+        MultiRed_Black_Tree<Key, Compare, Equal_>::insert(const Key &key) {
             //插入节点为红节点，可以强迫结构的变换。
-            Node *temp = Allocate<Node>(key), *judge = nullptr;
-            root = insert(root, temp, judge);
+            Node *temp = Allocate<Node>(key);
+            Joint *record = temp->list;
+            root = insert(root, temp);
             root->Red = false;
             root->last = nullptr;
-            if (judge) {
-                swap_value(temp, judge);
-                Deallocate(judge);
-            }
-            return {Iterator(temp, this), size_ != record};
+            return Iterator(record, temp, this);
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        bool Red_Black_Tree<Key, Compare, Equal_>::erase(const Key &key) {
+        bool MultiRed_Black_Tree<Key, Compare, Equal_>::erase(const Key &key) {
             Size record = size_;
             if (!is_Red(root->left) && !is_Red(root->right))
                 root->Red = true;
@@ -649,89 +731,70 @@ namespace STD {
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        void Red_Black_Tree<Key, Compare, Equal_>::erase(const Iterator &key) {
-            erase(key.target->value);
+        void MultiRed_Black_Tree<Key, Compare, Equal_>::erase(const Iterator &key) {
+            if (key.target->size() > 1) {
+                key.target->remove(key.value);
+                --size_;
+            } else erase(*key);
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        void Red_Black_Tree<Key, Compare, Equal_>::erase(const cIterator &key) {
-            erase(key.target.target->value);
+        void MultiRed_Black_Tree<Key, Compare, Equal_>::erase(const cIterator &key) {
+            erase(key.target);
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        void Red_Black_Tree<Key, Compare, Equal_>::erase(const rIterator &key) {
-            erase(key.target.target->value);
+        void MultiRed_Black_Tree<Key, Compare, Equal_>::erase(const rIterator &key) {
+            erase(key.target);
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        void Red_Black_Tree<Key, Compare, Equal_>::erase(const crIterator &key) {
-            erase(key.target.target->value);
+        void MultiRed_Black_Tree<Key, Compare, Equal_>::erase(const crIterator &key) {
+            erase(key.target);
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::Iterator
-        Red_Black_Tree<Key, Compare, Equal_>::find(const Key &key) {
-            return Iterator(get_from(root, key), this);
-        }
-
-        template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::cIterator
-        Red_Black_Tree<Key, Compare, Equal_>::find(const Key &key) const {
-            return cIterator(Iterator(get_from(root, key), const_cast<Self *>(this)));
-        }
-
-        template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::Iterator
-        Red_Black_Tree<Key, Compare, Equal_>::at(const Key &key) {
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::Iterator
+        MultiRed_Black_Tree<Key, Compare, Equal_>::find(const Key &key) {
             auto temp = get_from(root, key);
-            if (!temp)
-                throw outOfRange("You passed an out-of-range basic in at()");
-            return Iterator(temp, this);
+            return Iterator(temp ? temp->list : nullptr, temp, this);
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::cIterator
-        Red_Black_Tree<Key, Compare, Equal_>::at(const Key &key) const {
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::cIterator
+        MultiRed_Black_Tree<Key, Compare, Equal_>::find(const Key &key) const {
             auto temp = get_from(root, key);
-            if (!temp)
-                throw outOfRange("You passed an out-of-range basic in at()");
-            return cIterator(Iterator(temp, const_cast<Self *>(this)));
+            return cIterator(get_Iterator(temp ? temp->list : nullptr, temp));
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        Key &Red_Black_Tree<Key, Compare, Equal_>::operator[](const Key &key) {
-            auto ptr = get_from(root, key);
-            if (ptr) return ptr->value;
-            return *insert(key).first;
+        Size MultiRed_Black_Tree<Key, Compare, Equal_>::count(const Key &key) const {
+            Node *temp = get_from(root, key);
+            return temp ? temp->size() : 0;
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        Size Red_Black_Tree<Key, Compare, Equal_>::count(const Key &key) const {
+        bool MultiRed_Black_Tree<Key, Compare, Equal_>::contains(const Key &key) const {
             return get_from(root, key);
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        bool Red_Black_Tree<Key, Compare, Equal_>::contains(const Key &key) const {
-            return get_from(root, key);
-        }
-
-        template<typename Key, typename Compare, typename Equal_>
-        Pair<typename Red_Black_Tree<Key, Compare, Equal_>::Iterator,
-                typename Red_Black_Tree<Key, Compare, Equal_>::Iterator>
-        Red_Black_Tree<Key, Compare, Equal_>::equal_range(const Key &key) {
+        Pair<typename MultiRed_Black_Tree<Key, Compare, Equal_>::Iterator,
+                typename MultiRed_Black_Tree<Key, Compare, Equal_>::Iterator>
+        MultiRed_Black_Tree<Key, Compare, Equal_>::equal_range(const Key &key) {
             return {lower_bound(key), upper_bound(key)};
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::Iterator
-        Red_Black_Tree<Key, Compare, Equal_>::lower_bound(const Key &key) {
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::Iterator
+        MultiRed_Black_Tree<Key, Compare, Equal_>::lower_bound(const Key &key) {
             Node *temp = root;
             while (temp) {
-                if (less(key, temp->value)) {
+                if (less(key, temp->list->value)) {
                     if (temp->left) temp = temp->left;
-                    else return Iterator(temp, this);
-                } else if (equal(temp->value, key)) {
-                    return Iterator(temp, this);
+                    else return get_Iterator(temp->list, temp);
+                } else if (equal(key, temp->list->value)) {
+                    return get_Iterator(temp->list, temp);
                 } else {
                     temp = temp->right;
                 }
@@ -740,15 +803,21 @@ namespace STD {
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::Iterator
-        Red_Black_Tree<Key, Compare, Equal_>::upper_bound(const Key &key) {
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::Iterator
+        MultiRed_Black_Tree<Key, Compare, Equal_>::upper_bound(const Key &key) {
             Node *temp = root;
             while (temp) {
-                if (less(key, temp->value)) {
+                if (less(key, temp->list->value)) {
                     if (temp->left) temp = temp->left;
-                    else return Iterator(temp, this);
-                } else if (equal(temp->value, key)) {
-                    return ++Iterator(temp, this);
+                    else return get_Iterator(temp->list, temp);
+                } else if (equal(key, temp->list->value)) {
+                    if (temp->right) temp = the_min(temp->right);
+                    else {
+                        while (temp->last && temp->last->right == temp)
+                            temp = temp->last;
+                        temp = temp->last;
+                        return get_Iterator(temp ? temp->list : nullptr, temp);
+                    }
                 } else {
                     temp = temp->right;
                 }
@@ -757,27 +826,27 @@ namespace STD {
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        Pair<typename Red_Black_Tree<Key, Compare, Equal_>::cIterator,
-                typename Red_Black_Tree<Key, Compare, Equal_>::cIterator>
-        Red_Black_Tree<Key, Compare, Equal_>::equal_range(const Key &key) const {
+        Pair<typename MultiRed_Black_Tree<Key, Compare, Equal_>::cIterator,
+                typename MultiRed_Black_Tree<Key, Compare, Equal_>::cIterator>
+        MultiRed_Black_Tree<Key, Compare, Equal_>::equal_range(const Key &key) const {
             return {lower_bound(key), upper_bound(key)};
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::cIterator
-        Red_Black_Tree<Key, Compare, Equal_>::lower_bound(const Key &key) const {
-            cIterator(const_cast<Self *>(this)->lower_bound(key));
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::cIterator
+        MultiRed_Black_Tree<Key, Compare, Equal_>::lower_bound(const Key &key) const {
+            return cIterator(const_cast<Self *>(this)->lower_bound(key));
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::cIterator
-        Red_Black_Tree<Key, Compare, Equal_>::upper_bound(const Key &key) const {
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::cIterator
+        MultiRed_Black_Tree<Key, Compare, Equal_>::upper_bound(const Key &key) const {
             return cIterator(const_cast<Self *>(this)->upper_bound(key));
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::Self
-        &Red_Black_Tree<Key, Compare, Equal_>::operator=(const Self &other) {
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::Self
+        &MultiRed_Black_Tree<Key, Compare, Equal_>::operator=(const Self &other) {
             if (this == &other) return *this;
             clear();
             size_ = other.size_;
@@ -786,8 +855,8 @@ namespace STD {
         }
 
         template<typename Key, typename Compare, typename Equal_>
-        typename Red_Black_Tree<Key, Compare, Equal_>::Self
-        &Red_Black_Tree<Key, Compare, Equal_>::operator=(Self &&other) noexcept {
+        typename MultiRed_Black_Tree<Key, Compare, Equal_>::Self
+        &MultiRed_Black_Tree<Key, Compare, Equal_>::operator=(Self &&other) noexcept {
             if (this == &other) return *this;
             size_ = other.size_;
             root = other.root;
@@ -795,7 +864,9 @@ namespace STD {
             other.root = nullptr;
             return *this;
         }
+
     }
+
 }
 
-#endif //TINYSTL_RED_BLACK_TREE_HPP
+#endif //TINYSTL_MULTIRED_BALCK_TREE_HPP

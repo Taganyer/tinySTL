@@ -161,17 +161,18 @@ namespace STD {
 
             Node **array = nullptr;
 
-            Hash_Code hasher;
-
-            Equal_ equal;
-
-            Size get_pos(const Node &target) const { return hasher(target.value) % buckets; };
-
             Size insert(Node *target);
 
             Iterator get_Iterator(Size index, Node *target) const {
                 return Iterator(index, target, const_cast<Self *>(this));
             }
+
+        private:
+            Hash_Code hasher;
+
+            Equal_ equal;
+
+            Iterator *get(const Key &key) const;
 
         public:
             explicit Hashtable(Hash_Code hasher = Hash_Code(), Equal_ equal = Equal_()) :
@@ -196,6 +197,9 @@ namespace STD {
 
             void clear();
 
+            template<typename ...Input_Key>
+            Pair<Iterator, bool> emplace(Input_Key &&...args);
+
             Pair<Iterator, bool> insert(const Key &key);
 
             bool erase(const Key &target);
@@ -217,9 +221,19 @@ namespace STD {
                 other.array = temp3;
             }
 
-            Iterator find(const Key &target) const;
+            Iterator find(const Key &key);
 
-            Key &operator[](const Key &target);
+            cIterator find(const Key &key) const;
+
+            Iterator at(const Key &key);
+
+            cIterator at(const Key &key) const;
+
+            Key &operator[](const Key &key);
+
+            Size count(const Key &key) const;
+
+            bool contains(const Key &key) const;
 
             // 这两个函数不会复制Compare和Equal_对象。
             Self &operator=(const Self &other);
@@ -324,9 +338,23 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
         template<typename Key, typename Hash_Code, typename Equal_>
+        typename Hashtable<Key, Hash_Code, Equal_>::Iterator
+        *Hashtable<Key, Hash_Code, Equal_>::get(const Key &key) const {
+            Size index = hasher(key) % buckets;
+            Node *ptr = array[index];
+            while (ptr) {
+                if (equal(key, ptr->value)) {
+                    return get_Iterator(index, ptr);
+                }
+                ptr = ptr->next;
+            }
+            return end();
+        }
+
+        template<typename Key, typename Hash_Code, typename Equal_>
         Size Hashtable<Key, Hash_Code, Equal_>::insert(Node *target) {
             Rehash();
-            auto index = get_pos(*target);
+            auto index = hasher(target->value) % buckets;
             Node *ptr = array[index], *last = nullptr;
             while (ptr) {
                 if (equal(ptr->value, target->value)) {
@@ -408,7 +436,7 @@ namespace STD {
                 while (old_buckets) {
                     Node *ptr = old[--old_buckets];
                     while (ptr) {
-                        Size destination = get_pos(*ptr);
+                        Size destination = hasher(ptr->value) % buckets;
                         Node *now = array[destination];
                         while (now && now->next) now = now->next;
                         if (now) now->next = ptr;
@@ -434,6 +462,16 @@ namespace STD {
                 array[buckets] = nullptr;
             }
             size_ = 0;
+        }
+
+        template<typename Key, typename Hash_Code, typename Equal_>
+        template<typename ...Input_Key>
+        Pair<typename Hashtable<Key, Hash_Code, Equal_>::Iterator, bool>
+        Hashtable<Key, Hash_Code, Equal_>::emplace(Input_Key &&...args) {
+            Size record = size_;
+            Node *ptr = Allocate<Node>(forward<args>(args)...);
+            Size index = insert(ptr);
+            return {get_Iterator(index, ptr), record != size_};
         }
 
         template<typename Key, typename Hash_Code, typename Equal_>
@@ -465,29 +503,49 @@ namespace STD {
 
         template<typename Key, typename Hash_Code, typename Equal_>
         typename Hashtable<Key, Hash_Code, Equal_>::Iterator
-        Hashtable<Key, Hash_Code, Equal_>::find(const Key &target) const {
-            Size index = hasher(target) % buckets;
-            Node *ptr = array[index];
-            while (ptr) {
-                if (equal(target, ptr->value)) {
-                    return get_Iterator(index, ptr);
-                }
-                ptr = ptr->next;
-            }
-            return end();
+        Hashtable<Key, Hash_Code, Equal_>::find(const Key &key) {
+            return get(key);
         }
 
         template<typename Key, typename Hash_Code, typename Equal_>
-        Key &Hashtable<Key, Hash_Code, Equal_>::operator[](const Key &target) {
-            Size index = hasher(target) % buckets;
-            Node *ptr = array[index];
-            while (ptr) {
-                if (equal(target, ptr->value)) {
-                    return get_Iterator(index, ptr);
-                }
-                ptr = ptr->next;
-            }
-            return *insert(target).first;
+        typename Hashtable<Key, Hash_Code, Equal_>::cIterator
+        Hashtable<Key, Hash_Code, Equal_>::find(const Key &key) const {
+            return cIterator(get(key));
+        }
+
+        template<typename Key, typename Hash_Code, typename Equal_>
+        typename Hashtable<Key, Hash_Code, Equal_>::Iterator
+        Hashtable<Key, Hash_Code, Equal_>::at(const Key &key) {
+            Iterator iter = get(key);
+            if (iter == end())
+                throw outOfRange("You passed an out-of-range basic in at()");
+            return iter;
+        }
+
+        template<typename Key, typename Hash_Code, typename Equal_>
+        typename Hashtable<Key, Hash_Code, Equal_>::cIterator
+        Hashtable<Key, Hash_Code, Equal_>::at(const Key &key) const {
+            Iterator iter = get(key);
+            if (iter == end())
+                throw outOfRange("You passed an out-of-range basic in at()");
+            return cIterator(iter);
+        }
+
+        template<typename Key, typename Hash_Code, typename Equal_>
+        Key &Hashtable<Key, Hash_Code, Equal_>::operator[](const Key &key) {
+            Iterator iter = get(key);
+            if (iter != end()) return iter;
+            return *insert(key).first;
+        }
+
+        template<typename Key, typename Hash_Code, typename Equal_>
+        Size Hashtable<Key, Hash_Code, Equal_>::count(const Key &key) const {
+            return contains(key);
+        }
+
+        template<typename Key, typename Hash_Code, typename Equal_>
+        bool Hashtable<Key, Hash_Code, Equal_>::contains(const Key &key) const {
+            return get(key) != end();
         }
 
         template<typename Key, typename Hash_Code, typename Equal_>

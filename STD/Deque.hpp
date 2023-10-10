@@ -857,7 +857,7 @@ namespace STD {
     template<typename... args>
     typename Deque<Arg>::Iterator Deque<Arg>::emplace(Size pos, args &&...vals) {
         if (pos > size_)
-            throw outOfRange("You passed an out-of-range value in the 'Deque::emplace' function");
+            throw outOfRange("You passed an out-of-range basic in the 'Deque::emplace' function");
         insert_move(pos, 1);
         Pair<Arg **, int> pair = find_ptr(pos);
         pair.first[0][pair.second] = Arg(vals...);
@@ -926,7 +926,7 @@ namespace STD {
     typename Deque<Arg>::Iterator
     Deque<Arg>::insert(Size pos, Size size, const Arg &val) {
         if (pos > size_)
-            throw outOfRange("You passed an out-of-range value in the 'Deque::insert' function");
+            throw outOfRange("You passed an out-of-range basic in the 'Deque::insert' function");
         insert_move(pos, size);
         fill_with(get_Iterator(pos), size, val);
         size_ += size;
@@ -938,7 +938,7 @@ namespace STD {
     typename Deque<Arg>::Iterator
     Deque<Arg>::insert(Size pos, const std::initializer_list<Arg> &list) {
         if (pos > size_)
-            throw outOfRange("You passed an out-of-range value in the 'Deque::insert' function");
+            throw outOfRange("You passed an out-of-range basic in the 'Deque::insert' function");
         auto size = list.size();
         insert_move(pos, size);
         fill_with(get_Iterator(pos), list);
@@ -952,7 +952,7 @@ namespace STD {
     typename Deque<Arg>::Iterator
     Deque<Arg>::insert(Size pos, const Input_iterator &begin, const Input_iterator &end) {
         if (pos > size_)
-            throw outOfRange("You passed an out-of-range value in the 'Deque::insert' function");
+            throw outOfRange("You passed an out-of-range basic in the 'Deque::insert' function");
         auto size = get_size(begin, end);
         insert_move(pos, size);
         fill_with(get_Iterator(pos), begin, end);
@@ -1004,7 +1004,7 @@ namespace STD {
     Deque<Arg>::insert(const rIterator &pos, Size size, const Arg &val) {
         auto index = find_pos(pos.target.map, pos.target.pos) + 1;
         if (index > size_)
-            throw outOfRange("You passed an out-of-range value in the 'Deque::insert' function");
+            throw outOfRange("You passed an out-of-range basic in the 'Deque::insert' function");
         insert_move(index, size);
         auto iter = get_Iterator(index + size - 1);
         rfill_with(iter, val, size);
@@ -1031,7 +1031,7 @@ namespace STD {
         auto size = get_size(begin, end);
         auto index = find_pos(pos.target.map, pos.target.pos) + 1;
         if (index > size_)
-            throw outOfRange("You passed an out-of-range value in the 'Deque::insert' function");
+            throw outOfRange("You passed an out-of-range basic in the 'Deque::insert' function");
         insert_move(index, size);
         auto iter = get_Iterator(index + size - 1);
         rfill_with(iter, begin, end);
@@ -1064,7 +1064,7 @@ namespace STD {
     template<typename Arg>
     typename Deque<Arg>::Iterator Deque<Arg>::erase(Size pos, Size size) {
         if (pos > size_)
-            throw outOfRange("You passed an out-of-range value in the 'Deque::erase' function");
+            throw outOfRange("You passed an out-of-range basic in the 'Deque::erase' function");
         auto temp = find_ptr(pos);
         if (size == 0)
             return Iterator(temp.first, temp.second, *temp.first + temp.second);

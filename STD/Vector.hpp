@@ -609,7 +609,7 @@ namespace STD {
     typename Vector<Arg>::Iterator
     Vector<Arg>::insert(Size pos, Size size, const Arg &val) {
         if (pos > size_)
-            throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
+            throw outOfRange("You passed an out-of-range basic in the 'Vector::insert' function");
         if (!size) return Iterator(val_begin + pos);
         fill_with(backward(pos, pos + size), val, size);
         return Iterator(val_begin + pos);
@@ -620,7 +620,7 @@ namespace STD {
     Vector<Arg>::insert(Size pos, const std::initializer_list<Arg> &list) {
         if (!list.size()) return Vector<Arg>::Iterator(val_begin + pos);
         if (pos > size_)
-            throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
+            throw outOfRange("You passed an out-of-range basic in the 'Vector::insert' function");
         fill_with(backward(pos, pos + list.size()), list);
         return Iterator(val_begin + pos);
     }
@@ -630,7 +630,7 @@ namespace STD {
     typename Vector<Arg>::Iterator
     Vector<Arg>::insert(Size pos, const Input_iterator &begin, const Input_iterator &end) {
         if (pos > size_)
-            throw outOfRange("You passed an out-of-range value in the 'Vector::insert' function");
+            throw outOfRange("You passed an out-of-range basic in the 'Vector::insert' function");
         Size size = get_size(begin, end);
         if (!size) return Iterator(val_begin + pos);
         fill_with(backward(pos, pos + size), begin, end);
@@ -739,7 +739,7 @@ namespace STD {
     Vector<Arg>::erase(Size pos, Size size) {
         if (!size) return Iterator(val_begin + pos);
         if (pos + size > size_)
-            throw outOfRange("You passed an out-of-range value in the 'Vector::erase' function");
+            throw outOfRange("You passed an out-of-range basic in the 'Vector::erase' function");
         auto temp1 = val_begin + pos, temp2 = val_begin + pos;
         size_ -= size;
         for (int i = 0; i < size; ++i) {

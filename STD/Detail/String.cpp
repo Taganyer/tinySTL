@@ -160,7 +160,7 @@ void String::append(const char *target, Size pos, Size len) {
 void String::append(const String &target, Size pos, Size len) {
     if (len == Npos) len = target.size_;
     if (pos + len > size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::append or String::push_back' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::append or String::push_back' function");
     append(target.c_str() + pos, len);
 }
 
@@ -184,7 +184,7 @@ void String::push_back(const String &target, Size pos, Size len) {
 String::Iterator
 String::insert(Size pos, char t) {
     if (pos > size_)
-        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+        throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
     *backward(pos, pos + 1) = t;
     return Iterator(val_begin + pos);
 }
@@ -194,7 +194,7 @@ String::insert(Size pos, Size size, char t) {
     if (!size)
         return Iterator(val_begin + pos);
     if (pos > size_)
-        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+        throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
     fill_with(backward(pos, pos + size), size, t);
     return Iterator(val_begin + pos);
 }
@@ -204,7 +204,7 @@ String::insert(Size pos, const std::initializer_list<char> &list) {
     if (!list.size())
         return Iterator(val_begin + pos);
     if (pos > size_)
-        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+        throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
     fill_with(backward(pos, pos + list.size()), list);
     return Iterator(val_begin + pos);
 }
@@ -219,7 +219,7 @@ String::insert(Size pos, const char *target, Size target_len) {
     if (!target_len)
         return Iterator(val_begin + pos);
     if (pos > size_)
-        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+        throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
     fill_with(backward(pos, pos + target_len), target, target + target_len);
     return Iterator(val_begin + pos);
 }
@@ -317,7 +317,7 @@ String::insert(const cIterator &iter, const String &target,
 String::rIterator
 String::insert(const rIterator &iter, char t) {
     if (iter.target.target < val_begin - 1 || iter.target.target >= val_end)
-        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+        throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
     Size pos_from = iter.target.target - val_begin + 1;
     auto ptr = backward(pos_from, pos_from + 1);
     *ptr = t;
@@ -329,7 +329,7 @@ String::insert(const rIterator &iter, Size size, char t) {
     if (!size)
         return iter;
     if (iter.target.target < val_begin - 1 || iter.target.target >= val_end)
-        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+        throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
     Size pos_from = iter.target.target - val_begin + 1;
     auto ptr = backward(pos_from, pos_from + size) + size - 1;
     rfill_with(ptr, size, t);
@@ -341,7 +341,7 @@ String::insert(const rIterator &iter, const std::initializer_list<char> &list) {
     if (!list.size())
         return iter;
     if (iter.target.target < val_begin - 1 || iter.target.target >= val_end)
-        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+        throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
     Size pos_from = iter.target.target - val_begin + 1;
     auto ptr = backward(pos_from, pos_from + list.size()) + list.size() - 1;
     rfill_with(ptr, list);
@@ -353,7 +353,7 @@ String::insert(const rIterator &iter, const char *target, Size target_len) {
     if (!target_len)
         return iter;
     if (iter.target.target >= val_end || iter.target.target < val_begin - 1)
-        throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+        throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
     Size pos_from = iter.target.target - val_begin + 1;
     auto ptr = backward(pos_from, pos_from + target_len) + target_len - 1;
     rfill_with(ptr, target, target + target_len);
@@ -420,7 +420,7 @@ String::insert(const crIterator &iter, const String &target,
 
 String::Iterator String::erase(Size pos, Size size) {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::erase' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::erase' function");
     if (!size)
         return Iterator(val_begin + pos);
     size = pos + size > size_ ? size_ - pos : size;
@@ -469,7 +469,7 @@ String::crIterator String::erase(const crIterator &begin, const crIterator &end)
 
 String &String::replace(Size pos, Size len, Size n, char t) {
     if (pos + len > size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::replace' function");
     if (len < n)
         backward(pos + len, pos + n);
     else if (len > n)
@@ -480,7 +480,7 @@ String &String::replace(Size pos, Size len, Size n, char t) {
 
 String &String::replace(Size pos, Size len, const std::initializer_list<char> &list) {
     if (pos + len > size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::replace' function");
     if (len < list.size())
         backward(pos + len, pos + list.size());
     else if (len > list.size())
@@ -491,7 +491,7 @@ String &String::replace(Size pos, Size len, const std::initializer_list<char> &l
 
 String &String::replace(Size pos, Size len, const char *target, Size target_len) {
     if (pos + len > size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::replace' function");
     if (len < target_len)
         backward(pos + len, pos + target_len);
     else if (len > target_len)
@@ -582,7 +582,7 @@ String &String::replace(const rIterator &begin, const rIterator &end,
     if (begin.target.target >= val_end || begin.target.target < val_begin ||
         end.target.target < val_begin - 1 || end.target.target >= val_end ||
         begin.target < end.target)
-        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::replace' function");
     Size len = end - begin;
     if (len < list.size()) {
         Size pos_from = end.target.target - val_begin + len + 1;
@@ -603,7 +603,7 @@ String &String::replace(const rIterator &begin, const rIterator &end, const char
     if (begin.target.target >= val_end || begin.target.target < val_begin ||
         end.target.target < val_begin - 1 || end.target.target >= val_end ||
         begin.target < end.target)
-        throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::replace' function");
     Size len = end - begin;
     if (len < target_len) {
         Size pos_from = end.target.target - val_begin + len + 1;
@@ -697,7 +697,7 @@ String &STD::String::operator+=(const String &other) {
 
 String &String::operator*=(int size) {
     if (size < 0)
-        throw logicError("You passed an illegal value in the function 'String::operator*'.");
+        throw logicError("You passed an illegal basic in the function 'String::operator*'.");
     Size new_size = size_ * size;
     auto ptr = Allocate_n<char>(new_size + 1), temp = ptr;
     for (int i = 0; i < size; ++i) {
@@ -728,7 +728,7 @@ String STD::operator+(const String &left, const String &right) {
 
 String STD::operator*(const String &target, int size) {
     if (size < 0)
-        throw logicError("You passed an illegal value in the function 'String::operator*'.");
+        throw logicError("You passed an illegal basic in the function 'String::operator*'.");
     String target_;
     target_.size_ = size * target.size_;
     auto ptr = Allocate_n<char>(target_.size_ + 1), temp = ptr;
@@ -814,21 +814,21 @@ Size String::find(char t, Size pos) const {
 
 Size String::find(const char *target, Size pos) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::find' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::find' function");
     auto temp = Boyer_Moore(target, val_begin + pos, size_ - pos);
     return temp ? temp - val_begin : Npos;
 }
 
 Size String::find(const char *target, Size pos, Size size) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::find' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::find' function");
     auto temp = Boyer_Moore(target, size, val_begin + pos, size_ - pos);
     return temp ? temp - val_begin : Npos;
 }
 
 Size String::find(const String &target, Size pos) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::find' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::find' function");
     auto temp = Boyer_Moore(target.val_begin, target.size_, val_begin + pos,
                             size_ - pos);
     return temp ? temp - val_begin : Npos;
@@ -836,7 +836,7 @@ Size String::find(const String &target, Size pos) const {
 
 Size String::find(const String &target, Size pos, Size size) const {
     if (pos >= size_ || size > target.size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::find' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::find' function");
     auto temp =
             Boyer_Moore(target.val_begin, size, val_begin + pos, size_ - pos);
     return temp ? temp - val_begin : Npos;
@@ -844,7 +844,7 @@ Size String::find(const String &target, Size pos, Size size) const {
 
 Size String::rfind(char t, Size pos) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::rfind' function");
     auto temp = val_end - 1;
     while (temp >= val_begin) {
         if (*temp == t)
@@ -856,21 +856,21 @@ Size String::rfind(char t, Size pos) const {
 
 Size String::rfind(const char *target, Size pos) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::rfind' function");
     auto temp = rBoyer_Moore(target, val_begin + pos, size_ - pos);
     return temp ? temp - val_begin : Npos;
 }
 
 Size String::rfind(const char *target, Size pos, Size size) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::rfind' function");
     auto temp = rBoyer_Moore(target, size, val_begin + pos, size_ - pos);
     return temp ? temp - val_begin : Npos;
 }
 
 Size String::rfind(const String &target, Size pos) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::rfind' function");
     auto temp = rBoyer_Moore(target.val_begin, target.size_, val_begin + pos,
                              size_ - pos);
     return temp ? temp - val_begin : Npos;
@@ -878,7 +878,7 @@ Size String::rfind(const String &target, Size pos) const {
 
 Size String::rfind(const String &target, Size pos, Size size) const {
     if (pos >= size_ || size > target.size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::rfind' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::rfind' function");
     auto temp =
             rBoyer_Moore(target.val_begin, size, val_begin + pos, size_ - pos);
     return temp ? temp - val_begin : Npos;
@@ -886,7 +886,7 @@ Size String::rfind(const String &target, Size pos, Size size) const {
 
 Size String::find_first_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::find_first_of' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::find_first_of' function");
     bool store[256];
     Memset(store, false, 256);
     for (int i = 0; i < size; ++i)
@@ -910,13 +910,13 @@ Size String::find_first_of(const String &target, Size pos) const {
 
 Size String::find_first_of(const String &target, Size pos, Size size) const {
     if (size > target.size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::find_first_of' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::find_first_of' function");
     return find_first_of(target.val_begin, pos, size);
 }
 
 Size String::find_last_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::find_last_of' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::find_last_of' function");
     bool store[256];
     Memset(store, false, 256);
     for (int i = 0; i < size; ++i)
@@ -940,13 +940,13 @@ Size String::find_last_of(const String &target, Size pos) const {
 
 Size String::find_last_of(const String &target, Size pos, Size size) const {
     if (size > target.size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::find_last_of' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::find_last_of' function");
     return find_first_of(target.val_begin, pos, size);
 }
 
 Size String::find_first_not_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::find_first_not_of' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::find_first_not_of' function");
     bool store[256];
     Memset(store, true, 256);
     for (int i = 0; i < size; ++i)
@@ -970,13 +970,13 @@ Size String::find_first_not_of(const String &target, Size pos) const {
 
 Size String::find_first_not_of(const String &target, Size pos, Size size) const {
     if (size > target.size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::find_first_not_of' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::find_first_not_of' function");
     return find_first_not_of(target.val_begin, pos, size);
 }
 
 Size String::find_last_not_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::find_last_not_of' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::find_last_not_of' function");
     bool store[256];
     Memset(store, true, 256);
     for (int i = 0; i < size; ++i)
@@ -1000,13 +1000,13 @@ Size String::find_last_not_of(const String &target, Size pos) const {
 
 Size String::find_last_not_of(const String &target, Size pos, Size size) const {
     if (size > target.size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::find_last_not_of' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::find_last_not_of' function");
     return find_last_not_of(target.val_begin, pos, size);
 }
 
 int String::compare(Size pos1, Size n1, const char *target, Size n2) const {
     if (pos1 + n1 > size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::compare' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::compare' function");
     const char *temp = val_begin + pos1, *end1 = temp + n1, *end2 = target + n2;
     while (temp != end1 && target != end2) {
         if (*temp != *target)
@@ -1029,7 +1029,7 @@ int String::compare(const char *target) const {
 int String::compare(Size pos1, Size n1, const String &target, Size pos2,
                     Size n2) const {
     if (pos2 + n2 > target.size_)
-        throw outOfRange("You selected an out-of-range value in the 'String::compare' function");
+        throw outOfRange("You selected an out-of-range basic in the 'String::compare' function");
     return compare(pos1, n1, target.val_begin + pos2, n2);
 }
 

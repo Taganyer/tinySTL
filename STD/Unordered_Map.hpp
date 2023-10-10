@@ -88,9 +88,19 @@ namespace STD {
 
         bool erase(const Key &key);
 
-        Iterator find(const Key &target) const;
+        Iterator find(const Key &key);
 
-        Val &operator[](const Key &target) const;
+        cIterator find(const Key &key) const;
+
+        Iterator at(const Key &key);
+
+        cIterator at(const Key &key) const;
+
+        Val &operator[](const Key &key);
+
+        Size count(const Key &key) const;
+
+        bool contains(const Key &key) const;
 
         Self &operator=(const Self &other) {
             Basic::operator=(other);
@@ -123,7 +133,25 @@ namespace STD {
 
         Equal_ equal;
 
+        Iterator get(const Key &key) const;
+
     };
+
+//----------------------------------------------------------------------------------------------------------------------
+
+    template<typename Key, typename Val, typename Hash_Code, typename Equal_>
+    typename Unordered_Map<Key, Val, Hash_Code, Equal_>::Iterator
+    Unordered_Map<Key, Val, Hash_Code, Equal_>::get(const Key &key) const {
+        Size index = hasher(key) % buckets;
+        Node *ptr = array[index];
+        while (ptr) {
+            if (equal(key, ptr->value.first)) {
+                return Basic::get_Iterator(index, ptr);
+            }
+            ptr = ptr->next;
+        }
+        return Basic::end();
+    }
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -207,29 +235,49 @@ namespace STD {
 
     template<typename Key, typename Val, typename Hash_Code, typename Equal_>
     typename Unordered_Map<Key, Val, Hash_Code, Equal_>::Iterator
-    Unordered_Map<Key, Val, Hash_Code, Equal_>::find(const Key &target) const {
-        Size index = hasher(target) % buckets;
-        Node *ptr = array[index];
-        while (ptr) {
-            if (equal(target, ptr->value.first)) {
-                return Basic::get_Iterator(index, ptr);
-            }
-            ptr = ptr->next;
-        }
-        return Basic::end();
+    Unordered_Map<Key, Val, Hash_Code, Equal_>::find(const Key &key) {
+        return get(key);
     }
 
     template<typename Key, typename Val, typename Hash_Code, typename Equal_>
-    Val &Unordered_Map<Key, Val, Hash_Code, Equal_>::operator[](const Key &target) const {
-        Size index = hasher(target) % buckets;
-        Node *ptr = array[index];
-        while (ptr) {
-            if (equal(target, ptr->value.first)) {
-                return Basic::get_Iterator(index, ptr);
-            }
-            ptr = ptr->next;
-        }
-        return (*insert(target, Val()).first).second;
+    typename Unordered_Map<Key, Val, Hash_Code, Equal_>::cIterator
+    Unordered_Map<Key, Val, Hash_Code, Equal_>::find(const Key &key) const {
+        return cIterator(get(key));
+    }
+
+    template<typename Key, typename Val, typename Hash_Code, typename Equal_>
+    typename Unordered_Map<Key, Val, Hash_Code, Equal_>::Iterator
+    Unordered_Map<Key, Val, Hash_Code, Equal_>::at(const Key &key) {
+        Iterator iter = get(key);
+        if (iter == Basic::end())
+            throw outOfRange("You passed an out-of-range basic in Unordered_Map::at()");
+        return iter;
+    }
+
+    template<typename Key, typename Val, typename Hash_Code, typename Equal_>
+    typename Unordered_Map<Key, Val, Hash_Code, Equal_>::cIterator
+    Unordered_Map<Key, Val, Hash_Code, Equal_>::at(const Key &key) const {
+        Iterator iter = get(key);
+        if (iter == Basic::end())
+            throw outOfRange("You passed an out-of-range basic in Unordered_Map::at()");
+        return cIterator(iter);
+    }
+
+    template<typename Key, typename Val, typename Hash_Code, typename Equal_>
+    Val &Unordered_Map<Key, Val, Hash_Code, Equal_>::operator[](const Key &key) {
+        Iterator iter = get(key);
+        if (iter != Basic::end()) return iter;
+        return (*insert(key, Val()).first).second;
+    }
+
+    template<typename Key, typename Val, typename Hash_Code, typename Equal_>
+    Size Unordered_Map<Key, Val, Hash_Code, Equal_>::count(const Key &key) const {
+        return contains(key);
+    }
+
+    template<typename Key, typename Val, typename Hash_Code, typename Equal_>
+    bool Unordered_Map<Key, Val, Hash_Code, Equal_>::contains(const Key &key) const {
+        return get(key) != Basic::end();
     }
 
 }

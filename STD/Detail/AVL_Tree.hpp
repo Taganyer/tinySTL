@@ -270,9 +270,31 @@ namespace STD {
 
             bool erase(const Key &key);
 
-            Iterator find(const Key &key) const;
+            Iterator find(const Key &key);
+
+            cIterator find(const Key &key) const;
+
+            Iterator at(const Key &key);
+
+            cIterator at(const Key &key) const;
 
             Key &operator[](const Key &key);
+
+            Size count(const Key &key) const;
+
+            bool contains(const Key &key) const;
+
+            Pair<Iterator, Iterator> equal_range(const Key &key);
+
+            Iterator lower_bound(const Key &key);
+
+            Iterator upper_bound(const Key &key);
+
+            Pair<cIterator, cIterator> equal_range(const Key &key) const;
+
+            cIterator lower_bound(const Key &key) const;
+
+            cIterator upper_bound(const Key &key) const;
 
             Size size() const { return size_; };
 
@@ -294,21 +316,21 @@ namespace STD {
 
             Self &operator=(Self &&other) noexcept;
 
-            Iterator begin() const { return Iterator(the_min(root), const_cast<Self *>(this)); };
+            Iterator begin() const { return get_Iterator(the_min(root)); };
 
-            Iterator end() const { return Iterator(nullptr, const_cast<Self *>(this)); };
+            Iterator end() const { return get_Iterator(nullptr); };
 
-            cIterator cbegin() const { return cIterator(Iterator(the_min(root), const_cast<Self *>(this))); };
+            cIterator cbegin() const { return cIterator(get_Iterator(the_min(root))); };
 
-            cIterator cend() const { return cIterator(Iterator(nullptr, const_cast<Self *>(this))); };
+            cIterator cend() const { return cIterator(end()); };
 
-            rIterator rbegin() const { return rIterator(Iterator(the_max(root), const_cast<Self *>(this))); };
+            rIterator rbegin() const { return rIterator(get_Iterator(the_max(root))); };
 
-            rIterator rend() const { return rIterator(Iterator(nullptr, const_cast<Self *>(this))); };
+            rIterator rend() const { return rIterator(end()); };
 
-            crIterator crbegin() const { return crIterator(Iterator(the_max(root), const_cast<Self *>(this))); };
+            crIterator crbegin() const { return crIterator(get_Iterator(the_max(root))); };
 
-            crIterator crend() const { return crIterator(Iterator(nullptr, const_cast<Self *>(this))); };
+            crIterator crend() const { return crIterator(end()); };
 
             friend bool operator==(const Self &left, const Self &right) {
                 if (left.size_ != right.size_) return false;
@@ -387,7 +409,7 @@ namespace STD {
         template<typename Key, typename Compare, typename Equal>
         typename AVL_Tree<Key, Compare, Equal>::Node *
         AVL_Tree<Key, Compare, Equal>::get_from(Node *node, const Key &key) const {
-            while (node && !equal(key, node->key())) {
+            while (node && !equal(key, node->value)) {
                 if (less(key, node->key())) node = node->left;
                 else node = node->right;
             }
@@ -398,7 +420,8 @@ namespace STD {
         typename AVL_Tree<Key, Compare, Equal>::Node *
         AVL_Tree<Key, Compare, Equal>::copy(Node *target, Node *parent) {
             if (!target) return nullptr;
-            Node *temp = Allocate<Node>(target->value.first, target->value.second, target->height);
+            Node *temp = Allocate<Node>(target->value);
+            temp->height = target->height;
             temp->left = copy(target->left, temp);
             temp->right = copy(target->right, temp);
             temp->last = parent;
@@ -548,20 +571,109 @@ namespace STD {
 
         template<typename Key, typename Compare, typename Equal_>
         typename AVL_Tree<Key, Compare, Equal_>::Iterator
+        AVL_Tree<Key, Compare, Equal_>::find(const Key &key) {
+            return Iterator(get_from(root, key), this);
+        }
+
+        template<typename Key, typename Compare, typename Equal_>
+        typename AVL_Tree<Key, Compare, Equal_>::cIterator
         AVL_Tree<Key, Compare, Equal_>::find(const Key &key) const {
-            auto temp = root;
-            while (temp && !equal(key, temp->key())) {
-                if (less(key, temp->key())) temp = temp->left;
-                else temp = temp->right;
-            }
-            return Iterator(temp, const_cast<Self *>(this));
+            return cIterator(get_Iterator(get_from(root, key)));
+        }
+
+        template<typename Key, typename Compare, typename Equal_>
+        typename AVL_Tree<Key, Compare, Equal_>::Iterator
+        AVL_Tree<Key, Compare, Equal_>::at(const Key &key) {
+            auto temp = get_from(root, key);
+            if (!temp)
+                throw outOfRange("You passed an out-of-range basic in at()");
+            return Iterator(temp, this);
+        }
+
+        template<typename Key, typename Compare, typename Equal_>
+        typename AVL_Tree<Key, Compare, Equal_>::cIterator
+        AVL_Tree<Key, Compare, Equal_>::at(const Key &key) const {
+            auto temp = get_from(root, key);
+            if (!temp)
+                throw outOfRange("You passed an out-of-range basic in at()");
+            return cIterator(Iterator(temp, const_cast<Self *>(this)));
         }
 
         template<typename Key, typename Compare, typename Equal_>
         Key &AVL_Tree<Key, Compare, Equal_>::operator[](const Key &key) {
             auto ptr = get_from(root, key);
-            if (ptr) return ptr->value.second;
-            return *(insert(key).first);
+            if (ptr) return ptr->basic;
+            return *insert(key).first;
+        }
+
+        template<typename Key, typename Compare, typename Equal_>
+        Size AVL_Tree<Key, Compare, Equal_>::count(const Key &key) const {
+            return get_from(root, key);
+        }
+
+        template<typename Key, typename Compare, typename Equal_>
+        bool AVL_Tree<Key, Compare, Equal_>::contains(const Key &key) const {
+            return get_from(root, key);
+        }
+
+        template<typename Key, typename Compare, typename Equal_>
+        Pair<typename AVL_Tree<Key, Compare, Equal_>::Iterator,
+                typename AVL_Tree<Key, Compare, Equal_>::Iterator>
+        AVL_Tree<Key, Compare, Equal_>::equal_range(const Key &key) {
+            return {lower_bound(key), upper_bound(key)};
+        }
+
+        template<typename Key, typename Compare, typename Equal_>
+        typename AVL_Tree<Key, Compare, Equal_>::Iterator
+        AVL_Tree<Key, Compare, Equal_>::lower_bound(const Key &key) {
+            Node *temp = root;
+            while (temp) {
+                if (less(key, temp->basic)) {
+                    if (temp->left) temp = temp->left;
+                    else return Iterator(temp, this);
+                } else if (equal(temp->basic, key)) {
+                    return Iterator(temp, this);
+                } else {
+                    temp = temp->right;
+                }
+            }
+            return end();
+        }
+
+        template<typename Key, typename Compare, typename Equal_>
+        typename AVL_Tree<Key, Compare, Equal_>::Iterator
+        AVL_Tree<Key, Compare, Equal_>::upper_bound(const Key &key) {
+            Node *temp = root;
+            while (temp) {
+                if (less(key, temp->basic)) {
+                    if (temp->left) temp = temp->left;
+                    else return Iterator(temp, this);
+                } else if (equal(temp->basic, key)) {
+                    return ++Iterator(temp, this);
+                } else {
+                    temp = temp->right;
+                }
+            }
+            return end();
+        }
+
+        template<typename Key, typename Compare, typename Equal_>
+        Pair<typename AVL_Tree<Key, Compare, Equal_>::cIterator,
+                typename AVL_Tree<Key, Compare, Equal_>::cIterator>
+        AVL_Tree<Key, Compare, Equal_>::equal_range(const Key &key) const {
+            return {lower_bound(key), upper_bound(key)};
+        }
+
+        template<typename Key, typename Compare, typename Equal_>
+        typename AVL_Tree<Key, Compare, Equal_>::cIterator
+        AVL_Tree<Key, Compare, Equal_>::lower_bound(const Key &key) const {
+            cIterator(const_cast<Self *>(this)->lower_bound(key));
+        }
+
+        template<typename Key, typename Compare, typename Equal_>
+        typename AVL_Tree<Key, Compare, Equal_>::cIterator
+        AVL_Tree<Key, Compare, Equal_>::upper_bound(const Key &key) const {
+            return cIterator(const_cast<Self *>(this)->upper_bound(key));
         }
 
         template<typename Key, typename Compare, typename Equal_>

@@ -618,7 +618,7 @@ namespace STD {
         if (begin == end)
             return Iterator(val_begin + pos);
         if (pos > size_)
-            throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+            throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
         Size target_len = get_size(begin, end);
         fill_with(backward(pos, pos + target_len), begin, end);
         return Iterator(val_begin + pos);
@@ -645,7 +645,7 @@ namespace STD {
         Size size = get_size(begin, end);
         if (!size) return iter;
         if (iter.target.target >= val_end || iter.target.target < val_begin - 1)
-            throw outOfRange("You passed an out-of-range value in the 'String::insert' function");
+            throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
         Size pos_from = iter.target.target - val_begin + 1;
         auto ptr = backward(pos_from, pos_from + size) + size - 1;
         rfill_with(ptr, begin, end);
@@ -662,7 +662,7 @@ namespace STD {
     template<typename Input_iterator>
     String &String::replace(Size pos, Size len, const Input_iterator &begin, const Input_iterator &end) {
         if (pos + len > size_)
-            throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
+            throw outOfRange("You selected an out-of-range basic in the 'String::replace' function");
         Size target_len = get_size(begin, end);
         if (len < target_len)
             backward(pos + len, pos + target_len);
@@ -690,7 +690,7 @@ namespace STD {
         if (begin.target.target >= val_end || begin.target.target < val_begin ||
             end.target.target < val_begin - 1 || end.target.target >= val_end ||
             begin.target < end.target)
-            throw outOfRange("You selected an out-of-range value in the 'String::replace' function");
+            throw outOfRange("You selected an out-of-range basic in the 'String::replace' function");
         Size len = end - begin;
         Size target_len = get_size(target_begin, target_end);
         if (len < target_len) {

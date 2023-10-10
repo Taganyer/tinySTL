@@ -22,6 +22,8 @@
 #include "STD/Detail/Hashtable.hpp"
 #include "STD/Unordered_Map.hpp"
 #include "STD/Unordered_Set.hpp"
+#include "STD/Detail/MultiRed_Balck_Tree.hpp"
+#include "STD/Memory.hpp"
 #include <iostream>
 
 namespace STD {
@@ -54,6 +56,12 @@ namespace STD {
     void Hashtable_Test();
 
     void Unordered_Map_Test();
+
+    void MultiRed_Black_Tree_test();
+
+    void MultiMap_test();
+
+    void Ptr_test();
 
 
     void Vector_test() {
@@ -479,6 +487,61 @@ namespace STD {
             ++i;
         }
         cout << endl << test.size() << endl << i << endl;
+    }
+
+    void MultiRed_Black_Tree_test() {
+        Detail::MultiRed_Black_Tree<int> test;
+        for (int i = 0; i < 100; ++i) {
+            test.insert(i);
+            test.insert(i);
+        }
+        for (int i = 0; i < 50; ++i) {
+            test.erase(-- -- ++ ++test.find(i));
+            test.erase(-- -- ++ ++test.find(i));
+        }
+        for (auto i: test) {
+            cout << i << ends;
+        }
+    }
+
+    void MultiMap_test() {
+        MultiMap<int, String> test;
+        for (int i = 0; i < 100; ++i) {
+            test.insert(i, " - 1");
+            test.insert(i, " - 2");
+        }
+        for (int i = 0; i < 50; ++i) {
+            auto pair = test.equal_range(i);
+            while (pair.first != pair.second) {
+                auto temp = pair.first;
+                ++pair.first;
+                test.erase(temp);
+            }
+        }
+        for (auto i: test) {
+            cout << i.first << i.second << ends;
+        }
+    }
+
+    void Ptr_test() {
+        Shared_ptr<int> test(new int(1)), test2(test), test3(new int(3));
+        ++*test2;
+        cout << *test << endl;
+        test = test3;
+        cout << test.use_count() << endl;
+        cout << test2.use_count() << endl;
+        test2 = test;
+        struct A {
+            using Type = int;
+        };
+        cout << sizeof(A) << endl;
+        struct B : A{
+            int i = 99;
+        };
+
+        Shared_ptr<A> t1(new B()), t2(new A());
+        Shared_ptr<B> t3 = t1;
+        cout << t3->i << endl;
     }
 
 }

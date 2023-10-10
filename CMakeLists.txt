@@ -27,4 +27,7 @@ add_executable(tinySTL main.cpp
         STD/Set.hpp
         STD/Detail/Hashtable.hpp
         STD/Unordered_Set.hpp
+        STD/Detail/MultiRed_Balck_Tree.hpp
+        STD/Detail/MultiHashtable.hpp
+        STD/Memory.hpp
 )

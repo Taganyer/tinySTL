@@ -58,8 +58,6 @@ namespace STD {
 
     template<typename Arg>
     struct Default_delete {
-        constexpr Default_delete() noexcept = default;
-
         void operator()(Arg *ptr) const {
             Deallocate(ptr);
         }
