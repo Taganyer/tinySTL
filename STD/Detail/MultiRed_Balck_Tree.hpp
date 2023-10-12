@@ -366,7 +366,7 @@ namespace STD {
 
             MultiRed_Black_Tree(Self &&other) noexcept;
 
-            ~MultiRed_Black_Tree();
+            virtual ~MultiRed_Black_Tree();
 
             void clear();
 
@@ -732,6 +732,7 @@ namespace STD {
 
         template<typename Key, typename Compare, typename Equal_>
         void MultiRed_Black_Tree<Key, Compare, Equal_>::erase(const Iterator &key) {
+            if (!key.target) return;
             if (key.target->size() > 1) {
                 key.target->remove(key.value);
                 --size_;

@@ -61,6 +61,8 @@ namespace STD {
 
     void MultiMap_test();
 
+    void MultiSet_test();
+
     void Ptr_test();
 
 
@@ -368,7 +370,7 @@ namespace STD {
                 test.erase(-i);
         }
         test = move(Map<int, int>{{1, 2},
-                                  {2, 3}});;
+                                  {2, 3}});
         swap(test2, test3);
         int i = 0;
         for (auto &t: test) {
@@ -516,6 +518,7 @@ namespace STD {
                 auto temp = pair.first;
                 ++pair.first;
                 test.erase(temp);
+                test.erase({i, nullptr});
             }
         }
         for (auto i: test) {
@@ -523,9 +526,28 @@ namespace STD {
         }
     }
 
+    void MultiSet_test() {
+        Unordered_MultiSet<int> test{1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7}, test2(test);
+        test.clear();
+        for (int i = 0; i < 40; ++i) {
+            test.insert(i);
+            test.insert(i);
+            test.insert(i);
+        }
+        for (int i = 0; i < 40; ++i) {
+            test.erase(i);
+        }
+        for (auto i : test) {
+            cout << i << ends;
+        }
+        cout << endl;
+        test = move(test2);
+        swap(test, test2);
+    }
+
     void Ptr_test() {
-        Shared_ptr<int> test(new int(1)), test2(test), test3(new int(3));
-        ++*test2;
+        Shared_ptr<const int> test(new int(1)), test2(test), test3(new int(3));
+        *test2;
         cout << *test << endl;
         test = test3;
         cout << test.use_count() << endl;
@@ -540,7 +562,7 @@ namespace STD {
         };
 
         Shared_ptr<A> t1(new B()), t2(new A());
-        Shared_ptr<B> t3 = t1;
+        Shared_ptr<const B> t3 = t1;
         cout << t3->i << endl;
     }
 

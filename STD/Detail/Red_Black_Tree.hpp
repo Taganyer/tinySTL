@@ -277,7 +277,7 @@ namespace STD {
 
             Red_Black_Tree(Self &&other) noexcept;
 
-            ~Red_Black_Tree();
+            virtual ~Red_Black_Tree();
 
             void clear();
 

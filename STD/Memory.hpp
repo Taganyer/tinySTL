@@ -20,125 +20,104 @@ namespace STD {
 
     template<typename Target, typename Object>
     Shared_ptr<Target> static_pointer_cast(const Shared_ptr<Object> &object) noexcept {
-        auto ptr = static_cast<Target *>(object.value);
-        ++(*(object.basic->get_shared_ptr_count()));
-        return Shared_ptr<Target>(object.basic, ptr);
+        return Shared_ptr<Target>(object.basic, static_cast<Target *>(object.value));
     }
 
     template<typename Target, typename Object>
     Shared_ptr<Target> dynamic_pointer_cast(const Shared_ptr<Object> &object) noexcept {
-        auto ptr = dynamic_cast<Target *>(object.value);
-        ++(*(object.basic->get_shared_ptr_count()));
-        return Shared_ptr<Target>(object.basic, ptr);
+        return Shared_ptr<Target>(object.basic, dynamic_cast<Target *>(object.value));
     }
 
     template<typename Target, typename Object>
     Shared_ptr<Target> const_pointer_cast(const Shared_ptr<Object> &object) noexcept {
-        auto ptr = const_cast<Target *>(object.value);
-        ++(*(object.basic->get_shared_ptr_count()));
-        return Shared_ptr<Target>(object.basic, ptr);
+        return Shared_ptr<Target>(object.basic, const_cast<Target *>(object.value));
     }
 
     template<typename Target, typename Object>
     Shared_ptr<Target> reinterpret_pointer_cast(const Shared_ptr<Object> &object) noexcept {
-        auto ptr = reinterpret_cast<Target *>(object.value);
-        ++(*(object.basic->get_shared_ptr_count()));
-        return Shared_ptr<Target>(object.basic, ptr);
+        return Shared_ptr<Target>(object.basic, reinterpret_cast<Target *>(object.value));
     }
 
     template<typename Target, typename Object>
     Weak_ptr<Target> static_pointer_cast(const Weak_ptr<Object> &object) noexcept {
-        auto ptr = static_cast<Target *>(object.value);
-        ++*(object.basic->get_weak_ptr_count());
-        return Weak_ptr<Target>(object.basic, ptr);
+        return Weak_ptr<Target>(object.basic, static_cast<Target *>(object.value));
     }
 
     template<typename Target, typename Object>
     Weak_ptr<Target> dynamic_pointer_cast(const Weak_ptr<Object> &object) noexcept {
-        auto ptr = dynamic_cast<Target *>(object.value);
-        ++*(object.basic->get_weak_ptr_count());
-        return Weak_ptr<Target>(object.basic, ptr);
+        return Weak_ptr<Target>(object.basic, dynamic_cast<Target *>(object.value));
     }
 
     template<typename Target, typename Object>
     Weak_ptr<Target> const_pointer_cast(const Weak_ptr<Object> &object) noexcept {
-        auto ptr = const_cast<Target *>(object.value);
-        ++*(object.basic->get_weak_ptr_count());
-        return Weak_ptr<Target>(object.basic, ptr);
+        return Weak_ptr<Target>(object.basic, const_cast<Target *>(object.value));
     }
 
     template<typename Target, typename Object>
     Weak_ptr<Target> reinterpret_pointer_cast(const Weak_ptr<Object> &object) noexcept {
-        auto ptr = reinterpret_cast<Target *>(object.value);
-        ++*(object.basic->get_weak_ptr_count());
-        return Weak_ptr<Target>(object.basic, ptr);
+        return Weak_ptr<Target>(object.basic, reinterpret_cast<Target *>(object.value));
     }
 
+    namespace Detail {
 
-    struct basic_Value {
-        unsigned *weak_ptr_count = Allocate<unsigned>(0);
+        struct basic_Value {
+            unsigned weak_ptr_count = 0;
 
-        unsigned *shared_ptr_count = Allocate<unsigned>(1);
+            unsigned shared_ptr_count = 0;
 
-        unsigned *get_weak_ptr_count() const { return weak_ptr_count; };
+            virtual bool release(const void *target, bool is_Shared_ptr) = 0;
 
-        unsigned *get_shared_ptr_count() const { return shared_ptr_count; };
-
-        virtual bool release() = 0;
-
-        virtual ~basic_Value() = default;
-    };
-
-    template<typename Type, typename Delete>
-    struct Value : public basic_Value {
-        Type *target;
-
-        Delete deleter;
-
-        explicit Value(Type *target, Delete deleter) : target(target), deleter(deleter) {};
-
-        bool release() override {
-            if (shared_ptr_count && *shared_ptr_count == 0) {
-                deleter(target);
-                Deallocate(shared_ptr_count);
-                shared_ptr_count = nullptr;
-            }
-            if (!shared_ptr_count && *weak_ptr_count == 0) {
-                Deallocate(weak_ptr_count);
-                return true;
-            }
-            return false;
+            virtual ~basic_Value() = default;
         };
 
-        ~Value() override = default;
-    };
+        template<typename Type, typename Delete>
+        struct Value : public basic_Value {
+            Delete deleter;
 
+            explicit Value(Delete deleter) : deleter(deleter) {};
 
-    //----------------------------------------------------------------------------------------------------------------------
+            bool release(const void *target, bool is_Shared_ptr) override {
+                if (is_Shared_ptr && !shared_ptr_count)
+                    deleter(const_cast<Type *>(static_cast<const Type *>(target)));
+                if (!shared_ptr_count && !weak_ptr_count) return true;
+                else return false;
+            };
 
+            ~Value() override = default;
+        };
+
+    }
+
+//----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg>
     class Shared_ptr {
     private:
-        basic_Value *basic;
+        Detail::basic_Value *basic;
 
         Arg *value;
 
-        explicit Shared_ptr(basic_Value *value, Arg *val) : basic(value), value(val) {};
+        explicit Shared_ptr(Detail::basic_Value *value, Arg *val) : basic(value), value(val) {
+            if (basic) ++basic->shared_ptr_count;
+        };
 
         void release() const {
             if (!basic) return;
-            --*basic->get_shared_ptr_count();
-            if (basic->release()) Deallocate(basic);
+            --basic->shared_ptr_count;
+            if (basic->release(value, true)) Deallocate(basic);
         };
 
     public:
         template<typename Deleter = Default_delete<Arg>>
-        Shared_ptr(Arg *target = nullptr, Deleter del = Deleter()) :
-                basic(Allocate<Value<Arg, Deleter>>(target, del)), value(target) {};
+        Shared_ptr(Arg *target = nullptr, Deleter del = Deleter()) : value(target) {
+            if (target) {
+                basic = Allocate<Detail::Value<Arg, Deleter>>(del);
+                ++basic->shared_ptr_count;
+            } else basic = nullptr;
+        };
 
         Shared_ptr(const Shared_ptr<Arg> &other) : basic(other.basic), value(other.value) {
-            ++*other.basic->get_shared_ptr_count();
+            if (basic) ++basic->shared_ptr_count;
         };
 
         ~Shared_ptr() { release(); }
@@ -146,13 +125,13 @@ namespace STD {
         template<typename Del = Default_delete<Arg>>
         void reset(Arg *ptr, Del del = Del()) {
             release();
-            basic = Allocate<Value<Arg, Del>>(ptr, del);
+            basic = Allocate<Detail::Value<Arg, Del>>(del);
             value = ptr;
         };
 
         void reset(const Shared_ptr<Arg> &other) {
             release();
-            if (other.basic) ++*other.basic->get_shared_ptr_count();
+            if (other.basic) ++other.basic->shared_ptr_count;
             basic = other.basic;
             value = other.value;
         };
@@ -160,7 +139,7 @@ namespace STD {
         Shared_ptr<Arg> &operator=(const Shared_ptr<Arg> &other) {
             if (basic == other.basic) return *this;
             release();
-            if (other.basic) ++*other.basic->get_shared_ptr_count();
+            if (other.basic) ++other.basic->shared_ptr_count;
             basic = other.basic;
             value = other.value;
             return *this;
@@ -176,9 +155,9 @@ namespace STD {
 
         Arg *get() const { return value; };
 
-        unsigned use_count() const { return *basic->get_shared_ptr_count(); };
+        unsigned use_count() const { return basic->shared_ptr_count; };
 
-        bool unique() const { return *basic->get_shared_ptr_count() == 1; }
+        bool unique() const { return basic->shared_ptr_count == 1; }
 
         // 由于编译器不会自动调用以下四个函数，如需将智能指针转换，请显式调用。
         template<typename Target, typename Object>
@@ -195,27 +174,37 @@ namespace STD {
 
         // 编译器会自动调用该类型转换（默认使用static_pointer_cast实现），可能会有意外的转化结果。
         template<typename Other>
-        operator Shared_ptr<Other>() {
+        operator Shared_ptr<Other>() const {
             return STD::static_pointer_cast<Other, Arg>(*this);
         };
+
+        operator bool() const {
+            return basic;
+        }
+
+        friend bool operator==(const Shared_ptr<Arg> &left, const Shared_ptr<Arg> &right) {
+            return left.basic == right.basic;
+        }
+
+        friend bool operator!=(const Shared_ptr<Arg> &left, const Shared_ptr<Arg> &right) {
+            return left.basic != right.basic;
+        }
 
         friend class Weak_ptr<Arg>;
     };
 
-
 //----------------------------------------------------------------------------------------------------------------------
 
-
-    template<typename Arg>
-    Shared_ptr<Arg> make_shared(const Arg &target) {
+    template<typename Arg, typename Deleter = Default_delete<Arg>>
+    Shared_ptr<Arg> make_shared(const Arg &target, Deleter deleter = Deleter()) {
         auto ptr = new Arg(target);
-        return Shared_ptr<Arg>(ptr);
+        return Shared_ptr<Arg>(ptr, deleter);
     }
 
-    template<typename Arg>
-    Shared_ptr<Arg> make_shared(Arg &&target) {
+    template<typename Arg, typename Deleter = Default_delete<Arg>>
+    Shared_ptr<Arg> make_shared(Arg &&target, Deleter deleter = Deleter()) {
         auto ptr = new Arg(move(target));
-        return Shared_ptr<Arg>(ptr);
+        return Shared_ptr<Arg>(ptr, deleter);
     }
 
     template<typename Arg, typename... Args>
@@ -224,9 +213,7 @@ namespace STD {
         return Shared_ptr<Arg>(ptr);
     }
 
-
-    //----------------------------------------------------------------------------------------------------------------------
-
+//----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg, typename Deleter = Default_delete<Arg>>
     class unique_ptr {
@@ -261,44 +248,50 @@ namespace STD {
             target = other;
         };
 
+        operator bool() const {
+            return target;
+        }
+
     };
 
-
-    //----------------------------------------------------------------------------------------------------------------------
-
+//----------------------------------------------------------------------------------------------------------------------
 
     template<typename Arg>
     class Weak_ptr {
     private:
-        basic_Value *basic;
+        Detail::basic_Value *basic = nullptr;
 
         Arg *value = nullptr;
 
         void release() {
             if (!basic) return;
-            --*basic->get_weak_ptr_count();
-            if (basic->release()) Deallocate(basic);
+            --basic->weak_ptr_count;
+            if (basic->release(value, false)) Deallocate(basic);
         }
 
-        explicit Weak_ptr(basic_Value *basic, Arg *val) : basic(basic), value(val) {};
-
-    public:
-        Weak_ptr(const Shared_ptr<Arg> &ptr) : basic(ptr.basic) {
-            ++*basic->get_weak_ptr_count();
+        explicit Weak_ptr(Detail::basic_Value *basic, Arg *val) : basic(basic), value(val) {
+            if (basic) ++basic->weak_ptr_count;
         };
 
-        Weak_ptr(const Weak_ptr<Arg> &ptr) : basic(ptr.basic) {
-            ++*basic->get_weak_ptr_count();
+    public:
+        Weak_ptr() = default;
+
+        Weak_ptr(const Shared_ptr<Arg> &ptr) : basic(ptr.basic), value(ptr.value) {
+            if (basic) ++basic->weak_ptr_count;
+        };
+
+        Weak_ptr(const Weak_ptr<Arg> &ptr) : basic(ptr.basic), value(ptr.value) {
+            if (basic) ++basic->weak_ptr_count;
         };
 
         ~Weak_ptr() { release(); };
 
-        bool expired() const { return !basic->get_shared_ptr_count(); };
+        bool expired() const { return !basic->shared_ptr_count; };
 
         Weak_ptr<Arg> &operator=(const Weak_ptr<Arg> &other) {
             if (basic == other.basic) return *this;
             release();
-            if (other.basic) ++*other.basic->get_weak_ptr_count();
+            if (other.basic) ++other.basic->weak_ptr_count;
             basic = other.basic;
             value = other.value;
             return *this;
@@ -313,10 +306,8 @@ namespace STD {
         };
 
         Shared_ptr<Arg> lock() const {
-            if (expired())
-                return Shared_ptr<Arg>(nullptr, nullptr);
-            else
-                return Shared_ptr<Arg>(basic, value);
+            if (expired()) return Shared_ptr<Arg>(nullptr, nullptr);
+            else return Shared_ptr<Arg>(basic, value);
         };
 
         void reset() {
@@ -328,7 +319,7 @@ namespace STD {
         void reset(const Weak_ptr<Arg> &other) {
             if (basic == other.basic) return *this;
             release();
-            if (other.basic) ++*other.basic->get_weak_ptr_count();
+            if (other.basic) ++other.basic->weak_ptr_count;
             basic = other.basic;
             value = other.value;
         }
@@ -336,7 +327,7 @@ namespace STD {
         void reset(const Shared_ptr<Arg> &other) {
             if (basic == other.basic) return;
             release();
-            if (other.basic) ++*other.basic->get_weak_ptr_count();
+            if (other.basic) ++other.basic->weak_ptr_count;
             basic = other.basic;
             value = other.value;
         }
@@ -356,9 +347,22 @@ namespace STD {
 
         // 编译器会自动调用该类型转换（默认使用static_pointer_cast实现），可能会有意外的转化结果。
         template<typename Other>
-        operator Weak_ptr<Other>() {
+        operator Weak_ptr<Other>() const {
             return STD::static_pointer_cast<Other, Arg>(*this);
         };
+
+        operator bool() const {
+            return basic;
+        }
+
+        friend bool operator==(const Weak_ptr<Arg> &left, const Weak_ptr<Arg> &right) {
+            return left.basic == right.basic;
+        }
+
+        friend bool operator!=(const Weak_ptr<Arg> &left, const Weak_ptr<Arg> &right) {
+            return left.basic != right.basic;
+        }
+
     };
 
 }// namespace STD

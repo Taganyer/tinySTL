@@ -11,48 +11,40 @@
 namespace STD {
 
     template<typename Arg>
-    Arg *Allocate(const Arg &arg) {
+    inline Arg *Allocate(const Arg &arg) {
         auto *ptr = new Arg(arg);
         if (!ptr) throw badAlloc("badAlloc: Memory allocation failed\n");
         return ptr;
     }
 
     template<typename Arg>
-    Arg *Allocate(Arg &&arg) {
+    inline Arg *Allocate(Arg &&arg) {
         auto *ptr = new Arg(move(arg));
         if (!ptr) throw badAlloc("badAlloc: Memory allocation failed\n");
         return ptr;
     }
 
     template<typename Arg, typename ...Args>
-    Arg *Allocate(Args &&...args) {
+    inline Arg *Allocate(Args &&...args) {
         auto *ptr = new Arg(move(args)...);
         if (!ptr) throw badAlloc("badAlloc: Memory allocation failed\n");
         return ptr;
     }
 
     template<typename Arg>
-    void Deallocate(Arg *ptr) {
+    inline void Deallocate(Arg *ptr) {
         delete ptr;
     }
 
     template<typename Arg>
-    void constDeallocate(const Arg *ptr) {
-        delete ptr;
+    inline Arg *Allocate_n(Size size) {
+        auto *ptr = new Arg[size];
+        if (!ptr) throw badAlloc("badAlloc: Memory allocation failed\n");
+        return ptr;
     }
 
     template<typename Arg>
-    Arg *Allocate_n(Size size) {
-        if (!size) return nullptr;
-        else {
-            auto *ptr = new Arg[size];
-            if (!ptr) throw badAlloc("badAlloc: Memory allocation failed\n");
-            return ptr;
-        }
-    }
-
-    template<typename Arg>
-    void Deallocate_n(Arg *ptr) {
+    inline void Deallocate_n(Arg *ptr) {
         delete[] ptr;
     }
 

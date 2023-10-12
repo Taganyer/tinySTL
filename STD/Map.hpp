@@ -79,7 +79,9 @@ namespace STD {
 
         Map(Self &&other) noexcept: Basic(move(other)), less(other.less), equal(other.equal) {};
 
-        ~Map() = default;
+        ~Map() override = default;
+
+        using Basic::insert;
 
         Pair<Iterator, bool> insert(const Key &key, const Val &val);
 
@@ -89,15 +91,9 @@ namespace STD {
 
         Pair<Iterator, bool> insert(Key &&key, Val &&val);
 
+        using Basic::erase;
+
         bool erase(const Key &key);
-
-        void erase(const Iterator &key);
-
-        void erase(const cIterator &key);
-
-        void erase(const rIterator &key);
-
-        void erase(const crIterator &key);
 
         Iterator find(const Key &key);
 
@@ -267,26 +263,6 @@ namespace STD {
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>
-    void Map<Key, Val, Compare, Equal_>::erase(const Iterator &key) {
-        Basic::erase(key.target->value);
-    }
-
-    template<typename Key, typename Val, typename Compare, typename Equal_>
-    void Map<Key, Val, Compare, Equal_>::erase(const cIterator &key) {
-        Basic::erase(key.target.target->value);
-    }
-
-    template<typename Key, typename Val, typename Compare, typename Equal_>
-    void Map<Key, Val, Compare, Equal_>::erase(const rIterator &key) {
-        Basic::erase(key.target.target->value);
-    }
-
-    template<typename Key, typename Val, typename Compare, typename Equal_>
-    void Map<Key, Val, Compare, Equal_>::erase(const crIterator &key) {
-        Basic::erase(key.target.target->value);
-    }
-
-    template<typename Key, typename Val, typename Compare, typename Equal_>
     typename Map<Key, Val, Compare, Equal_>::Iterator
     Map<Key, Val, Compare, Equal_>::find(const Key &key) {
         return Basic::get_Iterator(get_from(root, key));
@@ -436,7 +412,9 @@ namespace STD {
 
         MultiMap(Self &&other) noexcept: Basic(move(other)), less(other.less), equal(other.equal) {};
 
-        ~MultiMap() = default;
+        ~MultiMap() override = default;
+
+        using Basic::insert;
 
         Iterator insert(const Key &key, const Val &val);
 
@@ -446,15 +424,9 @@ namespace STD {
 
         Iterator insert(Key &&key, Val &&val);
 
+        using Basic::erase;
+
         bool erase(const Key &key);
-
-        void erase(const Iterator &key);
-
-        void erase(const cIterator &key);
-
-        void erase(const rIterator &key);
-
-        void erase(const crIterator &key);
 
         Iterator find(const Key &key);
 
@@ -601,26 +573,6 @@ namespace STD {
             Deallocate(target_val);
         }
         return record != size_;
-    }
-
-    template<typename Key, typename Val, typename Compare, typename Equal_>
-    void MultiMap<Key, Val, Compare, Equal_>::erase(const Iterator &key) {
-        Basic::erase(key);
-    }
-
-    template<typename Key, typename Val, typename Compare, typename Equal_>
-    void MultiMap<Key, Val, Compare, Equal_>::erase(const cIterator &key) {
-        Basic::erase(key.target);
-    }
-
-    template<typename Key, typename Val, typename Compare, typename Equal_>
-    void MultiMap<Key, Val, Compare, Equal_>::erase(const rIterator &key) {
-        Basic::erase(key.target);
-    }
-
-    template<typename Key, typename Val, typename Compare, typename Equal_>
-    void MultiMap<Key, Val, Compare, Equal_>::erase(const crIterator &key) {
-        Basic::erase(key.target);
     }
 
     template<typename Key, typename Val, typename Compare, typename Equal_>

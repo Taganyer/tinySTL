@@ -191,7 +191,7 @@ namespace STD {
 
             Hashtable(Self &&other) noexcept;
 
-            ~Hashtable();
+            virtual ~Hashtable();
 
             void Rehash();
 

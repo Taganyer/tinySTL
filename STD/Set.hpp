@@ -29,6 +29,15 @@ namespace STD {
 
         using Detail::Red_Black_Tree<const Key, Compare, Equal_>::Red_Black_Tree;
 
+        using Self = Set<Key, Compare, Equal_>;
+
+        void swap(Self &other) noexcept {
+            Basic::swap(other);
+        };
+
+        friend void swap(Self &left, Self &right) noexcept {
+            left.Basic::swap(right);
+        };
     };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -51,6 +60,16 @@ namespace STD {
         using crIterator = typename Basic::crIterator;
 
         using Detail::MultiRed_Black_Tree<const Key, Compare, Equal_>::MultiRed_Black_Tree;
+
+        using Self = MultiSet<Key, Compare, Equal_>;
+
+        void swap(Self &other) noexcept {
+            Basic::swap(other);
+        };
+
+        friend void swap(Self &left, Self &right) noexcept {
+            left.Basic::swap(right);
+        };
     };
 
 }
