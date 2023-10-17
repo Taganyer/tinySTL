@@ -177,7 +177,7 @@ namespace STD {
         public:
             explicit MultiHashtable(Hash_Code hasher = Hash_Code(), Equal_ equal = Equal_()) :
                     array(Allocate_n<Node *>(8)), hasher(hasher), equal(equal) {
-                Memset<Node *>(array, nullptr, 8);
+                Fill_with<Node *>(array, nullptr, 8);
             };
 
             MultiHashtable(const std::initializer_list<Key> &list,
@@ -378,7 +378,7 @@ namespace STD {
                 (const std::initializer_list<Key> &list, Hash_Code hasher, Equal_ equal)
                 : buckets(list.size() + list.size() / 5), array(Allocate_n<Node *>(buckets)),
                   hasher(hasher), equal(equal) {
-            Memset<Node *>(array, nullptr, buckets);
+            Fill_with<Node *>(array, nullptr, buckets);
             for (const Key &t: list) {
                 auto ptr = Allocate<Node>(t);
                 insert(ptr);
@@ -395,7 +395,7 @@ namespace STD {
             if (temp < 8) temp = 8;
             buckets = temp;
             array = Allocate_n<Node *>(buckets);
-            Memset<Node *>(array, nullptr, buckets);
+            Fill_with<Node *>(array, nullptr, buckets);
             while (begin != end) {
                 auto ptr = Allocate<Node>(*begin);
                 insert(ptr);
@@ -414,7 +414,7 @@ namespace STD {
             other.size_ = 0;
             other.buckets = 8;
             other.array = Allocate_n<Node *>(8);
-            Memset<Node *>(other.array, nullptr, 8);
+            Fill_with<Node *>(other.array, nullptr, 8);
         }
 
         template<typename Key, typename Hash_Code, typename Equal_>
@@ -430,7 +430,7 @@ namespace STD {
                 Size old_buckets = buckets;
                 buckets = size_ + size_ / 5;
                 array = Allocate_n<Node *>(buckets);
-                Memset<Node *>(array, nullptr, buckets);
+                Fill_with<Node *>(array, nullptr, buckets);
                 while (old_buckets) {
                     Node *ptr = old[--old_buckets];
                     while (ptr) {
@@ -465,7 +465,7 @@ namespace STD {
             }
             size_ = 0;
             array = Allocate_n<Node *>(8);
-            Memset<Node *>(array, nullptr, 8);
+            Fill_with<Node *>(array, nullptr, 8);
             buckets = 8;
         }
 
@@ -577,7 +577,7 @@ namespace STD {
             Deallocate(array);
             buckets = other.buckets;
             array = Allocate_n<Node *>(buckets);
-            Memset<Node *>(array, nullptr, buckets);
+            Fill_with<Node *>(array, nullptr, buckets);
             Iterator begin = other.begin(), end = other.end();
             while (begin != end) {
                 insert(*begin);
@@ -598,7 +598,7 @@ namespace STD {
             other.size_ = 0;
             other.buckets = 8;
             other.array = Allocate_n<Node *>(8);
-            Memset<Node *>(other.array, nullptr, 8);
+            Fill_with<Node *>(other.array, nullptr, 8);
             return *this;
         }
 

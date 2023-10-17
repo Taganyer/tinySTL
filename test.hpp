@@ -25,6 +25,9 @@
 #include "STD/Detail/MultiRed_Balck_Tree.hpp"
 #include "STD/Memory.hpp"
 #include <iostream>
+#include "STD/Tuple.hpp"
+#include "STD/BitSet.hpp"
+#include <memory>
 
 namespace STD {
     using std::cout;
@@ -64,6 +67,10 @@ namespace STD {
     void MultiSet_test();
 
     void Ptr_test();
+
+    void Tuple_test();
+
+    void BitSet_test();
 
 
     void Vector_test() {
@@ -537,7 +544,7 @@ namespace STD {
         for (int i = 0; i < 40; ++i) {
             test.erase(i);
         }
-        for (auto i : test) {
+        for (auto i: test) {
             cout << i << ends;
         }
         cout << endl;
@@ -546,24 +553,54 @@ namespace STD {
     }
 
     void Ptr_test() {
-        Shared_ptr<const int> test(new int(1)), test2(test), test3(new int(3));
+        Shared_ptr<int> test(new int(1)), test2(test), test3(new int(3));
         *test2;
         cout << *test << endl;
         test = test3;
         cout << test.use_count() << endl;
         cout << test2.use_count() << endl;
         test2 = test;
+        test == test2;
         struct A {
             using Type = int;
-        };
-        cout << sizeof(A) << endl;
-        struct B : A{
-            int i = 99;
+            virtual void show() {};
         };
 
-        Shared_ptr<A> t1(new B()), t2(new A());
-        Shared_ptr<const B> t3 = t1;
-        cout << t3->i << endl;
+        struct B : A {
+            const int i = 99;
+            void show() override {
+                cout << i << endl;
+            }
+        };
+
+        auto *temp = new B();
+        Shared_ptr<A> t1(temp), t2(new A());
+        Shared_ptr<void> t3(t1);
+        Shared_ptr<B> t4 = dynamic_pointer_cast<B>(t1);
+        Shared_ptr<A> t5(t4);
+        t2->show();
+        t5->show();
+
+        A *ptr1 = t2.get();
+        Unique_ptr<A> ta = Unique_ptr<B>(nullptr);
+        Unique_ptr<void> void_t;
+        void_t = move(ta);
+    }
+
+    void Tuple_test() {
+        String a = "0000", b = "1111", c = "2222";
+        Tuple<String, String, String> test{"0000", "1111", "2222"},
+                test2(move(a), b, c);
+        cout << get<0>(test) << get<1>(test) << get<2>(test) << sizeof(String) << endl;
+        cout << endl;
+    }
+
+    void BitSet_test() {
+        BitSet<64> test(-1);
+        String temp = test.to_String();
+        test = BitSet<64>(temp);
+        cout << test.to_String() << endl;
+
     }
 
 }

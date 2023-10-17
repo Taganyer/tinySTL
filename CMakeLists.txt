@@ -30,4 +30,6 @@ add_executable(tinySTL main.cpp
         STD/Detail/MultiRed_Balck_Tree.hpp
         STD/Detail/MultiHashtable.hpp
         STD/Memory.hpp
+        STD/Tuple.hpp
+        STD/BitSet.hpp
 )

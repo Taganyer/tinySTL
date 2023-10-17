@@ -174,7 +174,7 @@ namespace STD {
                     Joint *next = nullptr;
 
                     template<typename ...Args>
-                    explicit Joint(Args &&...args) : value(forward<Args>(args)...) {};
+                    constexpr explicit Joint(Args &&...args) : value(forward<Args>(args)...) {};
 
                 };
 
@@ -185,7 +185,7 @@ namespace STD {
                 bool Red = true;
 
                 template<typename ...Args>
-                explicit Node(Args &&...args) : list(Allocate<Joint>(forward<Args>(args)...)) {};
+                constexpr explicit Node(Args &&...args) : list(Allocate<Joint>(forward<Args>(args)...)) {};
 
                 void add(Node *&target) {
                     Joint *temp = list;

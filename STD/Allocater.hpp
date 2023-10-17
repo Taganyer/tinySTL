@@ -50,18 +50,21 @@ namespace STD {
 
     template<typename Arg>
     struct Default_delete {
+        using Type = Arg;
         void operator()(Arg *ptr) const {
             Deallocate(ptr);
         }
     };
 
     template<typename Arg>
-    void Memset(Arg *target, const Arg &val, Size size) {
+    void Fill_with(Arg *target, const Arg &val, Size size) {
         while (size) {
             *target = val;
             ++target, --size;
         }
     }
+
+    void MemSet(void *target, int val, Size size);
 
     template<typename First, typename Second>
     struct Pair {

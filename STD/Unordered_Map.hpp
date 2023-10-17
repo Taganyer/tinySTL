@@ -166,7 +166,7 @@ namespace STD {
         if (temp < 8) temp = 8;
         buckets = temp;
         array = Allocate_n<Node *>(buckets);
-        Memset<Node *>(array, nullptr, buckets);
+        Fill_with<Node *>(array, nullptr, buckets);
         while (key_begin != key_end) {
             auto ptr = Allocate<Node>(*key_begin, *val_begin);
             Basic::insert(ptr);
@@ -400,7 +400,7 @@ namespace STD {
         if (temp < 8) temp = 8;
         buckets = temp;
         array = Allocate_n<Node *>(buckets);
-        Memset<Node *>(array, nullptr, buckets);
+        Fill_with<Node *>(array, nullptr, buckets);
         while (key_begin != key_end) {
             auto ptr = Allocate<Node>(*key_begin, *val_begin);
             Basic::insert(ptr);

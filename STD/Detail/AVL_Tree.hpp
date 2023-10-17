@@ -153,7 +153,7 @@ namespace STD {
                 int height = 1;
 
                 template<typename ...Args>
-                explicit Node(Args &&...args) : value(forward<Args>(args)...) {};
+                constexpr explicit Node(Args &&...args) : value(forward<Args>(args)...) {};
 
             };
 

@@ -888,7 +888,7 @@ Size String::find_first_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
         throw outOfRange("You selected an out-of-range basic in the 'String::find_first_of' function");
     bool store[256];
-    Memset(store, false, 256);
+    Fill_with(store, false, 256);
     for (int i = 0; i < size; ++i)
         store[target[i]] = true;
     auto temp = val_begin + pos;
@@ -918,7 +918,7 @@ Size String::find_last_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
         throw outOfRange("You selected an out-of-range basic in the 'String::find_last_of' function");
     bool store[256];
-    Memset(store, false, 256);
+    Fill_with(store, false, 256);
     for (int i = 0; i < size; ++i)
         store[target[i]] = true;
     auto temp = val_end - 1;
@@ -948,7 +948,7 @@ Size String::find_first_not_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
         throw outOfRange("You selected an out-of-range basic in the 'String::find_first_not_of' function");
     bool store[256];
-    Memset(store, true, 256);
+    Fill_with(store, true, 256);
     for (int i = 0; i < size; ++i)
         store[target[i]] = false;
     auto temp = val_begin + pos;
@@ -978,7 +978,7 @@ Size String::find_last_not_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
         throw outOfRange("You selected an out-of-range basic in the 'String::find_last_not_of' function");
     bool store[256];
-    Memset(store, true, 256);
+    Fill_with(store, true, 256);
     for (int i = 0; i < size; ++i)
         store[target[i]] = false;
     auto temp = val_end - 1;

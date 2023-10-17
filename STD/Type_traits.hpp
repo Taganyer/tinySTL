@@ -438,6 +438,17 @@ namespace STD {
     struct Is_integral : public Is_integral_Helper<typename Remove_cv<Arg>::Type>::Type {
     };
 
+//----------------------------------------------------------------------------------------------------------------------
+
+    template<bool, typename = void>
+    struct Enable_if {
+    };
+
+    template<typename Arg>
+    struct Enable_if<true, Arg> {
+        using Type = Arg;
+    };
+
 }
 
 #endif //TINYSTL_TYPE_TRAITS_HPP
