@@ -8,7 +8,7 @@
 #include "Deque.hpp"
 #include "Vector.hpp"
 #include "Function.hpp"
-#include "Algorithms/Algorithms2.hpp"
+#include "Algorithms/Algorithms3.hpp"
 
 namespace STD {
 

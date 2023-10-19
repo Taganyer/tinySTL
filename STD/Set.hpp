@@ -6,7 +6,7 @@
 #define TINYSTL_SET_HPP
 
 #include "Detail/Red_Black_Tree.hpp"
-#include "Detail/MultiRed_Balck_Tree.hpp"
+#include "Detail/MultiRed_Black_Tree.hpp"
 
 namespace STD {
 

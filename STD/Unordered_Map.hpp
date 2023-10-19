@@ -161,12 +161,12 @@ namespace STD {
             (Key_Input key_begin, const Key_Input &key_end, Val_Input val_begin, Hash_Code hash, Equal_ equal) :
             Basic(Hash(hash), Eql(equal)), hasher(hash), equal(equal) {
         Deallocate_n(array);
-        Size temp = calculate_Length(key_begin, key_end);
+        Size temp = Distance(key_begin, key_end);
         temp += temp / 5;
         if (temp < 8) temp = 8;
         buckets = temp;
         array = Allocate_n<Node *>(buckets);
-        Fill_with<Node *>(array, nullptr, buckets);
+        Fill_With(array, buckets, nullptr);
         while (key_begin != key_end) {
             auto ptr = Allocate<Node>(*key_begin, *val_begin);
             Basic::insert(ptr);
@@ -395,12 +395,12 @@ namespace STD {
             (Key_Input key_begin, const Key_Input &key_end, Val_Input val_begin, Hash_Code hash, Equal_ equal) :
             Basic(Hash(hash), Eql(equal)), hasher(hash), equal(equal) {
         Deallocate_n(array);
-        Size temp = calculate_Length(key_begin, key_end);
+        Size temp = Distance(key_begin, key_end);
         temp += temp / 5;
         if (temp < 8) temp = 8;
         buckets = temp;
         array = Allocate_n<Node *>(buckets);
-        Fill_with<Node *>(array, nullptr, buckets);
+        Fill_With(array, buckets, nullptr);
         while (key_begin != key_end) {
             auto ptr = Allocate<Node>(*key_begin, *val_begin);
             Basic::insert(ptr);

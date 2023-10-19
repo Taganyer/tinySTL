@@ -69,7 +69,7 @@ String::String(Size size, char target)
         : size_(size), val_begin(Allocate_n<char>(size + 1)) {
     val_end = val_begin + size;
     store_end = val_end + 1;
-    fill_with(val_begin, size, target);
+    Fill_With(val_begin, size, target);
     *val_end = '\0';
 }
 
@@ -77,18 +77,18 @@ String::String(const char *target, Size len) :
         size_(len), val_begin(Allocate_n<char>(len + 1)),
         store_end(val_begin + len + 1) {
     val_end = val_begin + len;
-    fill_with(val_begin, target, target + len);
+    Fill_With(val_begin, target, target + len);
     *val_end = '\0';
 }
 
 String::String(const std::initializer_list<char> &list)
         : size_(list.size()), val_begin(Allocate_n<char>(size_ + 1)),
           val_end(val_begin + list.size()), store_end(val_begin + size_ + 1) {
-    fill_with(val_begin, list);
+    Fill_With(val_begin, list);
     *val_end = '\0';
 }
 
-String::String(const char *target) : String(target, STD::calculate_Length(target)) {}
+String::String(const char *target) : String(target, STD::Get_Length(target)) {}
 
 String::String(const String &other, Size pos) : String(other.c_str() + pos) {}
 
@@ -134,7 +134,7 @@ void String::append(Size len, char t) {
     if (capacity() <= size_ + len)
         reallocate(size_ + len > size_ + size_ / 5 ?
                    size_ + len + 1 : size_ + size_ / 5 + 1);
-    fill_with(val_end, len, t);
+    Fill_With(val_end, len, t);
     size_ += len;
     val_end += len;
     *val_end = '\0';
@@ -143,14 +143,14 @@ void String::append(Size len, char t) {
 void String::append(const char *target, Size len) {
     if (capacity() - size_ - 1 < len)
         reallocate(capacity() + len + 1);
-    fill_with(val_end, target, target + len);
+    Fill_With(val_end, target, target + len);
     size_ += len;
     val_end += len;
     *val_end = '\0';
 }
 
 void String::append(const char *target) {
-    append(target, STD::calculate_Length(target));
+    append(target, STD::Get_Length(target));
 }
 
 void String::append(const char *target, Size pos, Size len) {
@@ -168,7 +168,7 @@ void String::push_back(char t) { append(t); }
 
 void String::push_back(Size len, char t) { append(len, t); }
 
-void String::push_back(const char *target) { append(target, STD::calculate_Length(target)); }
+void String::push_back(const char *target) { append(target, STD::Get_Length(target)); }
 
 void String::push_back(const char *target, Size len) { append(target, len); }
 
@@ -195,7 +195,7 @@ String::insert(Size pos, Size size, char t) {
         return Iterator(val_begin + pos);
     if (pos > size_)
         throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
-    fill_with(backward(pos, pos + size), size, t);
+    Fill_With(backward(pos, pos + size), size, t);
     return Iterator(val_begin + pos);
 }
 
@@ -205,13 +205,13 @@ String::insert(Size pos, const std::initializer_list<char> &list) {
         return Iterator(val_begin + pos);
     if (pos > size_)
         throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
-    fill_with(backward(pos, pos + list.size()), list);
+    Fill_With(backward(pos, pos + list.size()), list);
     return Iterator(val_begin + pos);
 }
 
 String::Iterator
 String::insert(Size pos, const char *target) {
-    return insert(pos, target, STD::calculate_Length(target));
+    return insert(pos, target, STD::Get_Length(target));
 }
 
 String::Iterator
@@ -220,7 +220,7 @@ String::insert(Size pos, const char *target, Size target_len) {
         return Iterator(val_begin + pos);
     if (pos > size_)
         throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
-    fill_with(backward(pos, pos + target_len), target, target + target_len);
+    Fill_With(backward(pos, pos + target_len), target, target + target_len);
     return Iterator(val_begin + pos);
 }
 
@@ -252,7 +252,7 @@ String::insert(const Iterator &iter, const std::initializer_list<char> &list) {
 
 String::Iterator
 String::insert(const Iterator &iter, const char *target) {
-    return insert(iter.target - val_begin, target, STD::calculate_Length(target));
+    return insert(iter.target - val_begin, target, STD::Get_Length(target));
 }
 
 String::Iterator
@@ -291,7 +291,7 @@ String::insert(const cIterator &iter, const std::initializer_list<char> &list) {
 String::cIterator
 String::insert(const cIterator &iter, const char *target) {
     return cIterator(insert(iter.target.target - val_begin,
-                            target, STD::calculate_Length(target)));
+                            target, STD::Get_Length(target)));
 }
 
 String::cIterator
@@ -332,7 +332,7 @@ String::insert(const rIterator &iter, Size size, char t) {
         throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
     Size pos_from = iter.target.target - val_begin + 1;
     auto ptr = backward(pos_from, pos_from + size) + size - 1;
-    rfill_with(ptr, size, t);
+    rFill_With(ptr, size, t);
     return rIterator(Iterator(ptr));
 }
 
@@ -344,7 +344,7 @@ String::insert(const rIterator &iter, const std::initializer_list<char> &list) {
         throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
     Size pos_from = iter.target.target - val_begin + 1;
     auto ptr = backward(pos_from, pos_from + list.size()) + list.size() - 1;
-    rfill_with(ptr, list);
+    rFill_With(ptr, list);
     return rIterator(Iterator(ptr));
 }
 
@@ -356,13 +356,13 @@ String::insert(const rIterator &iter, const char *target, Size target_len) {
         throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
     Size pos_from = iter.target.target - val_begin + 1;
     auto ptr = backward(pos_from, pos_from + target_len) + target_len - 1;
-    rfill_with(ptr, target, target + target_len);
+    rFill_With(ptr, target, target + target_len);
     return rIterator(Iterator(ptr));
 }
 
 String::rIterator
 String::insert(const rIterator &iter, const char *target) {
-    return insert(iter, target, STD::calculate_Length(target));
+    return insert(iter, target, STD::Get_Length(target));
 }
 
 String::rIterator
@@ -396,7 +396,7 @@ String::insert(const crIterator &iter, const std::initializer_list<char> &list) 
 String::crIterator
 String::insert(const crIterator &iter, const char *target) {
     return crIterator(insert(rIterator(iter.target), target,
-                             STD::calculate_Length(target)).target);
+                             STD::Get_Length(target)).target);
 }
 
 String::crIterator
@@ -474,7 +474,7 @@ String &String::replace(Size pos, Size len, Size n, char t) {
         backward(pos + len, pos + n);
     else if (len > n)
         forward(pos + len, pos + n);
-    fill_with(val_begin + pos, n, t);
+    Fill_With(val_begin + pos, n, t);
     return *this;
 }
 
@@ -485,7 +485,7 @@ String &String::replace(Size pos, Size len, const std::initializer_list<char> &l
         backward(pos + len, pos + list.size());
     else if (len > list.size())
         forward(pos + len, pos + list.size());
-    fill_with(val_begin + pos, list);
+    Fill_With(val_begin + pos, list);
     return *this;
 }
 
@@ -496,16 +496,16 @@ String &String::replace(Size pos, Size len, const char *target, Size target_len)
         backward(pos + len, pos + target_len);
     else if (len > target_len)
         forward(pos + len, pos + target_len);
-    fill_with(val_begin + pos, target, target + target_len);
+    Fill_With(val_begin + pos, target, target + target_len);
     return *this;
 }
 
 String &String::replace(Size pos, Size len, const char *target) {
-    return replace(pos, len, target, STD::calculate_Length(target));
+    return replace(pos, len, target, STD::Get_Length(target));
 }
 
 String &String::replace(Size pos, Size len, const String &target) {
-    return replace(pos, len, target.c_str(), STD::calculate_Length(target.c_str()));
+    return replace(pos, len, target.c_str(), STD::Get_Length(target.c_str()));
 }
 
 String &String::replace(Size pos, Size len, const String &target,
@@ -529,7 +529,7 @@ String &String::replace(const Iterator &begin, const Iterator &end,
 
 String &String::replace(const Iterator &begin, const Iterator &end, const char *target) {
     return replace(begin.target - val_begin, end - begin,
-                   target, STD::calculate_Length(target));
+                   target, STD::Get_Length(target));
 }
 
 String &String::replace(const Iterator &begin, const Iterator &end, const String &target) {
@@ -559,7 +559,7 @@ String &String::replace(const cIterator &begin, const cIterator &end,
 
 String &String::replace(const cIterator &begin, const cIterator &end, const char *target) {
     return replace(begin.target.target - val_begin, end - begin,
-                   target, STD::calculate_Length(target));
+                   target, STD::Get_Length(target));
 }
 
 String &String::replace(const cIterator &begin, const cIterator &end, const String &target) {
@@ -588,14 +588,14 @@ String &String::replace(const rIterator &begin, const rIterator &end,
         Size pos_from = end.target.target - val_begin + len + 1;
         Size pos_to = pos_from + list.size() - len;
         backward(pos_from, pos_to);
-        rfill_with(val_begin + pos_to - 1, list);
+        rFill_With(val_begin + pos_to - 1, list);
     } else if (len > list.size()) {
         Size pos_from = begin.target.target - val_begin + 1;
         Size pos_to = pos_from + list.size() - len;
         forward(pos_from, pos_to);
-        rfill_with(val_begin + pos_to - 1, list);
+        rFill_With(val_begin + pos_to - 1, list);
     } else
-        rfill_with(begin.target.target, list);
+        rFill_With(begin.target.target, list);
     return *this;
 }
 
@@ -609,19 +609,19 @@ String &String::replace(const rIterator &begin, const rIterator &end, const char
         Size pos_from = end.target.target - val_begin + len + 1;
         Size pos_to = pos_from + target_len - len;
         backward(pos_from, pos_to);
-        rfill_with(val_begin + pos_to - 1, target, target + target_len);
+        rFill_With(val_begin + pos_to - 1, target, target + target_len);
     } else if (len > target_len) {
         Size pos_from = begin.target.target - val_begin + 1;
         Size pos_to = pos_from + target_len - len;
         forward(pos_from, pos_to);
-        rfill_with(val_begin + pos_to - 1, target, target + target_len);
+        rFill_With(val_begin + pos_to - 1, target, target + target_len);
     } else
-        rfill_with(begin.target.target, target, target + target_len);
+        rFill_With(begin.target.target, target, target + target_len);
     return *this;
 }
 
 String &String::replace(const rIterator &begin, const rIterator &end, const char *target) {
-    return replace(begin, end, target, STD::calculate_Length(target));
+    return replace(begin, end, target, STD::Get_Length(target));
 }
 
 String &String::replace(const rIterator &begin, const rIterator &end, const String &target) {
@@ -650,7 +650,7 @@ String &String::replace(const crIterator &begin, const crIterator &end,
 
 String &String::replace(const crIterator &begin, const crIterator &end, const char *target) {
     return replace(rIterator(begin.target), rIterator(end.target),
-                   target, STD::calculate_Length(target));
+                   target, STD::Get_Length(target));
 }
 
 String &String::replace(const crIterator &begin, const crIterator &end, const String &target) {
@@ -672,7 +672,7 @@ String &String::operator=(const String &other) {
     size_ = other.size_;
     val_end = val_begin + other.size_;
     store_end = val_end + 1;
-    fill_with(val_begin, other.val_begin, other.val_end);
+    Fill_With(val_begin, other.val_begin, other.val_end);
     *val_end = '\0';
     return *this;
 }
@@ -701,7 +701,7 @@ String &String::operator*=(int size) {
     Size new_size = size_ * size;
     auto ptr = Allocate_n<char>(new_size + 1), temp = ptr;
     for (int i = 0; i < size; ++i) {
-        fill_with(temp, val_begin, val_end);
+        Fill_With(temp, val_begin, val_end);
         temp += size_;
     }
     Deallocate_n(val_begin);
@@ -716,8 +716,8 @@ String &String::operator*=(int size) {
 String STD::operator+(const String &left, const String &right) {
     auto ptr = Allocate_n<char>(left.size_ + right.size_ + 1);
     String target;
-    fill_with(ptr, left.val_begin, left.val_end);
-    fill_with(ptr + left.size_, right.val_begin, right.val_end);
+    Fill_With(ptr, left.val_begin, left.val_end);
+    Fill_With(ptr + left.size_, right.val_begin, right.val_end);
     target.size_ = left.size_ + right.size_;
     target.val_begin = ptr;
     target.val_end = ptr + target.size_;
@@ -733,7 +733,7 @@ String STD::operator*(const String &target, int size) {
     target_.size_ = size * target.size_;
     auto ptr = Allocate_n<char>(target_.size_ + 1), temp = ptr;
     for (int i = 0; i < size; ++i) {
-        fill_with(temp, target.val_begin, target.val_end);
+        Fill_With(temp, target.val_begin, target.val_end);
         temp += target.size_;
     }
     target_.val_begin = ptr;
@@ -888,7 +888,7 @@ Size String::find_first_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
         throw outOfRange("You selected an out-of-range basic in the 'String::find_first_of' function");
     bool store[256];
-    Fill_with(store, false, 256);
+    Fill_With(store, 256, false);
     for (int i = 0; i < size; ++i)
         store[target[i]] = true;
     auto temp = val_begin + pos;
@@ -901,7 +901,7 @@ Size String::find_first_of(const char *target, Size pos, Size size) const {
 }
 
 Size String::find_first_of(const char *target, Size pos) const {
-    return find_first_of(target, pos, STD::calculate_Length(target));
+    return find_first_of(target, pos, STD::Get_Length(target));
 }
 
 Size String::find_first_of(const String &target, Size pos) const {
@@ -918,7 +918,7 @@ Size String::find_last_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
         throw outOfRange("You selected an out-of-range basic in the 'String::find_last_of' function");
     bool store[256];
-    Fill_with(store, false, 256);
+    Fill_With(store, 256, false);
     for (int i = 0; i < size; ++i)
         store[target[i]] = true;
     auto temp = val_end - 1;
@@ -931,7 +931,7 @@ Size String::find_last_of(const char *target, Size pos, Size size) const {
 }
 
 Size String::find_last_of(const char *target, Size pos) const {
-    return find_last_of(target, pos, STD::calculate_Length(target));
+    return find_last_of(target, pos, STD::Get_Length(target));
 }
 
 Size String::find_last_of(const String &target, Size pos) const {
@@ -948,7 +948,7 @@ Size String::find_first_not_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
         throw outOfRange("You selected an out-of-range basic in the 'String::find_first_not_of' function");
     bool store[256];
-    Fill_with(store, true, 256);
+    Fill_With(store, 256, true);
     for (int i = 0; i < size; ++i)
         store[target[i]] = false;
     auto temp = val_begin + pos;
@@ -961,7 +961,7 @@ Size String::find_first_not_of(const char *target, Size pos, Size size) const {
 }
 
 Size String::find_first_not_of(const char *target, Size pos) const {
-    return find_first_not_of(target, pos, STD::calculate_Length(target));
+    return find_first_not_of(target, pos, STD::Get_Length(target));
 }
 
 Size String::find_first_not_of(const String &target, Size pos) const {
@@ -978,7 +978,7 @@ Size String::find_last_not_of(const char *target, Size pos, Size size) const {
     if (pos >= size_)
         throw outOfRange("You selected an out-of-range basic in the 'String::find_last_not_of' function");
     bool store[256];
-    Fill_with(store, true, 256);
+    Fill_With(store, 256, true);
     for (int i = 0; i < size; ++i)
         store[target[i]] = false;
     auto temp = val_end - 1;
@@ -991,7 +991,7 @@ Size String::find_last_not_of(const char *target, Size pos, Size size) const {
 }
 
 Size String::find_last_not_of(const char *target, Size pos) const {
-    return find_last_not_of(target, pos, calculate_Length(target));
+    return find_last_not_of(target, pos, Get_Length(target));
 }
 
 Size String::find_last_not_of(const String &target, Size pos) const {
@@ -1019,11 +1019,11 @@ int String::compare(Size pos1, Size n1, const char *target, Size n2) const {
 }
 
 int String::compare(Size pos1, Size n1, const char *target) const {
-    return compare(pos1, n1, target, STD::calculate_Length(target));
+    return compare(pos1, n1, target, STD::Get_Length(target));
 }
 
 int String::compare(const char *target) const {
-    return compare(0, size_, target, STD::calculate_Length(target));
+    return compare(0, size_, target, STD::Get_Length(target));
 }
 
 int String::compare(Size pos1, Size n1, const String &target, Size pos2,

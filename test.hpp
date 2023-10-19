@@ -10,7 +10,7 @@
 #include "STD/Forward_List.hpp"
 #include "STD/Deque.hpp"
 #include "STD/Algorithms.hpp"
-//#include "STD/Stack.hpp"
+#include "STD/Stack.hpp"
 #include "STD/Queue.hpp"
 #include "STD/List.hpp"
 #include "STD/Array.hpp"
@@ -22,7 +22,7 @@
 #include "STD/Detail/Hashtable.hpp"
 #include "STD/Unordered_Map.hpp"
 #include "STD/Unordered_Set.hpp"
-#include "STD/Detail/MultiRed_Balck_Tree.hpp"
+#include "STD/Detail/MultiRed_Black_Tree.hpp"
 #include "STD/Memory.hpp"
 #include <iostream>
 #include "STD/Tuple.hpp"
@@ -553,10 +553,10 @@ namespace STD {
     }
 
     void Ptr_test() {
-        Shared_ptr<int> test(new int(1)), test2(test), test3(new int(3));
+        Shared_ptr<int> test(new int(1));
+        Shared_ptr<int> test2(move(test));
         *test2;
         cout << *test << endl;
-        test = test3;
         cout << test.use_count() << endl;
         cout << test2.use_count() << endl;
         test2 = test;
@@ -574,17 +574,19 @@ namespace STD {
         };
 
         auto *temp = new B();
-        Shared_ptr<A> t1(temp), t2(new A());
-        Shared_ptr<void> t3(t1);
-        Shared_ptr<B> t4 = dynamic_pointer_cast<B>(t1);
-        Shared_ptr<A> t5(t4);
-        t2->show();
-        t5->show();
-
-        A *ptr1 = t2.get();
+        {
+            Shared_ptr<A> t1(temp), t2(new A());
+            {
+                Shared_ptr<void> t3(t1);
+                {
+                    Shared_ptr<B> t4 = dynamic_pointer_cast<B>(t1);
+                    { Shared_ptr<A> t5(t4); }
+                }
+            }
+        }
         Unique_ptr<A> ta = Unique_ptr<B>(nullptr);
-        Unique_ptr<void> void_t;
-        void_t = move(ta);
+//        Unique_ptr<void, Default_delete<A>> void_t(move(ta));
+//        void_t = move(ta);
     }
 
     void Tuple_test() {

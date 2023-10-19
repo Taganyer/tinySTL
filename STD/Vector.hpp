@@ -5,10 +5,9 @@
 #ifndef TINYSTL_VECTOR_HPP
 #define TINYSTL_VECTOR_HPP
 
-#include "Algorithms/source/Container_algorithms.hpp"
+#include "Algorithms/Container_algorithms.hpp"
 #include "Iterator.hpp"
 #include "Allocater.hpp"
-#include "Detail/Hashcode.hpp"
 
 namespace STD {
 
@@ -357,24 +356,24 @@ namespace STD {
             val_begin(Allocate_n<Arg>(size + size / 5)), size_(size) {
         val_end = val_begin + size;
         store_end = val_begin + size + size / 5;
-        fill_with(val_begin, size, target);
+        Fill_With(val_begin, size, target);
     }
 
     template<typename Arg>
     Vector<Arg>::Vector(const std::initializer_list<Arg> &list) :
             size_(list.size()), val_begin(Allocate_n<Arg>(size_)),
             val_end(val_begin + list.size()) {
-        fill_with(val_begin, list);
+        Fill_With(val_begin, list);
         store_end = val_end;
     }
 
     template<typename Arg>
     template<typename Input_iterator>
     Vector<Arg>::Vector(const Input_iterator &begin, const Input_iterator &end) :
-            size_(get_size(begin, end)) {
+            size_(Detail::Get_Size(begin, end)) {
         val_begin = Allocate_n<Arg>(size_);
         store_end = val_end = val_begin + size_;
-        fill_with(val_begin, begin, end);
+        Fill_With(val_begin, begin, end);
     }
 
     template<typename Arg>
@@ -382,7 +381,7 @@ namespace STD {
             size_(other.size_), val_begin(Allocate_n<Arg>(other.capacity())) {
         val_end = val_begin + size_;
         store_end = val_begin + other.capacity();
-        fill_with(val_begin, other.val_begin, other.val_end);
+        Fill_With(val_begin, other.val_begin, other.val_end);
     }
 
     template<typename Arg>
@@ -454,7 +453,7 @@ namespace STD {
             return;
         }
         auto temp = Allocate_n<Arg>(size_);
-        fill_with(temp, val_begin, val_end);
+        Fill_With(temp, val_begin, val_end);
         Deallocate_n(val_begin);
         val_begin = temp;
         store_end = val_end = temp + size_;
@@ -464,7 +463,7 @@ namespace STD {
     Vector<Arg> &Vector<Arg>::assign(Size size, const Arg &val) {
         Deallocate_n(val_begin);
         val_begin = Allocate_n<Arg>(size);
-        fill_with(val_begin, size, val);
+        Fill_With(val_begin, size, val);
         store_end = val_end = val_begin + size;
         size_ = size;
         return *this;
@@ -474,9 +473,9 @@ namespace STD {
     template<typename Input_iterator>
     Vector<Arg> &Vector<Arg>::assign(const Input_iterator &begin, const Input_iterator &end) {
         Deallocate_n(val_begin);
-        size_ = get_size(begin, end);
+        size_ = Detail::Get_Size(begin, end);
         val_begin = Allocate_n<Arg>(size_);
-        fill_with(val_begin, begin, end);
+        Fill_With(val_begin, begin, end);
         store_end = val_end = val_begin + size_;
         return *this;
     }
@@ -513,7 +512,7 @@ namespace STD {
     void Vector<Arg>::push_back(Size size, const Arg &val) {
         if (capacity() - size_ < size)
             reallocate(capacity() + size);
-        fill_with(val_end, size, val);
+        Fill_With(val_end, size, val);
         size_ += size;
         val_end += size;
     }
@@ -521,10 +520,10 @@ namespace STD {
     template<typename Arg>
     template<typename Input_iterator>
     void Vector<Arg>::push_back(const Input_iterator &begin, const Input_iterator &end) {
-        Size count = get_size(begin, end);
+        Size count = Detail::Get_Size(begin, end);
         if (capacity() - size_ < count)
             reallocate(capacity() + count);
-        fill_with(val_end, begin, end);
+        Fill_With(val_end, begin, end);
         size_ += count;
         val_end += count;
     }
@@ -611,7 +610,7 @@ namespace STD {
         if (pos > size_)
             throw outOfRange("You passed an out-of-range basic in the 'Vector::insert' function");
         if (!size) return Iterator(val_begin + pos);
-        fill_with(backward(pos, pos + size), val, size);
+        Fill_With(backward(pos, pos + size), val, size);
         return Iterator(val_begin + pos);
     }
 
@@ -621,7 +620,7 @@ namespace STD {
         if (!list.size()) return Vector<Arg>::Iterator(val_begin + pos);
         if (pos > size_)
             throw outOfRange("You passed an out-of-range basic in the 'Vector::insert' function");
-        fill_with(backward(pos, pos + list.size()), list);
+        Fill_With(backward(pos, pos + list.size()), list);
         return Iterator(val_begin + pos);
     }
 
@@ -631,9 +630,9 @@ namespace STD {
     Vector<Arg>::insert(Size pos, const Input_iterator &begin, const Input_iterator &end) {
         if (pos > size_)
             throw outOfRange("You passed an out-of-range basic in the 'Vector::insert' function");
-        Size size = get_size(begin, end);
+        Size size = Detail::Get_Size(begin, end);
         if (!size) return Iterator(val_begin + pos);
-        fill_with(backward(pos, pos + size), begin, end);
+        Fill_With(backward(pos, pos + size), begin, end);
         return Iterator(val_begin + pos);
     }
 
@@ -683,7 +682,7 @@ namespace STD {
         Size pos_from = pos.target.target - val_begin + 1;
         Size pos_to = pos_from + size;
         auto ptr = backward(pos_from, pos_to);
-        fill_with(ptr, val, size);
+        Fill_With(ptr, val, size);
         return rIterator(Iterator(ptr + size - 1));
     }
 
@@ -697,7 +696,7 @@ namespace STD {
         Size pos_from = pos.target.target - val_begin + 1;
         Size pos_to = pos_from + target_len;
         auto ptr = backward(pos_from, pos_to) + target_len - 1;
-        rfill_with(ptr, list);
+        rFill_With(ptr, list);
         return rIterator(Iterator(ptr));
     }
 
@@ -707,11 +706,11 @@ namespace STD {
     Vector<Arg>::insert(const rIterator &pos, const Input_iterator &begin, const Input_iterator &end) {
         if (pos.target.target < val_begin - 1 || pos.target.target >= val_end)
             throw outOfRange("You passed in an out-of-range iterator in the 'Vector::insert' function");
-        Size target_len = get_size(begin, end);
+        Size target_len = Detail::Get_Size(begin, end);
         Size pos_from = pos.target.target - val_begin + 1;
         Size pos_to = pos_from + target_len;
         auto ptr = backward(pos_from, pos_to) + target_len - 1;
-        rfill_with(ptr, begin, end);
+        rFill_With(ptr, begin, end);
         return rIterator(Iterator(ptr));
     }
 
@@ -811,7 +810,7 @@ namespace STD {
         val_begin = Allocate_n<Arg>(other.capacity());
         val_end = val_begin + size_;
         store_end = val_begin + other.capacity();
-        fill_with(val_begin, other.val_begin, other.val_end);
+        Fill_With(val_begin, other.val_begin, other.val_end);
         return *this;
     }
 

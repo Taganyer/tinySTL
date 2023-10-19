@@ -5,7 +5,6 @@
 #ifndef TINYSTL_BITSET_HPP
 #define TINYSTL_BITSET_HPP
 
-#include "Config.hpp"
 #include "String.hpp"
 
 namespace STD {
@@ -22,7 +21,7 @@ namespace STD {
 
         template<typename Chart = char>
         explicit BitSet(const char *target, Size pos = 0, Size len = -1, Chart zero = '0', Chart one = '1') {
-            if (len == -1) len = calculate_Length(target + pos);
+            if (len == -1) len = Get_Length(target + pos);
             Size size = len > size_ ? size_ : len;
             for (Size i = 0; i < size_ - size; ++i) value[i] = false;
             for (Size i = pos + len, j = size_ - size; j < size && i; ++j) {

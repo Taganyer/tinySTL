@@ -56,16 +56,6 @@ namespace STD {
         }
     };
 
-    template<typename Arg>
-    void Fill_with(Arg *target, const Arg &val, Size size) {
-        while (size) {
-            *target = val;
-            ++target, --size;
-        }
-    }
-
-    void MemSet(void *target, int val, Size size);
-
     template<typename First, typename Second>
     struct Pair {
         First first;

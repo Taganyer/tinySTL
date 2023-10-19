@@ -67,48 +67,37 @@ namespace STD {
         }
     }
 
-    template<typename Input_iterator, typename Compare>
-    void Sort_Helper(const Input_iterator &begin, const Input_iterator &end,
-                     Compare fun, Random_iterator_tag) {
-        if (end - begin <= 30) {
-            Bubble_Sort(begin, end, fun);
-        } else if (end - begin < 100000){
-            Quick_Sort(begin, end, fun);
-        } else {
-            Heap_Sort(begin, end, fun);
+    namespace Detail {
+        template<typename Input_iterator, typename Compare>
+        void Sort_Helper(const Input_iterator &begin, const Input_iterator &end,
+                         Compare fun, Random_iterator_tag) {
+            if (end - begin <= 30) {
+                Bubble_Sort(begin, end, fun);
+            } else if (end - begin < 100000) {
+                Quick_Sort(begin, end, fun);
+            } else {
+                Heap_Sort(begin, end, fun);
+            }
         }
-    }
 
-    template<typename Input_iterator, typename Compare>
-    void Sort_Helper(const Input_iterator &begin, const Input_iterator &end,
-                     Compare fun, Bidirectional_iterator_tag) {
-        Quick_Sort(begin, end, fun);
-    }
+        template<typename Input_iterator, typename Compare>
+        void Sort_Helper(const Input_iterator &begin, const Input_iterator &end,
+                         Compare fun, Bidirectional_iterator_tag) {
+            Quick_Sort(begin, end, fun);
+        }
 
-    template<typename Input_iterator, typename Compare>
-    void Sort_Helper(const Input_iterator &begin, const Input_iterator &end,
-                     Compare fun, Forward_iterator_tag) {
-        Bubble_Sort(begin, end, fun);
+        template<typename Input_iterator, typename Compare>
+        void Sort_Helper(const Input_iterator &begin, const Input_iterator &end,
+                         Compare fun, Forward_iterator_tag) {
+            Bubble_Sort(begin, end, fun);
+        }
     }
 
     template<typename Input_iterator,
             typename Compare = Less<typename Iterator_traits<Input_iterator>::Value_type>>
     void Sort(const Input_iterator &begin, const Input_iterator &end,
               Compare fun = Less<typename Iterator_traits<Input_iterator>::Value_type>()) {
-        Sort_Helper(begin, end, fun, Iterator_category(begin));
-    }
-
-    template<typename Random_iterator, typename Arg>
-    Random_iterator
-    Binary_Search(Random_iterator begin, Random_iterator end, const Arg& target) {
-        --end;
-        while (begin <= end) {
-            Random_iterator mid = begin + (end - begin) / 2;
-            if (target == *mid) return mid;
-            else if (target < *mid) end = --mid;
-            else begin = ++mid;
-        }
-        return begin;
+        Detail::Sort_Helper(begin, end, fun, Iterator_category(begin));
     }
 
 

@@ -2,8 +2,8 @@
 // Created by 86152 on 2023/10/9.
 //
 
-#ifndef TINYSTL_MULTIRED_BALCK_TREE_HPP
-#define TINYSTL_MULTIRED_BALCK_TREE_HPP
+#ifndef TINYSTL_MULTIRED_BLACK_TREE_HPP
+#define TINYSTL_MULTIRED_BLACK_TREE_HPP
 
 #include "../Iterator.hpp"
 #include "../Allocater.hpp"
@@ -870,4 +870,4 @@ namespace STD {
 
 }
 
-#endif //TINYSTL_MULTIRED_BALCK_TREE_HPP
+#endif //TINYSTL_MULTIRED_BLACK_TREE_HPP

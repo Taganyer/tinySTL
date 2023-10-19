@@ -124,7 +124,8 @@ namespace STD {
         void release() const {
             if (!basic) return;
             --basic->shared_ptr_count;
-            if (basic->release(value, true)) Deallocate(basic);
+            if (basic->release(value, true))
+                Deallocate(basic);
         };
 
     public:
@@ -134,6 +135,11 @@ namespace STD {
                 basic = Allocate<Detail::Value<Arg, Deleter>>(del);
                 ++basic->shared_ptr_count;
             } else basic = nullptr;
+        };
+
+        //注意，这个函数必不可少，在复制和自身相同的类时，下面的万能模板构造函数并不会被调用。
+        Shared_ptr(const Shared_ptr<Arg> &other) : basic(other.basic), value(other.value) {
+            if (basic) ++basic->shared_ptr_count;
         };
 
         template<typename Type>
@@ -148,14 +154,25 @@ namespace STD {
             release();
             basic = Allocate<Detail::Value<Arg, Del>>(del);
             value = ptr;
+            ++basic->shared_ptr_count;
         };
 
         template<typename Type>
         void reset(const Shared_ptr<Type> &other) {
+            if (basic == other.basic) return;
             release();
             if (other.basic) ++other.basic->shared_ptr_count;
             basic = other.basic;
             value = other.value;
+        };
+
+        Shared_ptr<Arg> &operator=(const Shared_ptr<Arg> &other) {
+            if (basic == other.basic) return *this;
+            release();
+            if (other.basic) ++other.basic->shared_ptr_count;
+            basic = other.basic;
+            value = other.value;
+            return *this;
         };
 
         template<typename Type>
@@ -246,11 +263,16 @@ namespace STD {
         void release() const {
             if (!basic) return;
             --basic->shared_ptr_count;
-            if (basic->release(value, true)) Deallocate(basic);
+            if (basic->release(value, true))
+                Deallocate(basic);
         };
 
     public:
         Shared_ptr() = default;
+
+        Shared_ptr(const Shared_ptr<void> &other) : basic(other.basic), value(other.value) {
+            if (basic) ++basic->shared_ptr_count;
+        };
 
         template<typename Arg>
         explicit Shared_ptr(const Shared_ptr<Arg> &other) : basic(other.basic), value(other.value) {
@@ -264,14 +286,25 @@ namespace STD {
             release();
             basic = Allocate<Detail::Value<Arg, Del>>(del);
             value = ptr;
+            ++basic->shared_ptr_count;
         };
 
         template<typename Arg>
         void reset(const Shared_ptr<Arg> &other) {
+            if (basic == other.basic) return;
             release();
             if (other.basic) ++other.basic->shared_ptr_count;
             basic = other.basic;
             value = other.value;
+        };
+
+        Shared_ptr<void> &operator=(const Shared_ptr<void> &other) {
+            if (basic == other.basic) return *this;
+            release();
+            if (other.basic) ++other.basic->shared_ptr_count;
+            basic = other.basic;
+            value = other.value;
+            return *this;
         };
 
         template<typename Arg>
@@ -358,6 +391,10 @@ namespace STD {
     public:
         Shared_ptr() = default;
 
+        Shared_ptr(const Shared_ptr<const void> &other) : basic(other.basic), value(other.value) {
+            if (basic) ++basic->shared_ptr_count;
+        };
+
         template<typename Arg>
         explicit Shared_ptr(const Shared_ptr<Arg> &other) : basic(other.basic), value(other.value) {
             if (basic) ++basic->shared_ptr_count;
@@ -370,14 +407,25 @@ namespace STD {
             release();
             basic = Allocate<Detail::Value<Arg, Del>>(del);
             value = ptr;
+            ++basic->shared_ptr_count;
         };
 
         template<typename Arg>
         void reset(const Shared_ptr<Arg> &other) {
+            if (basic == other.basic) return;
             release();
             if (other.basic) ++other.basic->shared_ptr_count;
             basic = other.basic;
             value = other.value;
+        };
+
+        Shared_ptr<const void> &operator=(const Shared_ptr<const void> &other) {
+            if (basic == other.basic) return *this;
+            release();
+            if (other.basic) ++other.basic->shared_ptr_count;
+            basic = other.basic;
+            value = other.value;
+            return *this;
         };
 
         template<typename Arg>
@@ -408,9 +456,10 @@ namespace STD {
         template<typename Target, typename Object>
         inline friend Shared_ptr<Target> reinterpret_pointer_cast(const Shared_ptr<Object> &object) noexcept;
 
+        // 编译器会自动调用该类型转换（默认使用static_pointer_cast实现），可能会有意外的转化结果。
         template<typename Other>
         operator Shared_ptr<Other>() const {
-            return STD::static_pointer_cast<Other, void>(*this);
+            return STD::static_pointer_cast<Other, const void>(*this);
         };
 
         operator bool() const {
@@ -475,316 +524,6 @@ namespace STD {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-    template<typename Arg, typename Deleter = Default_delete<Arg>>
-    class Unique_ptr {
-    private:
-        Arg *target = nullptr;
-
-        Deleter deleter;
-
-    public:
-        Unique_ptr(Arg *target = nullptr, Deleter deleter = Deleter()) : target(target), deleter(deleter) {};
-
-        Unique_ptr(const Arg &value, Deleter deleter = Deleter()) :
-                target(new Arg(value)), deleter(deleter) {};
-
-        Unique_ptr(Arg &&value, Deleter deleter = Deleter()) :
-                target(new Arg(move(value))), deleter(deleter) {};
-
-        Unique_ptr(const Unique_ptr<Arg, Deleter> &) = delete;
-
-        Unique_ptr(Unique_ptr<Arg, Deleter> &&other) noexcept:
-                target(other.target), deleter(other.deleter) {
-            other.target = nullptr;
-        };
-
-        template<typename Type, typename T_Deleter>
-        Unique_ptr(Unique_ptr<Type, T_Deleter> &&other, Deleter deleter = Deleter()) noexcept :
-                target(other.target), deleter(deleter) {
-            other.target = nullptr;
-        }
-
-        ~Unique_ptr() { deleter(target); };
-
-        Arg &operator*() const {
-            return *target;
-        }
-
-        Arg *operator->() const {
-            return target;
-        }
-
-        Arg &operator[](Step index) const {
-            return *(target + index);
-        }
-
-        Arg *get() const { return target; };
-
-        Arg *release() {
-            Arg *temp = target;
-            target = nullptr;
-            return temp;
-        }
-
-        void reset(Arg *other = nullptr) {
-            deleter(target);
-            target = other;
-        };
-
-        Unique_ptr<Arg, Deleter>
-        &operator=(const Unique_ptr<Arg, Deleter> &) = delete;
-
-        Unique_ptr<Arg, Deleter>
-        &operator=(Unique_ptr<Arg, Deleter> &&other) noexcept {
-            deleter(target);
-            target = other.target;
-            other.target = nullptr;
-            return *this;
-        }
-
-        template<typename Type, typename T_Deleter>
-        Unique_ptr<Arg, Deleter>
-        &operator=(Unique_ptr<Type, T_Deleter> &&other) noexcept {
-            target = other.target;
-            other.target = nullptr;
-            return *this;
-        }
-
-        operator bool() const {
-            return target;
-        }
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator==(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator!=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator<(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator<=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator>(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator>=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Deleter1, typename Deleter2>
-        friend Ptrdiff operator-(const Unique_ptr<Arg, Deleter1> &left, const Unique_ptr<Arg, Deleter2> &right) {
-            return left.target - right.target;
-        }
-
-        template<typename Type, typename T_Deleter>
-        friend
-        class Unique_ptr;
-
-    };
-
-    template<typename Deleter>
-    class Unique_ptr<void, Deleter> {
-    private:
-        void *target = nullptr;
-
-        Deleter deleter = Deleter();
-
-    public:
-        explicit Unique_ptr(Deleter deleter = Deleter()) : deleter(deleter) {};
-
-        Unique_ptr(const Unique_ptr<void, Deleter> &) = delete;
-
-        Unique_ptr(Unique_ptr<void, Deleter> &&other) noexcept:
-                target(other.target), deleter(other.deleter) {
-            other.target = nullptr;
-        };
-
-        template<typename Type, typename T_Deleter>
-        Unique_ptr(Unique_ptr<Type, T_Deleter> &&other, Deleter deleter = Deleter()) noexcept :
-                target(other.target), deleter(deleter) {
-            other.target = nullptr;
-        }
-
-        ~Unique_ptr() { deleter(target); };
-
-        void *get() const { return target; };
-
-        void *release() {
-            void *temp = target;
-            target = nullptr;
-            return temp;
-        }
-
-        void reset(void *other = nullptr) {
-            deleter(target);
-            target = other;
-        };
-
-        Unique_ptr<void, Deleter>
-        &operator=(const Unique_ptr<void, Deleter> &) = delete;
-
-        Unique_ptr<void, Deleter>
-        &operator=(Unique_ptr<void, Deleter> &&other) noexcept {
-            deleter(target);
-            target = other.target;
-            other.target = nullptr;
-            return *this;
-        }
-
-        template<typename Type, typename T_Deleter>
-        Unique_ptr<void, Deleter>
-        &operator=(Unique_ptr<Type, T_Deleter> &&other) noexcept {
-            target = other.target;
-            other.target = nullptr;
-            return *this;
-        }
-
-        operator bool() const {
-            return target;
-        }
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator==(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator!=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator<(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator<=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator>(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator>=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Type, typename T_Deleter>
-        friend
-        class Unique_ptr;
-
-    };
-
-    template<typename Deleter>
-    class Unique_ptr<const void, Deleter> {
-    private:
-        const void *target = nullptr;
-
-        Deleter deleter = Deleter();
-
-    public:
-        explicit Unique_ptr(Deleter deleter = Deleter()) : deleter(deleter) {};
-
-        Unique_ptr(const Unique_ptr<const void, Deleter> &) = delete;
-
-        Unique_ptr(Unique_ptr<const void, Deleter> &&other) noexcept:
-                target(other.target), deleter(other.deleter) {
-            other.target = nullptr;
-        };
-
-        template<typename Type, typename T_Deleter>
-        Unique_ptr(Unique_ptr<Type, T_Deleter> &&other, Deleter deleter = Deleter()) noexcept :
-                target(other.target), deleter(deleter) {
-            other.target = nullptr;
-        }
-
-        ~Unique_ptr() { deleter(target); };
-
-        const void *get() const { return target; };
-
-        const void *release() {
-            const void *temp = target;
-            target = nullptr;
-            return temp;
-        }
-
-        void reset(const void *other = nullptr) {
-            deleter(target);
-            target = other;
-        };
-
-        Unique_ptr<void, Deleter>
-        &operator=(const Unique_ptr<void, Deleter> &) = delete;
-
-        Unique_ptr<void, Deleter>
-        &operator=(Unique_ptr<void, Deleter> &&other) noexcept {
-            deleter(target);
-            target = other.target;
-            other.target = nullptr;
-            return *this;
-        }
-
-        template<typename Type, typename T_Deleter>
-        Unique_ptr<void, Deleter>
-        &operator=(Unique_ptr<Type, T_Deleter> &&other) noexcept {
-            target = other.target;
-            other.target = nullptr;
-            return *this;
-        }
-
-        operator bool() const {
-            return target;
-        }
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator==(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator!=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator<(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator<=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator>(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-        friend inline bool operator>=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
-
-        template<typename Type, typename T_Deleter>
-        friend
-        class Unique_ptr;
-
-    };
-
-    template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-    inline bool operator==(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right) {
-        return left.target == right.target;
-    }
-
-    template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-    inline bool operator!=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right) {
-        return left.target != right.target;
-    }
-
-    template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-    inline bool operator<(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right) {
-        return left.target < right.target;
-    }
-
-    template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-    inline bool operator<=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right) {
-        return left.target <= right.target;
-    }
-
-    template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-    inline bool operator>(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right) {
-        return left.target > right.target;
-    }
-
-    template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
-    inline bool operator>=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right) {
-        return left.target >= right.target;
-    }
-
-//----------------------------------------------------------------------------------------------------------------------
-
     template<typename Arg>
     class Weak_ptr {
     private:
@@ -810,8 +549,13 @@ namespace STD {
             if (basic) ++basic->weak_ptr_count;
         };
 
+        //注意，这个函数必不可少，在复制和自身相同的类时，下面的万能模板构造函数并不会被调用。
+        Weak_ptr(const Weak_ptr<Arg> &other) : basic(other.basic), value(other.value) {
+            if (basic) ++basic->weak_ptr_count;
+        };
+
         template<typename Type>
-        explicit Weak_ptr(const Weak_ptr<Type> &ptr) : basic(ptr.basic), value(ptr.value) {
+        explicit Weak_ptr(const Weak_ptr<Type> &other) : basic(other.basic), value(other.value) {
             if (basic) ++basic->weak_ptr_count;
         };
 
@@ -820,6 +564,16 @@ namespace STD {
         bool expired() const { return !basic->shared_ptr_count; };
 
         Weak_ptr<Arg> &operator=(const Weak_ptr<Arg> &other) {
+            if (basic == other.basic) return *this;
+            release();
+            if (other.basic) ++other.basic->weak_ptr_count;
+            basic = other.basic;
+            value = other.value;
+            return *this;
+        };
+
+        template<typename Type>
+        Weak_ptr<Arg> &operator=(const Weak_ptr<Type> &other) {
             if (basic == other.basic) return *this;
             release();
             if (other.basic) ++other.basic->weak_ptr_count;
@@ -934,14 +688,27 @@ namespace STD {
             if (basic) ++basic->weak_ptr_count;
         };
 
+        Weak_ptr(const Weak_ptr<void> &other) : basic(other.basic), value(other.value) {
+            if (basic) ++basic->weak_ptr_count;
+        };
+
         template<typename Type>
-        explicit Weak_ptr(const Weak_ptr<Type> &ptr) : basic(ptr.basic), value(ptr.value) {
+        explicit Weak_ptr(const Weak_ptr<Type> &other) : basic(other.basic), value(other.value) {
             if (basic) ++basic->weak_ptr_count;
         };
 
         ~Weak_ptr() { release(); };
 
         bool expired() const { return !basic->shared_ptr_count; };
+
+        Weak_ptr<void> &operator=(const Weak_ptr<void> &other) {
+            if (basic == other.basic) return *this;
+            release();
+            if (other.basic) ++other.basic->weak_ptr_count;
+            basic = other.basic;
+            value = other.value;
+            return *this;
+        };
 
         template<typename Arg>
         Weak_ptr<void> &operator=(const Weak_ptr<Arg> &other) {
@@ -994,6 +761,12 @@ namespace STD {
         template<typename Target, typename Object>
         friend Weak_ptr<Target> reinterpret_pointer_cast(const Weak_ptr<Object> &object) noexcept;
 
+        // 编译器会自动调用该类型转换（默认使用static_pointer_cast实现），可能会有意外的转化结果。
+        template<typename Other>
+        operator Weak_ptr<Other>() const {
+            return STD::static_pointer_cast<Other, void>(*this);
+        }
+
         operator bool() const {
             return basic;
         }
@@ -1043,14 +816,27 @@ namespace STD {
             if (basic) ++basic->weak_ptr_count;
         };
 
+        Weak_ptr(const Weak_ptr<const void> &other) : basic(other.basic), value(other.value) {
+            if (basic) ++basic->weak_ptr_count;
+        };
+
         template<typename Type>
-        explicit Weak_ptr(const Weak_ptr<Type> &ptr) : basic(ptr.basic), value(ptr.value) {
+        explicit Weak_ptr(const Weak_ptr<Type> &other) : basic(other.basic), value(other.value) {
             if (basic) ++basic->weak_ptr_count;
         };
 
         ~Weak_ptr() { release(); };
 
         bool expired() const { return !basic->shared_ptr_count; };
+
+        Weak_ptr<const void> &operator=(const Weak_ptr<const void> &other) {
+            if (basic == other.basic) return *this;
+            release();
+            if (other.basic) ++other.basic->weak_ptr_count;
+            basic = other.basic;
+            value = other.value;
+            return *this;
+        };
 
         template<typename Arg>
         Weak_ptr<const void> &operator=(const Weak_ptr<Arg> &other) {
@@ -1102,6 +888,12 @@ namespace STD {
 
         template<typename Target, typename Object>
         friend Weak_ptr<Target> reinterpret_pointer_cast(const Weak_ptr<Object> &object) noexcept;
+
+        // 编译器会自动调用该类型转换（默认使用static_pointer_cast实现），可能会有意外的转化结果。
+        template<typename Other>
+        operator Weak_ptr<Other>() const {
+            return STD::static_pointer_cast<Other, const void>(*this);
+        }
 
         operator bool() const {
             return basic;
@@ -1156,6 +948,147 @@ namespace STD {
     inline bool operator>=(const Weak_ptr<Arg1> &left, const Weak_ptr<Arg2> &right) {
         return left.value >= right.value;
     }
+
+//----------------------------------------------------------------------------------------------------------------------
+
+    template<typename Arg, typename Deleter = Default_delete<Arg>>
+    class Unique_ptr {
+    private:
+        Arg *target = nullptr;
+
+        Deleter deleter;
+
+    public:
+        Unique_ptr(Arg *target = nullptr, Deleter deleter = Deleter()) : target(target), deleter(deleter) {};
+
+        Unique_ptr(const Arg &value, Deleter deleter = Deleter()) :
+                target(new Arg(value)), deleter(deleter) {};
+
+        Unique_ptr(Arg &&value, Deleter deleter = Deleter()) :
+                target(new Arg(move(value))), deleter(deleter) {};
+
+        Unique_ptr(const Unique_ptr<Arg, Deleter> &) = delete;
+
+        Unique_ptr(Unique_ptr<Arg, Deleter> &&other) noexcept:
+                target(other.target), deleter(other.deleter) {
+            other.target = nullptr;
+        };
+
+        template<typename Type, typename T_Deleter>
+        Unique_ptr(Unique_ptr<Type, T_Deleter> &&other, Deleter deleter = Deleter()) noexcept :
+                target(other.target), deleter(deleter) {
+            other.target = nullptr;
+        }
+
+        ~Unique_ptr() { deleter(target); };
+
+        Arg &operator*() const {
+            return *target;
+        }
+
+        Arg *operator->() const {
+            return target;
+        }
+
+        Arg &operator[](Step index) const {
+            return *(target + index);
+        }
+
+        Arg *get() const { return target; };
+
+        Arg *release() {
+            Arg *temp = target;
+            target = nullptr;
+            return temp;
+        }
+
+        void reset(Arg *other = nullptr) {
+            deleter(target);
+            target = other;
+        };
+
+        Unique_ptr<Arg, Deleter>
+        &operator=(const Unique_ptr<Arg, Deleter> &) = delete;
+
+        Unique_ptr<Arg, Deleter>
+        &operator=(Unique_ptr<Arg, Deleter> &&other) noexcept {
+            deleter(target);
+            target = other.target;
+            other.target = nullptr;
+            return *this;
+        }
+
+        template<typename Type, typename T_Deleter>
+        Unique_ptr<Arg, Deleter>
+        &operator=(Unique_ptr<Type, T_Deleter> &&other) noexcept {
+            target = other.target;
+            other.target = nullptr;
+            return *this;
+        }
+
+        operator bool() const {
+            return target;
+        }
+
+        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
+        friend inline bool operator==(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
+
+        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
+        friend inline bool operator!=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
+
+        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
+        friend inline bool operator<(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
+
+        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
+        friend inline bool operator<=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
+
+        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
+        friend inline bool operator>(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
+
+        template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
+        friend inline bool operator>=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right);
+
+        template<typename Deleter1, typename Deleter2>
+        friend Ptrdiff operator-(const Unique_ptr<Arg, Deleter1> &left, const Unique_ptr<Arg, Deleter2> &right) {
+            return left.target - right.target;
+        }
+
+        template<typename Type, typename T_Deleter>
+        friend
+        class Unique_ptr;
+
+    };
+
+    template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
+    inline bool operator==(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right) {
+        return left.target == right.target;
+    }
+
+    template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
+    inline bool operator!=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right) {
+        return left.target != right.target;
+    }
+
+    template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
+    inline bool operator<(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right) {
+        return left.target < right.target;
+    }
+
+    template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
+    inline bool operator<=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right) {
+        return left.target <= right.target;
+    }
+
+    template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
+    inline bool operator>(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right) {
+        return left.target > right.target;
+    }
+
+    template<typename Arg1, typename Arg2, typename Deleter1, typename Deleter2>
+    inline bool operator>=(const Unique_ptr<Arg1, Deleter1> &left, const Unique_ptr<Arg2, Deleter2> &right) {
+        return left.target >= right.target;
+    }
+
 
 }// namespace STD
 

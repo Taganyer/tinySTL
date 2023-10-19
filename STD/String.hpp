@@ -5,7 +5,7 @@
 #ifndef TINYSTL_STRING_HPP
 #define TINYSTL_STRING_HPP
 
-#include "Algorithms/source/Container_algorithms.hpp"
+#include "Algorithms/Container_algorithms.hpp"
 #include "Algorithms/Algorithms1.hpp"
 #include "Iterator.hpp"
 #include <iostream>
@@ -576,32 +576,32 @@ namespace STD {
 
     template<typename Input_iterator>
     String::String(const Input_iterator &begin, const Input_iterator &end)
-            : size_(get_size(begin, end)) {
+            : size_(Detail::Get_Size(begin, end)) {
         val_begin = Allocate_n<char>(size_ + 1);
         store_end = val_begin + size_ + 1;
         val_end = val_begin + size_;
-        fill_with(val_begin, begin, end);
+        Fill_With(val_begin, begin, end);
         *val_end = '\0';
     }
 
     template<typename Input_iterator>
     String &String::assign(const Input_iterator &begin, const Input_iterator &end) {
         Deallocate_n(val_begin);
-        size_ = get_size(begin, end);
+        size_ = Detail::Get_Size(begin, end);
         val_begin = Allocate_n<char>(size_ + 1);
         val_end = val_begin + size_;
         store_end = val_end + 1;
-        fill_with(val_begin, begin, end);
+        Fill_With(val_begin, begin, end);
         *val_end = '\0';
         return *this;
     }
 
     template<typename Input_iterator>
     void String::append(const Input_iterator &begin, const Input_iterator &end) {
-        Size count = get_size(begin, end);
+        Size count = Detail::Get_Size(begin, end);
         if (capacity() - size_ - 1 < count)
             reallocate(capacity() + count + 1);
-        fill_with(val_end, begin, end);
+        Fill_With(val_end, begin, end);
         size_ += count;
         val_end += count;
         *val_end = '\0';
@@ -619,8 +619,8 @@ namespace STD {
             return Iterator(val_begin + pos);
         if (pos > size_)
             throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
-        Size target_len = get_size(begin, end);
-        fill_with(backward(pos, pos + target_len), begin, end);
+        Size target_len = Detail::Get_Size(begin, end);
+        Fill_With(backward(pos, pos + target_len), begin, end);
         return Iterator(val_begin + pos);
     }
 
@@ -642,13 +642,13 @@ namespace STD {
     String::rIterator
     String::insert(const rIterator &iter, const Input_iterator &begin,
                    const Input_iterator &end) {
-        Size size = get_size(begin, end);
+        Size size = Detail::Get_Size(begin, end);
         if (!size) return iter;
         if (iter.target.target >= val_end || iter.target.target < val_begin - 1)
             throw outOfRange("You passed an out-of-range basic in the 'String::insert' function");
         Size pos_from = iter.target.target - val_begin + 1;
         auto ptr = backward(pos_from, pos_from + size) + size - 1;
-        rfill_with(ptr, begin, end);
+        rFill_With(ptr, begin, end);
         return rIterator(Iterator(ptr));
     }
 
@@ -663,12 +663,12 @@ namespace STD {
     String &String::replace(Size pos, Size len, const Input_iterator &begin, const Input_iterator &end) {
         if (pos + len > size_)
             throw outOfRange("You selected an out-of-range basic in the 'String::replace' function");
-        Size target_len = get_size(begin, end);
+        Size target_len = Detail::Get_Size(begin, end);
         if (len < target_len)
             backward(pos + len, pos + target_len);
         else if (len > target_len)
             forward(pos + len, pos + target_len);
-        fill_with(val_begin + pos, begin, end);
+        Fill_With(val_begin + pos, begin, end);
         return *this;
     }
 
@@ -692,19 +692,19 @@ namespace STD {
             begin.target < end.target)
             throw outOfRange("You selected an out-of-range basic in the 'String::replace' function");
         Size len = end - begin;
-        Size target_len = get_size(target_begin, target_end);
+        Size target_len = Detail::Get_Size(target_begin, target_end);
         if (len < target_len) {
             Size pos_from = end.target.target - val_begin + len + 1;
             Size pos_to = pos_from + target_len - len;
             backward(pos_from, pos_to);
-            rfill_with(val_begin + pos_to - 1, target_begin, target_end);
+            rFill_With(val_begin + pos_to - 1, target_begin, target_end);
         } else if (len > target_len) {
             Size pos_from = begin.target.target - val_begin + 1;
             Size pos_to = pos_from + target_len - len;
             forward(pos_from, pos_to);
-            rfill_with(val_begin + pos_to - 1, target_begin, target_end);
+            rFill_With(val_begin + pos_to - 1, target_begin, target_end);
         } else
-            rfill_with(begin.target.target, target_begin, target_end);
+            rFill_With(begin.target.target, target_begin, target_end);
         return *this;
     }
 

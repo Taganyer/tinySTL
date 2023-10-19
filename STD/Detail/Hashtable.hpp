@@ -177,7 +177,7 @@ namespace STD {
         public:
             explicit Hashtable(Hash_Code hasher = Hash_Code(), Equal_ equal = Equal_()) :
                     array(Allocate_n<Node *>(8)), hasher(hasher), equal(equal) {
-                Fill_with<Node *>(array, nullptr, 8);
+                Fill_With(array, 8, nullptr);
             };
 
             Hashtable(const std::initializer_list<Key> &list,
@@ -380,7 +380,7 @@ namespace STD {
                 (const std::initializer_list<Key> &list, Hash_Code hasher, Equal_ equal)
                 : buckets(list.size() + list.size() / 5), array(Allocate_n<Node *>(buckets)),
                   hasher(hasher), equal(equal) {
-            Fill_with<Node *>(array, nullptr, buckets);
+            Fill_With(array, buckets, nullptr);
             for (const Key &t: list) {
                 auto ptr = Allocate<Node>(t);
                 insert(ptr);
@@ -392,12 +392,12 @@ namespace STD {
         Hashtable<Key, Hash_Code, Equal_>::Hashtable
                 (Input_Key begin, const Input_Key &end, Hash_Code hasher, Equal_ equal)
                 : hasher(hasher), equal(equal) {
-            Size temp = calculate_Length(begin, end);
+            Size temp = Distance(begin, end);
             temp += temp / 5;
             if (temp < 8) temp = 8;
             buckets = temp;
             array = Allocate_n<Node *>(buckets);
-            Fill_with<Node *>(array, nullptr, buckets);
+            Fill_With(array, buckets, nullptr);
             while (begin != end) {
                 auto ptr = Allocate<Node>(*begin);
                 insert(ptr);
@@ -416,7 +416,7 @@ namespace STD {
             other.size_ = 0;
             other.buckets = 8;
             other.array = Allocate_n<Node *>(8);
-            Fill_with<Node *>(other.array, nullptr, 8);
+            Fill_With(other.array, 8, nullptr);
         }
 
         template<typename Key, typename Hash_Code, typename Equal_>
@@ -432,7 +432,7 @@ namespace STD {
                 Size old_buckets = buckets;
                 buckets = size_ + size_ / 5;
                 array = Allocate_n<Node *>(buckets);
-                Fill_with<Node *>(array, nullptr, buckets);
+                Fill_With(array, buckets, nullptr);
                 while (old_buckets) {
                     Node *ptr = old[--old_buckets];
                     while (ptr) {
@@ -556,7 +556,7 @@ namespace STD {
             Deallocate(array);
             buckets = other.buckets;
             array = Allocate_n<Node *>(buckets);
-            Fill_with<Node *>(array, nullptr, buckets);
+            Fill_With(array, buckets, nullptr);
             Iterator begin = other.begin(), end = other.end();
             while (begin != end) {
                 insert(*begin);
@@ -577,7 +577,7 @@ namespace STD {
             other.size_ = 0;
             other.buckets = 8;
             other.array = Allocate_n<Node *>(8);
-            Fill_with<Node *>(other.array, nullptr, 8);
+            Fill_With(other.array, 8, nullptr);
             return *this;
         }
 

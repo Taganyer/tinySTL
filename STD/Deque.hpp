@@ -7,7 +7,7 @@
 
 #include "Iterator.hpp"
 #include "Allocater.hpp"
-#include "Algorithms/source/Container_algorithms.hpp"
+#include "Algorithms/Container_algorithms.hpp"
 #include <initializer_list>
 
 namespace STD {
@@ -170,7 +170,7 @@ namespace STD {
 
         Deque(Size size, const Arg &target = Arg());
 
-        Deque(const std::initializer_list<Arg> &list);
+        explicit Deque(const std::initializer_list<Arg> &list);
 
         template<typename Input_iterator>
         Deque(const Input_iterator &begin, const Input_iterator &end);
@@ -623,27 +623,27 @@ namespace STD {
     template<typename Arg>
     Deque<Arg>::Deque(Size size, const Arg &target) : size_(size) {
         init();
-        fill_with(this->begin(), size, target);
+        Fill_With(this->begin(), size, target);
     }
 
     template<typename Arg>
     Deque<Arg>::Deque(const std::initializer_list<Arg> &list) : size_(list.size()) {
         init();
-        fill_with(this->begin(), list);
+        Fill_With(this->begin(), list);
     }
 
     template<typename Arg>
     template<typename Input_iterator>
     Deque<Arg>::Deque(const Input_iterator &begin, const Input_iterator &end)
-            : size_(get_size(begin, end)) {
+            : size_(Detail::Get_Size(begin, end)) {
         init();
-        fill_with(this->begin(), begin, end);
+        Fill_With(this->begin(), begin, end);
     }
 
     template<typename Arg>
     Deque<Arg>::Deque(const Deque<Arg> &other) : size_(other.size_) {
         init();
-        fill_with(this->begin(), other.begin(), other.end());
+        Fill_With(this->begin(), other.begin(), other.end());
     }
 
     template<typename Arg>
@@ -712,7 +712,7 @@ namespace STD {
         Deallocate_n(map);
         size_ = size;
         init();
-        fill_with(this->begin(), size, target);
+        Fill_With(this->begin(), size, target);
         return *this;
     }
 
@@ -723,7 +723,7 @@ namespace STD {
         Deallocate_n(map);
         size_ = list.size();
         init();
-        fill_with(this->begin(), list);
+        Fill_With(this->begin(), list);
         return *this;
     }
 
@@ -733,9 +733,9 @@ namespace STD {
         for (int i = 0; i < map_size; ++i)
             Deallocate_n(map[i]);
         Deallocate_n(map);
-        size_ = get_size(begin, end);
+        size_ = Detail::Get_Size(begin, end);
         init();
-        fill_with(this->begin(), begin, end);
+        Fill_With(this->begin(), begin, end);
         return *this;
     }
 
@@ -773,19 +773,19 @@ namespace STD {
         if (rest < size)
             expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, false);
         subtract(map_begin, val_begin, size);
-        fill_with(this->begin(), size, val);
+        Fill_With(this->begin(), size, val);
         size_ += size;
     }
 
     template<typename Arg>
     template<typename Input_iterator>
     void Deque<Arg>::push_front(const Input_iterator &begin, const Input_iterator &end) {
-        auto size = get_size(begin, end);
+        auto size = Detail::Get_Size(begin, end);
         auto rest = left_rest();
         if (rest < size)
             expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, false);
         subtract(map_begin, val_begin, size);
-        fill_with(this->begin(), begin, end);
+        Fill_With(this->begin(), begin, end);
         size_ += size;
     }
 
@@ -829,7 +829,7 @@ namespace STD {
         auto rest = right_rest();
         if (rest < size)
             expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, true);
-        fill_with(this->end(), size, val);
+        Fill_With(this->end(), size, val);
         add(map_end, val_end, size);
         size_ += size;
     }
@@ -837,11 +837,11 @@ namespace STD {
     template<typename Arg>
     template<typename Input_iterator>
     void Deque<Arg>::push_back(const Input_iterator &begin, const Input_iterator &end) {
-        auto size = get_size(begin, end);
+        auto size = Detail::Get_Size(begin, end);
         auto rest = right_rest();
         if (rest < size)
             expand_capacity((size - rest + BLOCK_SIZE - 1) / BLOCK_SIZE, true);
-        fill_with(this->end(), begin, end);
+        Fill_With(this->end(), begin, end);
         add(map_end, val_end, size);
         size_ += size;
     }
@@ -928,7 +928,7 @@ namespace STD {
         if (pos > size_)
             throw outOfRange("You passed an out-of-range basic in the 'Deque::insert' function");
         insert_move(pos, size);
-        fill_with(get_Iterator(pos), size, val);
+        Fill_With(get_Iterator(pos), size, val);
         size_ += size;
         auto pair = find_ptr(pos);
         return Iterator(pair.first, pair.second, *pair.first + pair.second);
@@ -941,7 +941,7 @@ namespace STD {
             throw outOfRange("You passed an out-of-range basic in the 'Deque::insert' function");
         auto size = list.size();
         insert_move(pos, size);
-        fill_with(get_Iterator(pos), list);
+        Fill_With(get_Iterator(pos), list);
         size_ += size;
         auto pair = find_ptr(pos);
         return Iterator(pair.first, pair.second, *pair.first + pair.second);
@@ -953,9 +953,9 @@ namespace STD {
     Deque<Arg>::insert(Size pos, const Input_iterator &begin, const Input_iterator &end) {
         if (pos > size_)
             throw outOfRange("You passed an out-of-range basic in the 'Deque::insert' function");
-        auto size = get_size(begin, end);
+        auto size = Detail::Get_Size(begin, end);
         insert_move(pos, size);
-        fill_with(get_Iterator(pos), begin, end);
+        Fill_With(get_Iterator(pos), begin, end);
         size_ += size;
         auto pair = find_ptr(pos);
         return Iterator(pair.first, pair.second, *pair.first + pair.second);
@@ -1007,7 +1007,7 @@ namespace STD {
             throw outOfRange("You passed an out-of-range basic in the 'Deque::insert' function");
         insert_move(index, size);
         auto iter = get_Iterator(index + size - 1);
-        rfill_with(iter, val, size);
+        rFill_With(iter, val, size);
         size_ += size;
         return rIterator(iter);
     }
@@ -1019,7 +1019,7 @@ namespace STD {
         auto index = find_pos(pos.target.map, pos.target.pos) + 1;
         insert_move(index, size);
         auto iter = get_Iterator(index + size - 1);
-        rfill_with(iter, list);
+        rFill_With(iter, list);
         size_ += size;
         return rIterator(iter);
     }
@@ -1028,13 +1028,13 @@ namespace STD {
     template<typename Input_iterator>
     typename Deque<Arg>::rIterator
     Deque<Arg>::insert(const rIterator &pos, const Input_iterator &begin, const Input_iterator &end) {
-        auto size = get_size(begin, end);
+        auto size = Detail::Get_Size(begin, end);
         auto index = find_pos(pos.target.map, pos.target.pos) + 1;
         if (index > size_)
             throw outOfRange("You passed an out-of-range basic in the 'Deque::insert' function");
         insert_move(index, size);
         auto iter = get_Iterator(index + size - 1);
-        rfill_with(iter, begin, end);
+        rFill_With(iter, begin, end);
         size_ += size;
         return rIterator(iter);
     }
@@ -1152,7 +1152,7 @@ namespace STD {
         Deallocate_n(map);
         size_ = other.size_;
         init();
-        fill_with(this->begin(), other.begin(), other.end());
+        Fill_With(this->begin(), other.begin(), other.end());
         return *this;
     }
 
