@@ -13,7 +13,7 @@ namespace STD {
 
     using Difference = long long;
 
-    using Step = long long;
+    using Signed_Size = long long;
 
     constexpr int MAX_INT = 2147483647;
 
@@ -31,7 +31,7 @@ namespace STD {
 
         using Size = STD::Size;
 
-        using Step = STD::Step;
+        using Signed_Size = STD::Signed_Size;
 
         using Ptrdiff = STD::Ptrdiff;
 

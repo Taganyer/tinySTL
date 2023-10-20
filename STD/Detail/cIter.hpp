@@ -139,7 +139,7 @@ namespace STD {
             return target.operator->();
         };
 
-        Reference operator[](Step size) const {
+        Reference operator[](Signed_Size size) const {
             return target[size];
         }
 
@@ -165,21 +165,21 @@ namespace STD {
             return temp;
         };
 
-        cIterator &operator+=(Step size) {
+        cIterator &operator+=(Signed_Size size) {
             target += size;
             return *this;
         };
 
-        cIterator &operator-=(Step size) {
+        cIterator &operator-=(Signed_Size size) {
             target -= size;
             return *this;
         };
 
-        friend cIterator operator+(const Self &rIterator, Step size) {
+        friend cIterator operator+(const Self &rIterator, Signed_Size size) {
             return Self(rIterator.target + size);
         };
 
-        friend cIterator operator-(const Self &rIterator, Step size) {
+        friend cIterator operator-(const Self &rIterator, Signed_Size size) {
             return Self(rIterator.target - size);
         };
 

@@ -107,9 +107,9 @@ namespace STD {
     }
 
     template<typename Input_Iterator>
-    Input_Iterator Search_N(Input_Iterator begin, const Input_Iterator &end, Step size) {
+    Input_Iterator Search_N(Input_Iterator begin, const Input_Iterator &end, Signed_Size size) {
         if (size <= 0) return end;
-        Step count = 0;
+        Signed_Size count = 0;
         Input_Iterator temp = begin;
         while (temp != end) {
             if (*temp == *begin) ++count;
@@ -125,10 +125,10 @@ namespace STD {
     }
 
     template<typename Type, typename Input_Iterator>
-    Input_Iterator Search_N(Input_Iterator begin, const Input_Iterator &end, Step size, const Type &val) {
+    Input_Iterator Search_N(Input_Iterator begin, const Input_Iterator &end, Signed_Size size, const Type &val) {
         if (size <= 0) return end;
         Input_Iterator temp = begin;
-        Step count = 0;
+        Signed_Size count = 0;
         while (temp != end) {
             if (*temp == val) {
                 if (!count) begin = temp;
@@ -144,10 +144,10 @@ namespace STD {
     }
 
     template<typename Fun, typename Type, typename Input_Iterator>
-    Input_Iterator Search_N(Input_Iterator begin, const Input_Iterator &end, Step size, const Type &val, Fun fun) {
+    Input_Iterator Search_N(Input_Iterator begin, const Input_Iterator &end, Signed_Size size, const Type &val, Fun fun) {
         if (size <= 0) return end;
         Input_Iterator temp = begin;
-        Step count = 0;
+        Signed_Size count = 0;
         while (temp != end) {
             if (fun(*temp, val)) {
                 if (!count) begin = temp;

@@ -47,7 +47,7 @@ namespace STD {
                 return target;
             };
 
-            Reference operator[](Step size) const {
+            Reference operator[](Signed_Size size) const {
                 return target[size];
             }
 
@@ -71,21 +71,21 @@ namespace STD {
                 return temp;
             };
 
-            Self &operator+=(Step size) {
+            Self &operator+=(Signed_Size size) {
                 target += size;
                 return *this;
             };
 
-            Self &operator-=(Step size) {
+            Self &operator-=(Signed_Size size) {
                 target -= size;
                 return *this;
             };
 
-            friend Self operator+(const Self &Iterator, Step size) {
+            friend Self operator+(const Self &Iterator, Signed_Size size) {
                 return Self(Iterator.target + size);
             };
 
-            friend Self operator-(const Self &Iterator, Step size) {
+            friend Self operator-(const Self &Iterator, Signed_Size size) {
                 return Self(Iterator.target - size);
             };
 
@@ -600,7 +600,7 @@ namespace STD {
     void String::append(const Input_iterator &begin, const Input_iterator &end) {
         Size count = Detail::Get_Size(begin, end);
         if (capacity() - size_ - 1 < count)
-            reallocate(capacity() + count + 1);
+            reallocate(size_ + count + 1 + (size_ + count) / 5);
         Fill_With(val_end, begin, end);
         size_ += count;
         val_end += count;

@@ -107,7 +107,7 @@ namespace STD {
 
         void release_after(Node *begin, Node *end);
 
-        Iterator insert_Helper(Node *location, Step size, Arg target);
+        Iterator insert_Helper(Node *location, Signed_Size size, Arg target);
 
         Iterator insert_Helper(Node *location, const std::initializer_list<Arg> &list);
 
@@ -304,7 +304,7 @@ namespace STD {
 
     template<typename Arg>
     typename Forward_List<Arg>::Iterator
-    Forward_List<Arg>::insert_Helper(Node *location, Step size, Arg target) {
+    Forward_List<Arg>::insert_Helper(Node *location, Signed_Size size, Arg target) {
         if (!size) return Iterator(location, this);
         Node *last = location, *now = location, *store;
         size_ += size;

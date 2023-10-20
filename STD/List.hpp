@@ -144,7 +144,7 @@ namespace STD {
 
         void release(Node *begin, Node *end);
 
-        Iterator insert_Helper(Node *location, Step size, Arg target, bool reverse);
+        Iterator insert_Helper(Node *location, Signed_Size size, Arg target, bool reverse);
 
         Iterator insert_Helper(Node *location, const std::initializer_list<Arg> &list, bool reverse);
 
@@ -361,7 +361,7 @@ namespace STD {
     template<typename Arg>
     typename List<Arg>::Iterator
     List<Arg>::insert_Helper(Node *location,
-                             Step size, Arg target, bool reverse) {
+                             Signed_Size size, Arg target, bool reverse) {
         if (!size) return Iterator(location, this);
         Node *record = location;
         size_ += size;

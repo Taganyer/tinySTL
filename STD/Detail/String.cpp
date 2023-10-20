@@ -33,8 +33,8 @@ void String::forward(Size pos_from, Size pos_to) {
 char *String::backward(Size pos_from, Size pos_to) {
     Size new_size = size_ + pos_to - pos_from + 1;
     if (new_size > capacity()) {
-        auto the_new = Allocate_n<char>(new_size), temp = the_new;
-        store_end = the_new + new_size;
+        auto the_new = Allocate_n<char>(new_size + new_size / 5), temp = the_new;
+        store_end = the_new + new_size + new_size / 5;
         for (int i = 0; i < pos_from; ++i) {
             *temp = *val_begin;
             ++temp, ++val_begin;
@@ -142,7 +142,7 @@ void String::append(Size len, char t) {
 
 void String::append(const char *target, Size len) {
     if (capacity() - size_ - 1 < len)
-        reallocate(capacity() + len + 1);
+        reallocate(size_ + len + 1 + (size_ + len) / 5);
     Fill_With(val_end, target, target + len);
     size_ += len;
     val_end += len;

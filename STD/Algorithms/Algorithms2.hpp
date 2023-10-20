@@ -7,6 +7,7 @@
 
 #include "../Iterator.hpp"
 #include "../Function.hpp"
+#include "../Vector.hpp"
 
 namespace STD {
 
@@ -58,7 +59,7 @@ namespace STD {
             }
         };
 
-        for (Step i = (size >> 1) - 1; i >= 0; --i) {
+        for (Signed_Size i = (size >> 1) - 1; i >= 0; --i) {
             create_max_heap(i, size);
         }
         for (Size i = size; i > 0; --i) {
@@ -98,6 +99,106 @@ namespace STD {
     void Sort(const Input_iterator &begin, const Input_iterator &end,
               Compare fun = Less<typename Iterator_traits<Input_iterator>::Value_type>()) {
         Detail::Sort_Helper(begin, end, fun, Iterator_category(begin));
+    }
+
+    template<typename Fun, typename Input_iterator>
+    bool Is_Partitioned(Input_iterator begin, Input_iterator end, Fun fun) {
+        bool less = false, great = false;
+        while (begin != end) {
+            bool t = fun(*begin);
+            if (less && great && t || !less && great && t) return false;
+            if (t) less = true;
+            else great = true;
+            ++begin;
+        }
+    }
+
+    template<typename Fun, typename Input_iterator, typename Output_iterator1, typename Output_iterator2>
+    void Partition_Copy(Input_iterator begin, const Input_iterator &end,
+                        Output_iterator1 dest1, Output_iterator2 dest2, Fun fun) {
+        while (begin != end) {
+            if (fun(*begin)) {
+                *dest1 = *begin;
+                ++dest1;
+            } else {
+                *dest2 = *begin;
+                ++dest2;
+            }
+            ++begin;
+        }
+    }
+
+    template<typename Fun, typename Input_iterator, typename Output_iterator1, typename Output_iterator2>
+    void Partition_Move(Input_iterator begin, const Input_iterator &end,
+                        Output_iterator1 dest1, Output_iterator2 dest2, Fun fun) {
+        while (begin != end) {
+            if (fun(*begin)) {
+                *dest1 = move(*begin);
+                ++dest1;
+            } else {
+                *dest2 = move(*begin);
+                ++dest2;
+            }
+            ++begin;
+        }
+    }
+
+    template<typename Fun, typename Input_iterator>
+    Input_iterator Partition_Point(Input_iterator begin, const Input_iterator &end, Fun fun) {
+        while (begin != end) {
+            if (!fun(*begin)) break;
+            ++begin;
+        }
+        return begin;
+    }
+
+    template<typename Fun, typename Input_iterator>
+    Input_iterator Stable_Partition(Input_iterator begin, const Input_iterator &end, Fun fun) {
+        Vector<typename Input_iterator::Value_Type> store_t, store_f;
+        while (begin != end && fun(*begin)) ++begin;
+        Input_iterator start = begin, temp = start;
+        while (begin != end) {
+            if (fun(*begin)) store_t.push_back(move(*begin));
+            else store_f.push_back(move(*begin));
+            ++begin;
+        }
+        for (auto &t: store_t) {
+            *start = move(t);
+            ++start;
+        }
+        for (auto &t: store_f) {
+            *start = move(t);
+            ++start;
+        }
+        return temp;
+    }
+
+    namespace Detail {
+        template<typename Fun, typename Input_iterator>
+        Input_iterator Partition_Helper(Input_iterator begin, const Input_iterator &end,
+                                        Fun fun, Input_iterator_tag) {
+            return Stable_Partition(begin, end, fun);
+        }
+
+        template<typename Fun, typename Input_iterator>
+        Input_iterator Partition_Helper(Input_iterator begin, const Input_iterator &end,
+                                        Fun fun, Bidirectional_iterator_tag) {
+            while (begin != end && fun(*begin)) ++begin;
+            if (begin == end) return begin;
+            Input_iterator store = begin;
+            while (!fun(*--end));
+            while (begin != end) {
+                swap(*begin, *end);
+                while (!fun(*--end));
+                while (begin != end && fun(*begin)) ++begin;
+            }
+            return store;
+        }
+    }
+
+    template<typename Fun, typename Input_iterator>
+    Input_iterator Partition(Input_iterator begin, const Input_iterator &end, Fun fun) {
+        return Detail::Partition_Helper(begin, end, fun, Iterator_category(begin));
     }
 
 

@@ -49,7 +49,7 @@ namespace STD {
                 return target;
             };
 
-            Reference operator[](Step size) const {
+            Reference operator[](Signed_Size size) const {
                 return target[size];
             }
 
@@ -73,21 +73,21 @@ namespace STD {
                 return temp;
             };
 
-            Self &operator+=(Step size) {
+            Self &operator+=(Signed_Size size) {
                 target += size;
                 return *this;
             };
 
-            Self &operator-=(Step size) {
+            Self &operator-=(Signed_Size size) {
                 target -= size;
                 return *this;
             };
 
-            friend Self operator+(const Self &Iterator, Step size) {
+            friend Self operator+(const Self &Iterator, Signed_Size size) {
                 return Self(Iterator.target + size);
             };
 
-            friend Self operator-(const Self &Iterator, Step size) {
+            friend Self operator-(const Self &Iterator, Signed_Size size) {
                 return Self(Iterator.target - size);
             };
 
@@ -406,7 +406,7 @@ namespace STD {
     Arg *Vector<Arg>::backward(Size pos_from, Size pos_to) {
         Size new_size = size_ + pos_to - pos_from;
         if (new_size > capacity()) {
-            auto the_new = Allocate_n<Arg>(new_size), temp = the_new;
+            auto the_new = Allocate_n<Arg>(new_size + new_size / 5), temp = the_new;
             for (int i = 0; i < pos_from; ++i) {
                 *temp = move(*val_begin);
                 ++temp, ++val_begin;
@@ -417,7 +417,8 @@ namespace STD {
                 ++temp, ++val_begin;
             }
             val_begin = the_new;
-            store_end = val_end = temp;
+            val_end = temp;
+            store_end = val_end + new_size / 5;
         } else {
             auto temp1 = val_end - 1, temp2 = val_end - 1 + pos_to - pos_from;
             auto target_end = val_begin + pos_from;
@@ -511,7 +512,7 @@ namespace STD {
     template<typename Arg>
     void Vector<Arg>::push_back(Size size, const Arg &val) {
         if (capacity() - size_ < size)
-            reallocate(capacity() + size);
+            reallocate(size_ + size + (size_ + size) / 5);
         Fill_With(val_end, size, val);
         size_ += size;
         val_end += size;
@@ -522,7 +523,7 @@ namespace STD {
     void Vector<Arg>::push_back(const Input_iterator &begin, const Input_iterator &end) {
         Size count = Detail::Get_Size(begin, end);
         if (capacity() - size_ < count)
-            reallocate(capacity() + count);
+            reallocate(size_ + count + (size_ + count) / 5);
         Fill_With(val_end, begin, end);
         size_ += count;
         val_end += count;

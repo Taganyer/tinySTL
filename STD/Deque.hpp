@@ -59,7 +59,7 @@ namespace STD {
                 return target;
             };
 
-            Reference operator[](Step size) const {
+            Reference operator[](Signed_Size size) const {
                 return Container::find_value(map, pos, target, size);
             }
 
@@ -85,17 +85,17 @@ namespace STD {
                 return temp;
             };
 
-            Self &operator+=(Step size) {
+            Self &operator+=(Signed_Size size) {
                 Container::add(map, pos, target, size);
                 return *this;
             };
 
-            Self &operator-=(Step size) {
+            Self &operator-=(Signed_Size size) {
                 Container::subtract(map, pos, target, size);
                 return *this;
             };
 
-            friend Self operator+(const Self &Iterator, Step size) {
+            friend Self operator+(const Self &Iterator, Signed_Size size) {
                 auto map_ = Iterator.map;
                 auto pos_ = Iterator.pos;
                 auto target_ = Iterator.target;
@@ -103,7 +103,7 @@ namespace STD {
                 return Self(map_, pos_, target_);
             };
 
-            friend Self operator-(const Self &Iterator, Step size) {
+            friend Self operator-(const Self &Iterator, Signed_Size size) {
                 auto map_ = Iterator.map;
                 auto pos_ = Iterator.pos;
                 auto target_ = Iterator.target;

@@ -193,7 +193,7 @@ namespace STD {
             return value;
         }
 
-        Arg &operator[](Step index) const {
+        Arg &operator[](Signed_Size index) const {
             return *(value + index);
         }
 
@@ -590,7 +590,7 @@ namespace STD {
             return value;
         };
 
-        Arg &operator[](Step index) const {
+        Arg &operator[](Signed_Size index) const {
             return *(value + index);
         }
 
@@ -990,7 +990,7 @@ namespace STD {
             return target;
         }
 
-        Arg &operator[](Step index) const {
+        Arg &operator[](Signed_Size index) const {
             return *(target + index);
         }
 
