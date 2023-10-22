@@ -10,4 +10,6 @@
 
 #include "Algorithms/Algorithms2.hpp"
 
+#include "Algorithms/Algorithms3.hpp"
+
 #endif // TINYSTL_ALGORITHMS_HPP

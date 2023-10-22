@@ -396,7 +396,7 @@ namespace STD {
     void Vector<Arg>::reallocate(Size size) {
         auto the_new = Allocate_n<Arg>(size), the_old = val_begin;
         store_end = the_new + size;
-        for (int i = 0; i < size_; ++i) *the_new++ = move(*the_old++);
+        for (Size i = 0; i < size_; ++i) *the_new++ = move(*the_old++);
         val_begin = store_end - size;
         val_end = val_begin + size_;
         Deallocate_n(the_old - size_);
@@ -486,7 +486,7 @@ namespace STD {
     void Vector<Arg>::emplace_back(args &&... vals) {
         if (capacity() <= size_)
             reallocate(size_ + 1 > size_ + size_ / 5 ? size_ + 1 : size_ + size_ / 5);
-        *(val_begin + size_) = Arg(forward<args>(vals)...);
+        val_begin[size_] = Arg(forward<args>(vals)...);
         ++size_;
         ++val_end;
     }
@@ -495,7 +495,7 @@ namespace STD {
     void Vector<Arg>::push_back(const Arg &val) {
         if (capacity() <= size_)
             reallocate(size_ + 1 > size_ + size_ / 5 ? size_ + 1 : size_ + size_ / 5);
-        *(val_begin + size_) = val;
+        val_begin[size_] = val;
         ++size_;
         ++val_end;
     }
@@ -504,7 +504,7 @@ namespace STD {
     void Vector<Arg>::push_back(Arg &&val) {
         if (capacity() <= size_)
             reallocate(size_ + 1 > size_ + size_ / 5 ? size_ + 1 : size_ + size_ / 5);
-        *(val_begin + size_) = move(val);
+        val_begin[size_] = move(val);
         ++size_;
         ++val_end;
     }

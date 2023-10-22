@@ -106,10 +106,7 @@ namespace STD {
 
         using Self = List<Arg>;
 
-        List() {
-            val_begin->next = val_end;
-            val_end->last = val_begin;
-        };
+        List() = default;
 
         List(Size size, Arg target = Arg());
 

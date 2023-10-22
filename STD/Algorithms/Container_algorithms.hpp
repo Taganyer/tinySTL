@@ -53,7 +53,7 @@ namespace STD {
 
         template<typename Output_iterator>
         Output_iterator Advance_Helper(Output_iterator target,
-                                 Size size, Random_iterator_tag) {
+                                       Size size, Random_iterator_tag) {
             return target += size;
         }
 
@@ -69,7 +69,7 @@ namespace STD {
 
         template<typename Output_iterator>
         Output_iterator Backwards_Helper(Output_iterator target,
-                                   Size size, Random_iterator_tag) {
+                                         Size size, Random_iterator_tag) {
             return target -= size;
         }
     }

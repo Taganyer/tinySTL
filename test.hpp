@@ -28,6 +28,8 @@
 #include "STD/Tuple.hpp"
 #include "STD/BitSet.hpp"
 #include <memory>
+#include <chrono>
+#include <fstream>
 
 namespace STD {
     using std::cout;
@@ -72,6 +74,8 @@ namespace STD {
 
     void BitSet_test();
 
+    void Speed_Test();
+
 
     void Vector_test() {
         Vector<int> test(10, 0),
@@ -81,6 +85,8 @@ namespace STD {
 
         //11010
         cout << (test == test3) << (test < test1) << (test > test1) << (test <= test1) << (test >= test1) << endl;
+
+        for (int i = 0; i < 100; ++i) test.push_back(i);
 
         for (auto i: test) {
             cout << i << ends;
@@ -215,7 +221,7 @@ namespace STD {
         test.replace(test.crbegin(), test.crbegin() + 5, "asdfghjkl");
 
         test *= 1000;
-//        cout << *test3.insert(test3.cend(), test) << endl;
+        cout << *test3.insert(test3.cend(), test) << endl;
         Sort(test3.begin(), test3.end());
         cout << *Binary_Search(test3.begin(), test3.end(), '9') << endl;
         cout << (Hash<String>()(test)) << endl;
@@ -563,11 +569,13 @@ namespace STD {
         test == test2;
         struct A {
             using Type = int;
+
             virtual void show() {};
         };
 
         struct B : A {
             const int i = 99;
+
             void show() override {
                 cout << i << endl;
             }
@@ -585,8 +593,6 @@ namespace STD {
             }
         }
         Unique_ptr<A> ta = Unique_ptr<B>(nullptr);
-//        Unique_ptr<void, Default_delete<A>> void_t(move(ta));
-//        void_t = move(ta);
     }
 
     void Tuple_test() {
@@ -602,7 +608,60 @@ namespace STD {
         String temp = test.to_String();
         test = BitSet<64>(temp);
         cout << test.to_String() << endl;
+    }
 
+    void Speed_Test() {
+        std::ofstream out("../Speed_Test.txt", std::ofstream::app);
+        out << "总测试次数： 100 * 9\n" << endl;
+        out << "----------------------------------------------------------------------------------------" << endl;
+        for (int count = 0; count < 9; ++count) {
+            int size = 10;
+            for (int i = 0; i < count; ++i) size *= 10;
+            Size time1 = 0, time2 = 0, time3 = 0;
+            for (int t = 0; t < 100; ++t) {
+                std::vector<int> test1;
+                Vector<int> test2;
+                List<int> test3;
+                for (int i = 0; i < size; ++i) {
+                    if (i % 2) {
+                        test1.push_back(i);
+                        test2.push_back(i);
+                        test3.push_back(i);
+                    } else {
+                        test1.push_back(-i);
+                        test2.push_back(-i);
+                        test3.push_back(-i);
+                    }
+                }
+
+                auto begin1 = std::chrono::high_resolution_clock::now();
+                std::sort(test1.begin(), test1.end());
+                auto end1 = std::chrono::high_resolution_clock::now();
+                auto elapsed1 = std::chrono::duration_cast<std::chrono::nanoseconds>(end1 - begin1);
+
+                auto begin2 = std::chrono::high_resolution_clock::now();
+                Sort(test2.begin(), test2.end(), Less<int>());
+                auto end2 = std::chrono::high_resolution_clock::now();
+                auto elapsed2 = std::chrono::duration_cast<std::chrono::nanoseconds>(end2 - begin2);
+
+                auto begin3 = std::chrono::high_resolution_clock::now();
+                Sort(test3.begin(), test3.end(), Less<int>());
+                auto end3 = std::chrono::high_resolution_clock::now();
+                auto elapsed3 = std::chrono::duration_cast<std::chrono::nanoseconds>(end3 - begin3);
+
+                time1 += elapsed1.count();
+                time2 += elapsed2.count();
+                time3 += elapsed3.count();
+            }
+
+            out << "数据量： " << size << endl;
+            out << "时间： " << time1 << " | " << time2 << " | " << time3 << endl;
+            out << "比率： " << 1.0 << " | " << (double) time2 / (double) time1 << " | "
+                << (double) time3 / (double) time1 << endl;
+            out << "----------------------------------------------------------------------------------------" << endl;
+            out.close();
+            out.open("../Speed_Test.txt", std::ofstream::app);
+        }
     }
 
 }
