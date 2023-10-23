@@ -5,8 +5,7 @@
 #ifndef TINYSTL_STRING_HPP
 #define TINYSTL_STRING_HPP
 
-#include "Algorithms/Container_algorithms.hpp"
-#include "Algorithms/Algorithms1.hpp"
+#include "Algorithms/String_Algorithms1.hpp"
 #include "Iterator.hpp"
 #include <iostream>
 

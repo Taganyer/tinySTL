@@ -1,8 +1,6 @@
 #ifndef TINYSTL_ALGORITHMS_HPP1
 #define TINYSTL_ALGORITHMS_HPP1
 
-#include "../Allocater.hpp"
-
 namespace STD {
 
     template<typename Type, typename Input_Iterator>
@@ -144,7 +142,8 @@ namespace STD {
     }
 
     template<typename Fun, typename Type, typename Input_Iterator>
-    Input_Iterator Search_N(Input_Iterator begin, const Input_Iterator &end, Signed_Size size, const Type &val, Fun fun) {
+    Input_Iterator
+    Search_N(Input_Iterator begin, const Input_Iterator &end, Signed_Size size, const Type &val, Fun fun) {
         if (size <= 0) return end;
         Input_Iterator temp = begin;
         Signed_Size count = 0;
@@ -379,32 +378,6 @@ namespace STD {
     Equal_Range(Input_iterator begin, const Input_iterator &end, const Arg &value, Fun compare) {
         return {Lower_Bound(begin, end, value, compare), Upper_Bound(begin, end, value, compare)};
     }
-
-    Size Get_Length(const char *target);
-
-    const char *Boyer_Moore(const char *pattern, Size pattern_len, const char *target, Size target_length);
-
-    const char *Boyer_Moore(const char *pattern, const char *target, Size target_length);
-
-    const char *Boyer_Moore(const char *pattern, const char *target);
-
-    const char *rBoyer_Moore(const char *pattern, Size pattern_len, const char *target, Size target_length);
-
-    const char *rBoyer_Moore(const char *pattern, const char *target, Size target_length);
-
-    const char *rBoyer_Moore(const char *pattern, const char *target);
-
-    const char *Knuth_Morris_Pratt(const char *pattern, Size pattern_len, const char *target, Size target_length);
-
-    const char *Knuth_Morris_Pratt(const char *pattern, const char *target, Size target_length);
-
-    const char *Knuth_Morris_Pratt(const char *pattern, const char *target);
-
-    const char *rKnuth_Morris_Pratt(const char *pattern, Size pattern_len, const char *target, Size target_length);
-
-    const char *rKnuth_Morris_Pratt(const char *pattern, const char *target, Size target_length);
-
-    const char *rKnuth_Morris_Pratt(const char *pattern, const char *target);
 
 } // namespace STD
 

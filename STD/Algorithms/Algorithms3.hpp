@@ -189,6 +189,17 @@ namespace STD {
             *--dest = move(*--end1);
     }
 
+    template<typename Type, typename Output_iterator>
+    void Iota(Output_iterator begin, const Output_iterator &end, Type init) {
+        if (begin == end) return;
+        *begin = init;
+        ++begin;
+        while (begin != end) {
+            *begin = ++init;
+            ++begin;
+        }
+    }
+
 }
 
 #endif //TINYSTL_ALGORITHMS3_HPP

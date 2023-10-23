@@ -186,6 +186,7 @@ namespace STD {
 //----------------------------------------------------------------------------------------------------------------------
 
     void MemSet(void *target, int val, Size size);
+
 }
 
 #endif //TINYSTL_CONTAINER_ALGORITHMS_HPP

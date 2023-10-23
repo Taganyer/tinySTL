@@ -180,23 +180,29 @@ namespace STD {
         }
 
         friend BitSet<size_>
-        operator|=(const BitSet<size_> &left, const BitSet<size_> &right) {
+        operator|(const BitSet<size_> &left, const BitSet<size_> &right) {
             BitSet<size_> temp(left);
             temp |= right;
             return temp;
         }
 
         friend BitSet<size_>
-        operator&=(const BitSet<size_> &left, const BitSet<size_> &right) {
+        operator&(const BitSet<size_> &left, const BitSet<size_> &right) {
             BitSet<size_> temp(left);
             temp &= right;
             return temp;
         }
 
         friend BitSet<size_>
-        operator^=(const BitSet<size_> &left, const BitSet<size_> &right) {
+        operator^(const BitSet<size_> &left, const BitSet<size_> &right) {
             BitSet<size_> temp(left);
             temp ^= right;
+            return temp;
+        }
+
+        friend BitSet<size_> operator~(const BitSet<size_> &target) {
+            BitSet<size_> temp(target);
+            temp.flip();
             return temp;
         }
 

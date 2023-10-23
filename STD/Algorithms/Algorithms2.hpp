@@ -7,7 +7,6 @@
 
 #include "../Iterator.hpp"
 #include "../Function.hpp"
-#include "../Vector.hpp"
 #include "Container_algorithms.hpp"
 
 namespace STD {
@@ -487,6 +486,180 @@ namespace STD {
     template<typename Fun, typename Input_iterator>
     Input_iterator Remove_If(Input_iterator begin, const Input_iterator &end, const Fun &fun) {
         return Detail::Remove_If_Helper(begin, end, fun, Iterator_category(begin));
+    }
+
+    template<typename Type, typename Input_iterator, typename Output_iterator>
+    void Remove_Copy(Input_iterator begin, const Input_iterator &end,
+                     Output_iterator dest, const Type &value) {
+        while (begin != end) {
+            if (*begin != value) {
+                *dest = *begin;
+                ++dest;
+            }
+            ++begin;
+        }
+    }
+
+    template<typename Fun, typename Input_iterator, typename Output_iterator>
+    void Remove_If_Copy(Input_iterator begin, const Input_iterator &end,
+                        Output_iterator dest, const Fun &fun) {
+        while (begin != end) {
+            if (!fun(*begin)) {
+                *dest = *begin;
+                ++dest;
+            }
+            ++begin;
+        }
+    }
+
+    template<typename Input_iterator>
+    bool Is_Unique(Input_iterator begin, const Input_iterator &end) {
+        if (begin == end) return true;
+        Input_iterator last = begin;
+        while (++begin != end) {
+            if (*begin == *last)
+                return false;
+            ++last;
+        }
+        return true;
+    }
+
+    template<typename Fun, typename Input_iterator>
+    bool Is_Unique(Input_iterator begin, const Input_iterator &end, Fun equal) {
+        if (begin == end) return true;
+        Input_iterator last = begin;
+        while (++begin != end) {
+            if (equal(*begin, *last))
+                return false;
+            ++last;
+        }
+        return true;
+    }
+
+    template<typename Input_iterator>
+    Input_iterator Unique(Input_iterator begin, const Input_iterator &end) {
+        if (begin == end) return end;
+        Input_iterator last = begin;
+        while (++begin != end) {
+            if (!(*begin == *last) && ++last != begin)
+                *last = *begin;
+        }
+        return last;
+    }
+
+    template<typename Fun, typename Input_iterator>
+    Input_iterator Unique(Input_iterator begin, const Input_iterator &end, Fun equal) {
+        if (begin == end) return end;
+        Input_iterator last = begin;
+        while (++begin != end) {
+            if (!equal(*begin, *last) && ++last != begin)
+                *last = *begin;
+        }
+        return last;
+    }
+
+    template<typename Input_iterator, typename Output_iterator>
+    void Unique_Copy(Input_iterator begin, const Input_iterator &end, Output_iterator dest) {
+        if (begin == end) return;
+        Input_iterator last = begin;
+        while (++begin != end) {
+            while (begin != end && *last == *begin) ++begin;
+            *dest = *last;
+            last = begin;
+        }
+        *dest = *last;
+    }
+
+    template<typename Fun, typename Input_iterator, typename Output_iterator>
+    void Unique_Copy(Input_iterator begin, const Input_iterator &end, Fun equal, Output_iterator dest) {
+        if (begin == end) return;
+        Input_iterator last = begin;
+        while (++begin != end) {
+            while (begin != end && equal(*last, *begin)) ++begin;
+            *dest = *last;
+            last = begin;
+        }
+        *dest = *last;
+    }
+
+    template<typename Input_iterator>
+    void Rotate(Input_iterator begin, Input_iterator mid, const Input_iterator &end) {
+        List<typename Iterator_traits<Input_iterator>::Value_type> store;
+        Input_iterator temp = begin;
+        while (temp != mid) {
+            store.push_back(move(*temp));
+            ++temp;
+        }
+        while (mid != end) {
+            *begin = move(*mid);
+            ++begin, ++mid;
+        }
+        for (auto &t: store) {
+            *begin = move(t);
+            ++begin;
+        }
+    }
+
+    template<typename Input_iterator, typename Output_iterator>
+    void Rotate_Copy(Input_iterator begin, Input_iterator mid,
+                     const Input_iterator &end, Output_iterator dest) {
+        Input_iterator record = mid;
+        while (mid != end) {
+            *dest = *mid;
+            ++dest, ++mid;
+        }
+        while (begin != record) {
+            *dest = *begin;
+            ++dest, ++begin;
+        }
+    }
+
+    template<typename Bidirectional_iterator>
+    void Reverse(Bidirectional_iterator begin, Bidirectional_iterator end) {
+        while (begin != end) {
+            if (--end != begin) swap(*begin, *end);
+            else break;
+            ++begin;
+        }
+    }
+
+    template<typename Bidirectional_iterator, typename Output_iterator>
+    void Reverse_Copy(Bidirectional_iterator begin, Bidirectional_iterator end, Output_iterator dest) {
+        while (begin != end) {
+            *dest = *--end;
+            ++dest;
+        }
+    }
+
+    template<typename Random_iterator>
+    void Shuffle(Random_iterator begin, Random_iterator end) {
+        Size length = end - begin, M = length / 5, k;
+        if (length < 2) return;
+        if (M == 0) M = 1;
+        for (Size i = M; i < length; ++i) {
+            srand((unsigned) time(NULL));
+            k = rand() % (i + 1);
+            if (k < M)
+                swap(begin[k], begin[i]);
+        }
+    }
+
+    template<typename Input_iterator, typename Random_iterator>
+    void Shuffle_Copy(Input_iterator begin, const Input_iterator &end, Random_iterator dest) {
+        Size length = 0;
+        while (begin != end) {
+            *dest = *begin;
+            ++dest, ++begin, ++length;
+        }
+        Size M = length / 5, k;
+        if (length < 2) return;
+        if (M == 0) M = 1;
+        for (Size i = M; i < length; ++i) {
+            srand((unsigned) time(NULL));
+            k = rand() % (i + 1);
+            if (k < M)
+                swap(begin[k], begin[i]);
+        }
     }
 
 

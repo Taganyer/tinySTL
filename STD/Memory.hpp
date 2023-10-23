@@ -129,10 +129,10 @@ namespace STD {
         };
 
     public:
-        template<typename Deleter = Default_delete<Arg>>
-        Shared_ptr(Arg *target = nullptr, Deleter del = Deleter()) : value(target) {
+        template<typename Type, typename Deleter = Default_delete<Type>>
+        explicit Shared_ptr(Type *target = nullptr, Deleter del = Deleter()) : value(target) {
             if (target) {
-                basic = Allocate<Detail::Value<Arg, Deleter>>(del);
+                basic = Allocate<Detail::Value<Type, Deleter>>(del);
                 ++basic->shared_ptr_count;
             } else basic = nullptr;
         };
