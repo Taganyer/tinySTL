@@ -38,8 +38,7 @@ namespace STD {
                     break;
                 }
             }
-            if (!skip)
-                return target + i;
+            if (!skip) return target + i;
         }
         return nullptr;
     }
@@ -73,8 +72,7 @@ namespace STD {
                     break;
                 }
             }
-            if (!skip)
-                return target + i - pattern_len + 1;
+            if (!skip) return target + i - pattern_len + 1;
         }
         return nullptr;
     }

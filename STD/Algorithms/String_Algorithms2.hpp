@@ -145,6 +145,18 @@ namespace STD {
         return temp;
     }
 
+    String To_String(float target) {
+        String temp;
+        auto ptr = reinterpret_cast<const bool *>(&target);
+        if (*ptr) temp.append('-');
+        int exponent = 0;
+        for (int i = 0, j = 8; j > 0; ++i, --j)
+            exponent |= ptr[j] << i;
+        ptr += 9;
+        exponent -= 127;
+        return temp;
+    }
+
 }
 
 #endif //TINYSTL_STRING_ALGORITHMS2_HPP

@@ -15,6 +15,22 @@ namespace STD {
 
     using Signed_Size = long long;
 
+    using Int_8 = char;
+
+    using Int_16 = short;
+
+    using Int_32 = int;
+
+    using Int_64 = long long;
+
+    using UInt_8 = unsigned char;
+
+    using UInt_16 = unsigned short;
+
+    using UInt_32 = unsigned int;
+
+    using UInt_64 = unsigned long long;
+
     constexpr int MAX_INT = 2147483647;
 
     constexpr int MIN_INT = -2147483648;

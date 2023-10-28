@@ -30,6 +30,7 @@
 #include <memory>
 #include <chrono>
 #include <fstream>
+#include <bitset>
 
 namespace STD {
     using std::cout;
@@ -75,6 +76,8 @@ namespace STD {
     void BitSet_test();
 
     void Speed_Test();
+
+    void Algorithms_test();
 
 
     void Vector_test() {
@@ -662,6 +665,12 @@ namespace STD {
             out.close();
             out.open("../Speed_Test.txt", std::ofstream::app);
         }
+    }
+
+    void Algorithms_test() {
+        double t1 = 1111111111111111111.0000001;
+        float t2 = 1111111111111111111.0000001f;
+        cout << Floor(t1) << endl << Floor(-t2) <<  endl;
     }
 
 }

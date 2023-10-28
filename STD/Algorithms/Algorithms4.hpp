@@ -273,24 +273,6 @@ namespace STD {
         return begin1 == end1 && begin2 != end2;
     }
 
-    template<typename Type, typename Input_iterator>
-    Type Accumulate(Input_iterator begin, const Input_iterator &end, Type init) {
-        while (begin != end) {
-            init = init + *begin;
-            ++begin;
-        }
-        return init;
-    }
-
-    template<typename Fun, typename Type, typename Input_iterator>
-    Type Accumulate(Input_iterator begin, const Input_iterator &end, Type init, Fun fun) {
-        while (begin != end) {
-            init = fun(init, *begin);
-            ++begin;
-        }
-        return init;
-    }
-
     template<typename Type, typename Input_iterator1, typename Input_iterator2>
     Type Inner_Product(Input_iterator1 begin1, const Input_iterator1 &end1,
                        Input_iterator2 begin2, Type init) {
