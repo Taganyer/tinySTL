@@ -159,8 +159,6 @@ void String::append(const char *target, Size pos, Size len) {
 
 void String::append(const String &target, Size pos, Size len) {
     if (len == Npos) len = target.size_;
-    if (pos + len > size_)
-        throw outOfRange("You selected an out-of-range basic in the 'String::append or String::push_back' function");
     append(target.c_str() + pos, len);
 }
 
