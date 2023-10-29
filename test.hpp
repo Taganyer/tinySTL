@@ -670,7 +670,7 @@ namespace STD {
     void Algorithms_test() {
         double t1 = 123456.789;
         float t2 = 11111.990001f;
-        cout << Floor(t1) << endl << Floor(-t2) <<  endl;
+        cout << Floor(t1) << endl << Floor(-t2) << endl;
         cout << To_String(-t1) << endl << To_String(t2) << endl;
     }
 
