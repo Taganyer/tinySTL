@@ -78,6 +78,14 @@ namespace STD {
         ~overFLow() override = default;
     };
 
+    struct errorArgument : public runtimeError {
+        errorArgument() : runtimeError("errorArgument\n") {};
+
+        using runtimeError::runtimeError;
+
+        ~errorArgument() override = default;
+    };
+
 }
 
 #endif //TINYSTL_WARNING_HPP

@@ -27,6 +27,8 @@
 #include <iostream>
 #include "STD/Tuple.hpp"
 #include "STD/BitSet.hpp"
+#include <algorithm>
+#include <vector>
 #include <memory>
 #include <chrono>
 #include <fstream>
@@ -672,6 +674,8 @@ namespace STD {
         float t2 = 11111.990001f;
         cout << Floor(t1) << endl << Floor(-t2) << endl;
         cout << To_String(-t1) << endl << To_String(t2) << endl;
+        String target(To_String(MAX_DOUBLE));
+        cout << Stod(target) << endl;
     }
 
 }
