@@ -33,8 +33,7 @@ namespace STD {
             for (int j = (int) pattern_len - 1; j > -1; --j) {
                 if (pattern[j] != target[i + j]) {
                     skip = j - store[target[i + j]];
-                    if (skip < 1)
-                        skip = 1;
+                    if (skip < 1) skip = 1;
                     break;
                 }
             }
@@ -67,8 +66,7 @@ namespace STD {
             for (int j = 0; j < pattern_len; ++j) {
                 if (pattern[j] != target[i + j - pattern_len + 1]) {
                     skip = store[target[i + j - pattern_len + 1]];
-                    if (skip < 1)
-                        skip = 1;
+                    if (skip < 1) skip = 1;
                     break;
                 }
             }
@@ -99,8 +97,7 @@ namespace STD {
         }
         int i, j;
         for (i = 0, j = 0; i < target_length && j < pattern_len; ++i)
-            j =
-                    dp[target[i]][j];
+            j = dp[target[i]][j];
         if (j == pattern_len) return pattern + i - pattern_len;
         else return nullptr;
     }
@@ -127,8 +124,7 @@ namespace STD {
         }
         int i, j;
         for (i = 0, j = 0; i < target_length && j < pattern_len; ++i)
-            j =
-                    dp[target[i]][j];
+            j = dp[target[i]][j];
         if (j == pattern_len) return pattern + i - pattern_len;
         else return nullptr;
     }

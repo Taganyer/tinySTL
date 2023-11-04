@@ -449,6 +449,53 @@ namespace STD {
         using Type = Arg;
     };
 
+    template<typename Arg>
+    struct Decay {
+        using Type = typename Remove_reference<typename Remove_cv<Arg>::Type>::Type;
+    };
+
+    template<typename Temp>
+    struct Always_False {
+        static constexpr bool Value = false;
+    };
+
+    template<typename Temp>
+    struct Always_True {
+        static constexpr bool value = true;
+    };
+
+    template<typename ...Args>
+    struct Common_Type;
+
+    template<typename Arg>
+    struct Common_Type<Arg> {
+        using Type = Arg;
+    };
+
+    template<typename Arg1, typename Arg2>
+    struct Common_Type<Arg1, Arg2> {
+        using Type = decltype(Always_False<Arg1>::Value ? Decay<Arg1>() : Decay<Arg2>());
+    };
+
+    template<typename Arg1, typename Arg2, typename ...Args>
+    struct Common_Type<Arg1, Arg2, Args...> {
+        using Type = typename Common_Type<typename Common_Type<Arg1, Arg2>::Type, Args...>::Type;
+    };
+
+    template<typename Type1, typename Type2>
+    struct Is_Same_Type {
+        static constexpr bool Value = false;
+    };
+
+    template<typename Type>
+    struct Is_Same_Type<Type, Type> {
+        static constexpr bool Value = true;
+    };
+
+    template<typename Type1, typename Type2>
+    constexpr bool Is_Same_Type_V = Is_Same_Type < Type1, Type2
+    >::Value;
+
 }
 
 #endif //TINYSTL_TYPE_TRAITS_HPP

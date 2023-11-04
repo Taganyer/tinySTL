@@ -254,7 +254,7 @@ namespace STD {
         while (pos < n && target[pos] >= '0' && target[pos] <= '9') {
             judge = false;
             if (value > mark || value == mark && (flag && target[pos] > '8' || !flag && target[pos] > '7'))
-                throw overFLow("Input value overFlow in Stos\n");
+                throw overFLow("Input Value overFlow in Stos\n");
             value = value * 10 + (target[pos] - '0');
             ++pos;
         }
@@ -274,7 +274,7 @@ namespace STD {
         constexpr unsigned short mark = MAX_UINT_SHORT / 10;
         while (pos < n && target[pos] >= '0' && target[pos] <= '9') {
             if (value > mark || value == mark && target[pos] > '5')
-                throw overFLow("Input value overFlow in Stous\n");
+                throw overFLow("Input Value overFlow in Stous\n");
             value = value * 10 + (target[pos] - '0');
             ++pos;
         }
@@ -296,7 +296,7 @@ namespace STD {
         while (pos < n && target[pos] >= '0' && target[pos] <= '9') {
             judge = false;
             if (value > mark || value == mark && (flag && target[pos] > '8' || !flag && target[pos] > '7'))
-                throw overFLow("Input value overFlow in Stoi\n");
+                throw overFLow("Input Value overFlow in Stoi\n");
             value = value * 10 + (target[pos] - '0');
             ++pos;
         }
@@ -316,7 +316,7 @@ namespace STD {
         constexpr unsigned mark = MAX_UINT_INT / 10;
         while (pos < n && target[pos] >= '0' && target[pos] <= '9') {
             if (value > mark || value == mark && target[pos] > '5')
-                throw overFLow("Input value overFlow in Stou\n");
+                throw overFLow("Input Value overFlow in Stou\n");
             value = value * 10 + (target[pos] - '0');
             ++pos;
         }
@@ -338,7 +338,7 @@ namespace STD {
         while (pos < n && target[pos] >= '0' && target[pos] <= '9') {
             judge = false;
             if (value > mark || value == mark && (flag && target[pos] > '8' || !flag && target[pos] > '7'))
-                throw overFLow("Input value overFlow in Stol\n");
+                throw overFLow("Input Value overFlow in Stol\n");
             value = value * 10 + (target[pos] - '0');
             ++pos;
         }
@@ -358,7 +358,7 @@ namespace STD {
         constexpr unsigned long mark = MAX_UINT_LONG / 10;
         while (pos < n && target[pos] >= '0' && target[pos] <= '9') {
             if (value > mark || value == mark && target[pos] > '5')
-                throw overFLow("Input value overFlow in Stoul\n");
+                throw overFLow("Input Value overFlow in Stoul\n");
             value = value * 10 + (target[pos] - '0');
             ++pos;
         }
@@ -380,7 +380,7 @@ namespace STD {
         while (pos < n && target[pos] >= '0' && target[pos] <= '9') {
             judge = false;
             if (value > mark || value == mark && (flag && target[pos] > '8' || !flag && target[pos] > '7'))
-                throw overFLow("Input value overFlow in Stoll\n");
+                throw overFLow("Input Value overFlow in Stoll\n");
             value = value * 10 + (target[pos] - '0');
             ++pos;
         }
@@ -400,7 +400,7 @@ namespace STD {
         constexpr unsigned long long mark = MAX_UINT_LLONG / 10;
         while (pos < n && target[pos] >= '0' && target[pos] <= '9') {
             if (value > mark || value == mark && target[pos] > '5')
-                throw overFLow("Input value overFlow in Stoull\n");
+                throw overFLow("Input Value overFlow in Stoull\n");
             value = value * 10 + (target[pos] - '0');
             ++pos;
         }
@@ -423,7 +423,7 @@ namespace STD {
         while (pos < n && target[pos] >= '0' && target[pos] <= '9') {
             judge = false;
             if (value > mark1)
-                throw overFLow("Input value overFlow in Stof\n");
+                throw overFLow("Input Value overFlow in Stof\n");
             value *= 10;
             if (count < 6) value += static_cast<float>(target[pos] - '0');
             ++pos, ++count;
@@ -458,7 +458,7 @@ namespace STD {
         while (pos < n && target[pos] >= '0' && target[pos] <= '9') {
             judge = false;
             if (value > mark1)
-                throw overFLow("Input value overFlow in Stod\n");
+                throw overFLow("Input Value overFlow in Stod\n");
             value *= 10;
             if (count < 16) value += target[pos] - '0';
             ++pos, ++count;
