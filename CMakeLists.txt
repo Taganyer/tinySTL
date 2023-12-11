@@ -7,4 +7,5 @@ add_executable(
         tinySTL main.cpp
         STD/Detail/String.cpp
         STD/Algorithms/Detail/String_Algorithms1.cpp
+        test.cpp
 )

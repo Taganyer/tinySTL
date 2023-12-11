@@ -100,6 +100,7 @@ namespace STD {
         AVL_Tree_Iterator<Key, Compare, Equal_>::operator++(int) {
             Self temp = Self(target, container);
             ++(*this);
+            return temp;
         }
 
         template<typename Key, typename Compare, typename Equal_>
@@ -125,6 +126,7 @@ namespace STD {
         AVL_Tree_Iterator<Key, Compare, Equal_>::operator--(int) {
             Self temp = Self(target, container);
             --(*this);
+            return temp;
         }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -196,7 +198,7 @@ namespace STD {
 
         private:
             // 计算传入节点的左节点与右节点之差
-            int height_difference(Node *node) const {
+            static int height_difference(Node *node) {
                 if (!node) return 0;
                 int left = node->left ? node->left->height : 0;
                 int right = node->right ? node->right->height : 0;
@@ -204,7 +206,7 @@ namespace STD {
             };
 
             // 重新计算传入节点的高度
-            void calculate_height(Node *node) const {
+            static void calculate_height(Node *node) {
                 int left = node->left ? node->left->height : 0;
                 int right = node->right ? node->right->height : 0;
                 node->height = left > right ? left + 1 : right + 1;
@@ -251,7 +253,7 @@ namespace STD {
         public:
             AVL_Tree() = default;
 
-            AVL_Tree(const Compare &compare) : less(compare) {};
+            explicit AVL_Tree(const Compare &compare) : less(compare) {};
 
             AVL_Tree(const Compare &compare, const Equal_ &equal) : less(compare), equal(equal) {};
 
@@ -512,13 +514,13 @@ namespace STD {
 
         template<typename Key, typename Compare, typename Equal_>
         AVL_Tree<Key, Compare, Equal_>::AVL_Tree(const Self &other) :
-                size_(other.size_), less(other.less), equal(other.equal) {
+                less(other.less), equal(other.equal), size_(other.size_) {
             root = copy(other.root);
         }
 
         template<typename Key, typename Compare, typename Equal_>
         AVL_Tree<Key, Compare, Equal_>::AVL_Tree(Self &&other) noexcept
-                : size_(other.size_), root(other.root), less(other.less), equal(other.equal) {
+                : root(other.root), less(other.less), equal(other.equal), size_(other.size_) {
             other.size_ = 0;
             other.root = nullptr;
         }
@@ -667,7 +669,7 @@ namespace STD {
         template<typename Key, typename Compare, typename Equal_>
         typename AVL_Tree<Key, Compare, Equal_>::cIterator
         AVL_Tree<Key, Compare, Equal_>::lower_bound(const Key &key) const {
-            cIterator(const_cast<Self *>(this)->lower_bound(key));
+            return cIterator(const_cast<Self *>(this)->lower_bound(key));
         }
 
         template<typename Key, typename Compare, typename Equal_>

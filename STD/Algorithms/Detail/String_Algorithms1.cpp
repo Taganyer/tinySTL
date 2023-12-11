@@ -12,6 +12,7 @@ namespace STD {
     }
 
     Size Get_Length(const char *target) {
+        if (!target) return 0;
         const char *temp = target;
         Size len = 0;
         while (*temp != '\0')

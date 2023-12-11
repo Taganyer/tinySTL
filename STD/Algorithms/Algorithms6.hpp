@@ -41,7 +41,7 @@ namespace STD {
     }
 
     float Ceil(float target) {
-        if (target > MAX_LLONG || target < LLONG_MIN ||
+        if (target > MAX_LLONG || target < MIN_LLONG ||
             target == static_cast<Int_64>(target))
             return target;
         if (target < 0) return static_cast<Int_64>(target);
@@ -49,7 +49,7 @@ namespace STD {
     }
 
     double Ceil(double target) {
-        if (target > MAX_LLONG || target < LLONG_MIN ||
+        if (target > MAX_LLONG || target < MIN_LLONG ||
             target == static_cast<Int_64>(target))
             return target;
         if (target < 0) return static_cast<Int_64>(target);
@@ -57,7 +57,7 @@ namespace STD {
     }
 
     float Floor(float target) {
-        if (target > MAX_LLONG || target < LLONG_MIN ||
+        if (target > MAX_LLONG || target < MIN_LLONG ||
             target == static_cast<Int_64>(target))
             return target;
         if (target < 0) return static_cast<Int_64>(target) - 1;
@@ -65,7 +65,7 @@ namespace STD {
     }
 
     double Floor(double target) {
-        if (target > MAX_LLONG || target < LLONG_MIN ||
+        if (target > MAX_LLONG || target < MIN_LLONG ||
             target == static_cast<Int_64>(target))
             return target;
         if (target < 0) return static_cast<Int_64>(target) - 1;

@@ -63,7 +63,7 @@ namespace STD {
 #elif SIZEOF_LONG_ == 8
     constexpr long MAX_LONG = 9223372036854775807;
 
-    constexpr long MIN_LONG = -9223372036854775808;
+    constexpr long MIN_LONG = -9223372036854775807L - 1;
 
     constexpr unsigned long MAX_UINT_LONG = -1;
 
@@ -73,7 +73,7 @@ namespace STD {
 
     constexpr long long MAX_LLONG = 9223372036854775807;
 
-    constexpr long long MIN_LLONG = -9223372036854775808;
+    constexpr long long MIN_LLONG = -9223372036854775807L - 1;;
 
     constexpr unsigned long long MAX_UINT_LLONG = -1;
 

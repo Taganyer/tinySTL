@@ -715,6 +715,26 @@ namespace STD {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+    String operator+(const String &left, const String &right);
+
+    String operator*(const String &target, int size);
+
+    std::ostream &operator<<(std::ostream &out, const String &target);
+
+    std::istream &operator>>(std::istream &in, String &target);
+
+    bool operator==(const String &left, const String &right);
+
+    bool operator!=(const String &left, const String &right);
+
+    bool operator<(const String &left, const String &right);
+
+    bool operator<=(const String &left, const String &right);
+
+    bool operator>(const String &left, const String &right);
+
+    bool operator>=(const String &left, const String &right);
+
 } // namespace STD
 
 #endif // TINYSTL_STRING_HPP

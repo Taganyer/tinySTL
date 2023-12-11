@@ -116,7 +116,7 @@ namespace STD {
     };
 
     template<typename Container>
-    inline Inserter_Iterator<Container> Inserter(Container &target, typename Container::Iterator iterator) {
+    Inserter_Iterator<Container> Inserter(Container &target, typename Container::Iterator iterator) {
         return Inserter_Iterator<Container>(target, iterator);
     }
 

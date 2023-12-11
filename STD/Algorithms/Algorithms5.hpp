@@ -51,7 +51,7 @@ namespace STD {
     }
 
     template<typename Fun1, typename Fun2, typename Input_iterator1, typename Input_iterator2, typename Output_iterator>
-    bool Set_Union(Input_iterator1 begin1, const Input_iterator1 &end1,
+    void Set_Union(Input_iterator1 begin1, const Input_iterator1 &end1,
                    Input_iterator2 begin2, const Input_iterator2 &end2,
                    Output_iterator dest, Fun1 equal, Fun2 compare) {
         while (begin1 != end1 || begin2 != end2) {
