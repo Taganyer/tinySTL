@@ -15,7 +15,7 @@ namespace STD {
 
     namespace Detail {
         template<typename Input_iterator>
-        inline typename Iterator_traits<Input_iterator>::Difference_type
+        typename Iterator_traits<Input_iterator>::Difference_type
         Distance_Helper(const Input_iterator &begin, const Input_iterator &end, Input_iterator_tag) {
             typename Iterator_traits<Input_iterator>::Difference_type count = 0;
             Input_iterator temp = begin;
@@ -26,14 +26,14 @@ namespace STD {
         }
 
         template<typename Random_iterator>
-        inline typename Iterator_traits<Random_iterator>::Difference_type
+        typename Iterator_traits<Random_iterator>::Difference_type
         Distance_Helper(const Random_iterator &begin, const Random_iterator &end, Random_iterator_tag) {
             return end - begin;
         }
     }
 
     template<typename Input_iterator>
-    inline typename Iterator_traits<Input_iterator>::Difference_type
+    typename Iterator_traits<Input_iterator>::Difference_type
     Distance(const Input_iterator &begin, const Input_iterator &end) {
         return Detail::Distance_Helper(begin, end, Iterator_category(begin));
     }
@@ -88,12 +88,12 @@ namespace STD {
 
     namespace Detail {
         template<typename Input_iterator>
-        inline Size Get_Size_Helper(Size size, const Input_iterator &target, True_type) {
+        Size Get_Size_Helper(Size size, const Input_iterator &target, True_type) {
             return size;
         }
 
         template<typename Input_iterator>
-        inline Size Get_Size_Helper(Input_iterator begin, const Input_iterator &end, False_type) {
+        Size Get_Size_Helper(Input_iterator begin, const Input_iterator &end, False_type) {
             return Distance(begin, end);
         }
 
@@ -134,7 +134,7 @@ namespace STD {
         }
 
         template<typename Input_iterator>
-        inline Size Get_Size(Input_iterator begin, const Input_iterator &end) {
+        Size Get_Size(Input_iterator begin, const Input_iterator &end) {
             return Get_Size_Helper(begin, end, Is_integral<Input_iterator>());
         }
     }

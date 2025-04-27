@@ -72,19 +72,6 @@ namespace STD {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-        // template<unsigned Index, unsigned Step, typename Head, typename ...Next>
-        // struct get_traits : public get_traits<Index - 1, Step + 1, Next...> {
-        // };
-        //
-        // template<unsigned Step, typename Head, typename ...Next>
-        // struct get_traits<0, Step, Head, Next...> {
-        //     using Type = typename Tuple_Helper<Step, Head, Next...>::NodeT::Type;
-        //
-        //     using Ref = typename Tuple_Helper<Step, Head, Next...>::NodeT::Ref;
-        //
-        //     using C_Ref = typename Tuple_Helper<Step, Head, Next...>::NodeT::C_Ref;
-        // };
-
         template <unsigned Index, typename... Args>
         struct get_traits {
             using Type = typename Tuple_Helper<Index, Args...>::NodeT::Type;
